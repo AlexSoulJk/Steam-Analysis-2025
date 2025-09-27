@@ -1,0 +1,133 @@
+@startuml
+!define API_COLOR #4A90E2
+!define REPO_COLOR #50E3C2
+!define SERVICE_COLOR #B8E986
+!define FACADE_COLOR #F5A623
+!define HTTP_COLOR #BD10E0
+
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor #000000
+}
+
+' ===== HTTP СЛОЙ =====
+package "HTTP Layer" as http {
+    interface HTTPClient <<Protocol>> {
+        + get(url: str, params: dict = None) -> dict
+        + post(url: str, data: dict = None) -> dict
+    }
+
+    class RequestsClient <<Concrete>> {
+        - session: Session
+        + get(url: str, params: dict = None, headers: dict = None) -> Dict[str, Any]
+        + post(url: str, data: dict = None, headers: dict = None) -> Dict[str, Any]
+    }
+
+    class RequestsWithDelayClient <<Concrete>> {
+        - delay: float
+        - last_request_time: float
+        - session: Session
+        + _ensure_delay()
+        + get(url: str, params: dict = None, headers: dict = None) -> Dict[str, Any]
+        + post(url: str, data: dict = None, headers: dict = None) -> Dict[str, Any]
+    }
+
+}
+
+' ===== РЕПОЗИТОРИИ =====
+package "Repository Layer" as repo {
+    abstract class BaseRepository {
+        {abstract} + get_by_id(id: str) -> Optional[Dict]
+    }
+
+    class PlayerRepository {
+        - http_client: HTTPClient
+        - api_key: str
+        - base_url: str
+        + get_by_id(steam_id: str) -> Optional[Dict]
+        + get_friends(steam_id: str) -> List[Dict]
+        + get_owned_games(steam_id: str) -> List[Dict]
+    }
+
+    class GameRepository {
+        - http_client: HTTPClient
+        - api_key: str
+        - store_url: str
+        - api_url: str
+        + get_by_id(app_id: int) -> Optional[Dict]
+        + get_schema(app_id: int) -> Optional[Dict]
+        + get_reviews(app_id: int, limit: int = 100) -> List[Dict]
+    }
+
+    BaseRepository <|-- PlayerRepository
+    BaseRepository <|-- GameRepository
+}
+
+' ===== СЕРВИСЫ =====
+package "Service Layer" as service {
+    class PlayerService {
+        - player_repo: PlayerRepository
+        - game_repo: GameRepository
+        + get_player_profile(steam_id: str) -> Optional[Dict]
+        + analyze_gaming_preferences(steam_id: str) -> Optional[Dict]
+    }
+
+    class GameService {
+        - game_repo: GameRepository
+        + get_game_analysis(app_id: int) -> Optional[Dict]
+        + get_multiple_games(app_ids: List[int]) -> Dict[int, Any]
+    }
+}
+
+' ===== ФАСАД =====
+package "Facade Layer" as facade {
+    class SteamAnalysisFacade <<Facade>> {
+        - player_repo: PlayerRepository
+        - game_repo: GameRepository
+        - player_service: PlayerService
+        - game_service: GameService
+        + get_player(steam_id: str) -> Optional[Dict]
+        + get_player_full_profile(steam_id: str) -> Optional[Dict]
+        + analyze_player(steam_id: str) -> Optional[Dict]
+        + get_game(app_id: int) -> Optional[Dict]
+        + analyze_game(app_id: int) -> Optional[Dict]
+    }
+}
+
+' ===== ЗАВИСИМОСТИ =====
+RequestsClient --> HTTPClient
+RequestsWithDelayClient --> HTTPClient
+
+PlayerRepository --> RequestsClient : uses
+GameRepository --> RequestsWithDelayClient : uses
+
+PlayerService --> PlayerRepository : depends on
+PlayerService --> GameRepository : depends on
+GameService --> GameRepository : depends on
+
+SteamAnalysisFacade --> PlayerService : aggregates
+SteamAnalysisFacade --> GameService : aggregates
+SteamAnalysisFacade --> PlayerRepository : aggregates
+SteamAnalysisFacade --> GameRepository : aggregates
+
+
+' ===== NOTES =====
+note top of HTTPClient
+  <<Protocol>>
+  Базовый интерфейс для HTTP клиентов
+  Поддержка sync/async через Protocol
+end note
+
+note right of BaseRepository
+  <<Abstract Base Class>>
+  CRUD операции для сущностей
+  Изоляция данных от бизнес-логики
+end note
+
+note left of SteamAnalysisFacade
+  <<Facade Pattern>>
+  Упрощенный интерфейс для клиентов
+  Скрывает сложность внутренней архитектуры
+end note
+@enduml
