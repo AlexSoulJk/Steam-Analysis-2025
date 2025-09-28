@@ -29,6 +29,11 @@ class GameService:
             'achievements_count': len(schema.get('availableGameStats', {}).get('achievements', [])) if schema else 0
         }
 
+    def get_game_list(self,
+                      offset: int = 0,
+                      size: int = 100):
+        return self.game_repo.get_game_list(offset, size)
+
     def _calculate_avg_playtime(self, reviews: List[Dict[str, Any]]) -> float:
         playtimes = [r.get('author', {}).get('playtime_forever', 0) for r in reviews]
         valid_playtimes = [p for p in playtimes if p > 0]

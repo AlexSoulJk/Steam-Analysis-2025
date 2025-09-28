@@ -3,6 +3,11 @@ from dataclasses import dataclass
 from datetime import datetime
 
 @dataclass
+class GameShortInfo:
+    app_id: int
+    name: str
+
+@dataclass
 class GameAnalysisData:
     """Структурированные данные игры для анализа"""
     # Базовые идентификаторы

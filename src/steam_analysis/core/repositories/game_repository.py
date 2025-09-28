@@ -1,10 +1,11 @@
+import time
 from datetime import datetime
 
 from .base import BaseRepository
 from typing import List, Optional, Dict, Any
 
 from ..codes.steamservices import SteamServices
-from ..schemas.game import GameAnalysisData
+from ..schemas.game import GameAnalysisData, GameShortInfo
 from ...core.dependencies.basehttp import HTTPClient
 
 import logging
@@ -19,8 +20,9 @@ class GameRepository(BaseRepository):
     def __init__(self, http_client: HTTPClient, api_key: str):
         self.http_client = http_client
         self.api_key = api_key
+        self._full_app_list_cache: Optional[Any] = None
 
-    def get_by_id(self, app_id: int) -> Optional[GameAnalysisData]:
+    def get_by_id(self, app_id: int, **kwargs) -> Optional[GameAnalysisData]:
         """Получить игру по AppID"""
         url = f"{GameRepository.STORE_URL}/api/appdetails"
         params = {'appids': app_id}
@@ -37,6 +39,68 @@ class GameRepository(BaseRepository):
         except Exception as e:
             logger.error(f"Error getting game {app_id}: {e}")
             return None
+
+    def get_by_ids(self, ids: list[int], **kwargs) -> Optional[List[GameAnalysisData]]:
+        pass
+
+    def get_game_list(self,
+                      offset: int = 0,
+                      size: int = 100) -> List[GameShortInfo]:
+        """
+        Получить пагинированный список всех игр из Steam
+
+        Args:
+            offset: Смещение для пагинации
+            size: Количество игр для возврата
+
+        Returns:
+            List[GameShortInfo]: Список игр с базовой информацией
+        """
+        try:
+            full_list = self._get_cached_app_list()
+
+            # Применяем пагинацию
+            start_idx = offset
+            end_idx = offset + size
+
+            if start_idx >= len(full_list):
+                return []
+
+            paginated_games = full_list[start_idx:end_idx]
+
+            return [
+                GameShortInfo(app_id=game['appid'], name=game['name'])
+                for game in paginated_games
+            ]
+
+        except Exception as e:
+            logger.error(f"Error getting game list: {e}")
+            return []
+
+    def _get_cached_app_list(self) -> List[dict]:
+        """Получить кэшированный список приложений"""
+        current_time = time.time()
+
+        # Если кэш устарел или пустой, обновляем
+        if (self._full_app_list_cache is None or
+                current_time - self._cache_timestamp > self._cache_ttl):
+            self._full_app_list_cache = self._fetch_app_list()
+            self._cache_timestamp = current_time
+            logger.info(f"Cached app list with {len(self._full_app_list_cache)} items")
+
+        return self._full_app_list_cache
+
+    def _fetch_app_list(self) -> List[dict]:
+        """Загрузить полный список приложений с API"""
+        url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamApps}/GetAppList/v2/"
+
+        logger.info("Fetching full app list from Steam API...")
+        response = self.http_client.get(url)
+        apps = response.get('applist', {}).get('apps', [])
+
+        logger.info(f"Retrieved {len(apps)} applications")
+        return apps
+
 
     def get_schema(self, app_id: int) -> Optional[Dict[str, Any]]:
         """Получить схему игры (достижения, статистика)"""
