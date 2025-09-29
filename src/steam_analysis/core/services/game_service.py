@@ -33,7 +33,9 @@ class GameService:
         }
 
     def collect_categories(self, coll_info):
+
         dump_categories = self.resource_manager.get_resource_data(ResourceCodes.GAME_CATEGORIES)
+
         if not dump_categories: dump_categories = {}
         offset, size = coll_info
         g_list = self.game_repo.get_game_list(offset, size)
