@@ -5,10 +5,12 @@ from .base import BaseRepository
 from typing import List, Optional, Dict, Any
 
 from ..codes.steamservices import SteamServices
-from ..schemas.game import GameAnalysisData, GameShortInfo
+from ..schemas.game import GameAnalysisData, GameShortInfo, GameCategory
 from ...core.dependencies.basehttp import HTTPClient
 
 import logging
+
+from ...resourcemanager.resources.codes import ResourceCodes
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,7 @@ class GameRepository(BaseRepository):
     API_STEAMPOWERED_URL = "https://api.steampowered.com"
 
     def __init__(self, http_client: HTTPClient, api_key: str):
+        super().__init__()
         self.http_client = http_client
         self.api_key = api_key
         self._full_app_list_cache: Optional[Any] = None
@@ -92,15 +95,17 @@ class GameRepository(BaseRepository):
 
     def _fetch_app_list(self) -> List[dict]:
         """Загрузить полный список приложений с API"""
-        url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamApps}/GetAppList/v2/"
+        if self.resource_manager.is_resource_expired(ResourceCodes.GAME_LIST):
+            url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamApps}/GetAppList/v2/"
+            logger.info("Fetching full app list from Steam API...")
+            response = self.http_client.get(url)
+            apps = response.get('applist', {}).get('apps', [])
+            self.resource_manager.save_resource(ResourceCodes.GAME_LIST, apps)
+            logger.info(f"Retrieved {len(apps)} applications")
+        else:
+            apps = self.resource_manager.get_resource_data(ResourceCodes.GAME_LIST)
 
-        logger.info("Fetching full app list from Steam API...")
-        response = self.http_client.get(url)
-        apps = response.get('applist', {}).get('apps', [])
-
-        logger.info(f"Retrieved {len(apps)} applications")
         return apps
-
 
     def get_schema(self, app_id: int) -> Optional[Dict[str, Any]]:
         """Получить схему игры (достижения, статистика)"""
@@ -123,6 +128,9 @@ class GameRepository(BaseRepository):
 
         data = self.http_client.get(url, params=params)
         return data.get('reviews', [])
+
+    def get_category_list(self) -> List[GameCategory]:
+        pass
 
     def _parse_game_data(self, app_id: int, raw_data: Dict[str, Any]) -> GameAnalysisData:
         """Парсинг сырых данных в структурированный формат для анализа"""

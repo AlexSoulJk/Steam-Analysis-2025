@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 from typing import Dict, Any, Optional, Type
 from .resources.base import Resource
@@ -60,11 +61,12 @@ class ResourceManager:
             return False
         return resource.load()
 
-    def save_resource(self, resource_name: ResourceCodes) -> bool:
+    def save_resource(self, resource_name: ResourceCodes, data: Any) -> bool:
         """Сохранить ресурс в хранилище"""
         resource = self.get_resource(resource_name)
         if not resource:
             return False
+        resource.update(data, time.time())
         return resource.save()
 
     def update_resource(self, resource_name: ResourceCodes, data: Any) -> bool:
@@ -73,7 +75,7 @@ class ResourceManager:
         if not resource:
             return False
 
-        resource.update(data)
+        resource.update(data, time.time())
         return self.save_resource(resource_name)
 
     def get_resource_data(self, resource_name: ResourceCodes) -> Optional[Any]:

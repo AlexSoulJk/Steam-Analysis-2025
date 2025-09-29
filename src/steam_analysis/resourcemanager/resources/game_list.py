@@ -22,7 +22,7 @@ class GameList(Resource):
 
             with open(self.file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                self.update(data)
+                self.update(data.get("data"), data.get("last_upd"))
                 return True
 
         except Exception as e:
@@ -36,7 +36,7 @@ class GameList(Resource):
 
         try:
             with open(self.file_path, 'w', encoding='utf-8') as f:
-                json.dump(self._data, f, ensure_ascii=False, indent=2)
+                json.dump({"last_upd": self._last_updated, "data": self._data}, f, ensure_ascii=False, indent=2)
             return True
         except Exception as e:
             logger.error(f"Failed to save resource {self.name}: {e}")

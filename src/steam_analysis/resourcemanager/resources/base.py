@@ -24,6 +24,12 @@ class Resource(ABC):
         self._resource_base_path = resource_base_path
         self.file_extension = "json"
         self._ensure_resources_dir()
+        self._init_source()
+
+    def _init_source(self):
+        tmp = self.load()
+        if not tmp:
+            logger.debug("There was no resource {} yet...".format(self.name))
 
     @property
     def is_expired(self) -> bool:
@@ -51,10 +57,10 @@ class Resource(ABC):
         """Получить данные ресурса"""
         return self._data
 
-    def update(self, data: Any):
+    def update(self, data: Any, time: time.time):
         """Обновить данные ресурса"""
         self._data = data
-        self._last_updated = time.time()
+        self._last_updated = time
         items_count = len(data) if hasattr(data, '__len__') else '?'
         logger.info(f"Resource '{self.name.value}' updated with {items_count} items")
 

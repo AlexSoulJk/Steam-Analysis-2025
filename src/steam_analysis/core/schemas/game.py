@@ -6,6 +6,10 @@ from datetime import datetime
 class GameShortInfo:
     app_id: int
     name: str
+@dataclass
+class GameCategory:
+    category_id: int
+    name: str
 
 @dataclass
 class GameAnalysisData:
