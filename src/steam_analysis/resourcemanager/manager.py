@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 from typing import Dict, Any, Optional, Type
 from .resources.base import Resource
+from .resources.categories import GameCategory
 from .resources.codes import ResourceCodes
 from .resources.game_list import GameList
 import logging
@@ -38,6 +39,7 @@ class ResourceManager:
         logger.info(f"Initializing resources in: {resource_path}")
 
         self._register_resource(GameList(resource_path))
+        self._register_resource(GameCategory(resource_path))
 
     def _register_resource(self, resource: Resource):
         """Зарегистрировать ресурс"""
@@ -69,6 +71,7 @@ class ResourceManager:
         resource.update(data, time.time())
         return resource.save()
 
+
     def update_resource(self, resource_name: ResourceCodes, data: Any) -> bool:
         """Обновить данные ресурса"""
         resource = self.get_resource(resource_name)
@@ -76,7 +79,7 @@ class ResourceManager:
             return False
 
         resource.update(data, time.time())
-        return self.save_resource(resource_name)
+        return self.save_resource(resource_name, data)
 
     def get_resource_data(self, resource_name: ResourceCodes) -> Optional[Any]:
         """Получить данные ресурса"""

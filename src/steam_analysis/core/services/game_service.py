@@ -1,10 +1,13 @@
 from typing import List, Dict, Any, Optional
 from ..repositories.game_repository import GameRepository
+from ...resourcemanager.manager import resource_manager
+from ...resourcemanager.resources.codes import ResourceCodes
 
 
 class GameService:
     def __init__(self, game_repo: GameRepository):
         self.game_repo = game_repo
+        self.resource_manager = resource_manager
 
     def get_game_analysis(self, app_id: int) -> Optional[Dict[str, Any]]:
         """Полный анализ игры"""
@@ -28,6 +31,25 @@ class GameService:
             },
             'achievements_count': len(schema.get('availableGameStats', {}).get('achievements', [])) if schema else 0
         }
+
+    def collect_categories(self, coll_info):
+        dump_categories = self.resource_manager.get_resource_data(ResourceCodes.GAME_CATEGORIES)
+        if not dump_categories: dump_categories = {}
+        offset, size = coll_info
+        g_list = self.game_repo.get_game_list(offset, size)
+
+        for game_info in g_list:
+
+            t = self.game_repo.get_by_id(game_info.app_id)
+
+            if not t: continue
+
+            for category in t.categories:
+                dump_categories[str(category["id"])] = category["description"]
+
+
+        self.resource_manager.update_resource(ResourceCodes.GAME_CATEGORIES, dump_categories)
+
 
     def get_game_list(self,
                       offset: int = 0,

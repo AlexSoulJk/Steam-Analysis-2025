@@ -34,6 +34,7 @@ def main():
 
     # Работа с играми
     # game = steam.get_game(730)  # CS:GO
+    steam.game_service.collect_categories((5, 10))
     print(f"Игры: {steam.game_service.get_game_list()}")
 
     # game_analysis = steam.analyze_game(730)

@@ -44,7 +44,21 @@ class GameRepository(BaseRepository):
             return None
 
     def get_by_ids(self, ids: list[int], **kwargs) -> Optional[List[GameAnalysisData]]:
+        url = f"{GameRepository.STORE_URL}/api/appdetails"
+        params = {'appids': ids}
         pass
+        # try:
+        #     data = self.http_client.get(url, params=params)
+        #     # game_data = data.get(str(app_id), {})
+        #
+        #     if not game_data.get('success'):
+        #         logger.warning(f"Game {app_id} not found or failed to load")
+        #         return None
+        #
+        #     return self._parse_game_data(app_id, game_data['data'])
+        # except Exception as e:
+        #     logger.error(f"Error getting game {app_id}: {e}")
+        #     return None
 
     def get_game_list(self,
                       offset: int = 0,
@@ -79,7 +93,6 @@ class GameRepository(BaseRepository):
         except Exception as e:
             logger.error(f"Error getting game list: {e}")
             return []
-
     def _get_cached_app_list(self) -> List[dict]:
         """Получить кэшированный список приложений"""
         current_time = time.time()
