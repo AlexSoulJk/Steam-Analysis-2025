@@ -49,9 +49,5 @@ class DictionaryModel(BaseModel):
     name = Column(String(100), unique=True, nullable=False, index=True)
     description = Column(String(255))
 
-    __table_args__ = (
-        UniqueConstraint('name', name='uq_{}_name'.format(__tablename__)),
-    )
-
     def __repr__(self):
         return f"<{self.__class__.__name__}(name='{self.name}')>"

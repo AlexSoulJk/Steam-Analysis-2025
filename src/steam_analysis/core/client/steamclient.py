@@ -10,10 +10,8 @@ class SteamAnalysisFacade:
     """Фасад для удобной работы со Steam API"""
 
     def __init__(self, api_key: str):
-        http_client = RequestsClient()
-
         # Инициализация репозиториев
-        self.player_repo = PlayerRepository(http_client, api_key)
+        self.player_repo = PlayerRepository(RequestsClient(), api_key)
         self.game_repo = GameRepository(RequestsWithDelayClient(delay=0.5), api_key)
 
         # Инициализация сервисов

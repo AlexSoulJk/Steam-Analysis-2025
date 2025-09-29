@@ -24,6 +24,8 @@ class GameRepository(BaseRepository):
         self.http_client = http_client
         self.api_key = api_key
         self._full_app_list_cache: Optional[Any] = None
+        self._cache_timestamp = ...
+        self._cache_ttl = ...
 
     def get_by_id(self, app_id: int, **kwargs) -> Optional[GameAnalysisData]:
         """Получить игру по AppID"""
@@ -32,9 +34,9 @@ class GameRepository(BaseRepository):
 
         try:
             data = self.http_client.get(url, params=params)
-            game_data = data.get(str(app_id), {})
-
-            if not game_data.get('success'):
+            game_data = data.get(str(app_id), None)
+            # TODO: Handle error !!
+            if not game_data.get('success') and not game_data:
                 logger.warning(f"Game {app_id} not found or failed to load")
                 return None
 
@@ -46,6 +48,7 @@ class GameRepository(BaseRepository):
     def get_by_ids(self, ids: list[int], **kwargs) -> Optional[List[GameAnalysisData]]:
         url = f"{GameRepository.STORE_URL}/api/appdetails"
         params = {'appids': ids}
+        # TODO: WRITE LOGIC
         pass
         # try:
         #     data = self.http_client.get(url, params=params)
@@ -73,6 +76,7 @@ class GameRepository(BaseRepository):
         Returns:
             List[GameShortInfo]: Список игр с базовой информацией
         """
+        # TODO: Add pagination decorator
         try:
             full_list = self._get_cached_app_list()
 
@@ -93,6 +97,7 @@ class GameRepository(BaseRepository):
         except Exception as e:
             logger.error(f"Error getting game list: {e}")
             return []
+
     def _get_cached_app_list(self) -> List[dict]:
         """Получить кэшированный список приложений"""
         current_time = time.time()
@@ -143,6 +148,7 @@ class GameRepository(BaseRepository):
         return data.get('reviews', [])
 
     def get_category_list(self) -> List[GameCategory]:
+        # TODO: WRITE LOGIC
         pass
 
     def _parse_game_data(self, app_id: int, raw_data: Dict[str, Any]) -> GameAnalysisData:

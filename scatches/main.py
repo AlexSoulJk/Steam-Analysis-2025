@@ -41,5 +41,6 @@ def main():
     # print(f"Положительных отзывов: {game_analysis['review_analysis']['positive_rate']:.1%}")
 
 
+
 if __name__ == "__main__":
     main()

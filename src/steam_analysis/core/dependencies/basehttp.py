@@ -13,7 +13,7 @@ class HTTPClient(Protocol):
     def post(self, url: str, data: dict = None) -> dict: ...
 
 
-class RequestsClient:
+class RequestsClient(HTTPClient):
     """Простой синхронный клиент на requests (базовый)"""
 
     def __init__(self):
@@ -34,9 +34,9 @@ class RequestsClient:
         return response.json()
 
 
-class RequestsWithDelayClient:
+class RequestsWithDelayClient(HTTPClient):
     """Синхронный клиент с rate limiting"""
-
+    ## 5 мин = 200 запросов ??
     def __init__(self, delay: float = 0.1):
         self.delay = delay
         self.last_request_time = 0
@@ -57,7 +57,6 @@ class RequestsWithDelayClient:
     def get(self, url: str, params: dict = None, headers: dict = None) -> Dict[str, Any]:
         self._ensure_delay()
         logger.debug(f"GET {url}")
-
         response = self.session.get(url, params=params, headers=headers, timeout=10)
         response.raise_for_status()
         return response.json()

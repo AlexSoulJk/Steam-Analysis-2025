@@ -71,8 +71,8 @@ class ResourceManager:
         resource.update(data, time.time())
         return resource.save()
 
-
-    def update_resource(self, resource_name: ResourceCodes, data: Any) -> bool:
+    def update_resource(self, resource_name: ResourceCodes,
+                        data: Any) -> bool:
         """Обновить данные ресурса"""
         resource = self.get_resource(resource_name)
         if not resource:
@@ -85,5 +85,6 @@ class ResourceManager:
         """Получить данные ресурса"""
         resource = self.get_resource(resource_name)
         return resource.data if resource else None
+
 
 resource_manager = ResourceManager()

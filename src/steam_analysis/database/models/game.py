@@ -25,6 +25,7 @@ class Game(BaseModel):
     categories = relationship("GameCategory", back_populates="game", cascade="all, delete-orphan")
     platforms = relationship("GamePlatform", back_populates="game", cascade="all, delete-orphan")
     prices = relationship("PriceHistory", back_populates="game", cascade="all, delete-orphan")
+    # prop strategy is_check_for_metric
 
     # Индексы
     __table_args__ = (
@@ -42,6 +43,27 @@ class Game(BaseModel):
         if date and date.year < 1990:  # Steam появился в 2003, но на всякий случай
             raise ValueError("Release date seems too early for Steam")
         return date
+
+
+class GameMetrics(BaseModel):
+    """Метрики игры (отдельно от основной информации)"""
+    __tablename__ = "game_metrics"
+
+    game_id = Column(Integer, ForeignKey('games.id'), unique=True, nullable=False)
+    recommendations_count = Column(Integer, default=0)
+    metacritic_score = Column(Integer)
+    review_score = Column(Float)  # 0.0-1.0
+    review_count = Column(Integer, default=0)
+    peak_players_all_time = Column(Integer, default=0)
+    last_updated = Column(DateTime, nullable=False)
+
+    # Связь
+    game = relationship("Game", back_populates="metrics")
+
+    __table_args__ = (
+        Index('idx_metrics_review_score', 'review_score'),
+        Index('idx_metrics_players', 'peak_players_all_time'),
+    )
 
 class Genre(DictionaryModel):
     """Справочник жанров"""
