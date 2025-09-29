@@ -3,6 +3,9 @@ import os
 import requests
 from dotenv import load_dotenv
 
+from steam_analysis.resourcemanager.manager import ResourceManager
+from steam_analysis.resourcemanager.resources.codes import ResourceCodes
+
 load_dotenv()
 
 def test_store_api():
@@ -69,6 +72,16 @@ def test_web_api():
         print(f"   Error: {e}")
 
 
+def test_resource_system():
+    manager = ResourceManager()
+
+    # Теперь с типизацией!
+    resource = manager.get_resource(ResourceCodes.GAME_LIST)
+    print(f"Resource: {resource.name.value}")
+    print(f"File path: {resource.file_path}")
+
+
 if __name__ == "__main__":
-    test_store_api()
-    test_web_api()
+    # test_store_api()
+    # test_web_api()
+    test_resource_system()
