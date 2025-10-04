@@ -1,9 +1,11 @@
 import json
 import os
 from pathlib import Path
+from typing import Optional, List
 
 from .base import Resource, logger
 from .codes import ResourceCodes
+from ...core.schemas import GameShortInfo
 
 
 class GameList(Resource):
@@ -12,7 +14,19 @@ class GameList(Resource):
     def __init__(self, resource_base_path: Path):
         super().__init__(ResourceCodes.GAME_LIST,
                          resource_base_path=resource_base_path,
-                         ttl_hours=24)
+                         ttl_hours=72)
+
+    def get_app_id_list(self, app_id_start: int, size: int) -> Optional[List[GameShortInfo]]:
+        if not self.data:
+            return None
+        start_index = list(filter(lambda x: x['appid'] == app_id_start, self.data))[0]['appid']
+        end_index = min(len(self.data), start_index + size)
+        return list(map(lambda x: x['appid'], self.data[start_index:end_index]))
+
+    def get_first_app_id(self):
+        if not self.data:
+            return None
+        return self.data[0]['appid']
 
     def load(self) -> bool:
         """Загрузить данные из файла"""
@@ -23,10 +37,12 @@ class GameList(Resource):
             with open(self.file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 self.update(data.get("data"), data.get("last_upd"))
+                self._is_loaded = True
                 return True
 
         except Exception as e:
             logger.error(f"Failed to load resource {self.name}: {e}")
+            self._is_loaded = False
             return False
 
     def save(self) -> bool:

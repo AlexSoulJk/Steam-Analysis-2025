@@ -13,10 +13,10 @@ class Game(BaseModel):
     app_id = Column(Integer, unique=True, nullable=False, index=True)
     name = Column(String(255), nullable=False, index=True)
     type_id = Column(Integer, ForeignKey('game_types.id'), nullable=False)
-    is_free = Column(Boolean, default=False)
     release_date = Column(DateTime)
     coming_soon = Column(Boolean, default=False)
     controller_support = Column(String(50))
+    is_free = Column(Boolean, default=False)
 
     # Связи
     game_type = relationship("GameType")
@@ -55,7 +55,6 @@ class GameMetrics(BaseModel):
     review_score = Column(Float)  # 0.0-1.0
     review_count = Column(Integer, default=0)
     peak_players_all_time = Column(Integer, default=0)
-    last_updated = Column(DateTime, nullable=False)
 
     # Связь
     game = relationship("Game", back_populates="metrics")
@@ -65,10 +64,10 @@ class GameMetrics(BaseModel):
         Index('idx_metrics_players', 'peak_players_all_time'),
     )
 
+
 class Genre(DictionaryModel):
     """Справочник жанров"""
     __tablename__ = "genres"
-
     # Связи
     games = relationship("GameGenre", back_populates="genre", cascade="all, delete-orphan")
 
@@ -76,23 +75,18 @@ class Genre(DictionaryModel):
 class Category(DictionaryModel):
     """Справочник категорий"""
     __tablename__ = "categories"
-
     # Связи
     games = relationship("GameCategory", back_populates="category", cascade="all, delete-orphan")
 
 
 class Platform(DictionaryModel):
-    """Справочник платформ"""
     __tablename__ = "platforms"
-
-    games = relationship("GameCategory", back_populates="platform", cascade="all, delete-orphan")
+    games = relationship("GamePlatform", back_populates="platform", cascade="all, delete-orphan")
 
 
 class GameType(DictionaryModel):
-    """Справочник типов игр"""
     __tablename__ = "game_types"
-
-    games = relationship("GameCategory", back_populates="category", cascade="all, delete-orphan")
+    games = relationship("Game", back_populates="game_type")  # Связь с Game, а не GameCategory
 
 
 class GameGenre(BaseModel):
@@ -158,14 +152,14 @@ class PriceHistory(BaseModel):
     currency = Column(String(3), default='USD', nullable=False)
     price_final = Column(Integer)  # в центах
     discount_percent = Column(Integer, default=0)
-    recorded_at = Column(DateTime, nullable=False)
+    initial = Column(Integer)
 
     # Связи
     game = relationship("Game", back_populates="prices")
 
     __table_args__ = (
         Index('idx_price_history_game', 'game_id'),
-        Index('idx_price_history_date', 'recorded_at'),
+        Index('idx_price_history_date', 'created_at'),
         Index('idx_price_history_currency', 'currency'),
     )
 
@@ -183,11 +177,10 @@ class PlayerCountHistory(BaseModel):
 
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
     player_count = Column(Integer, nullable=False)
-    recorded_at = Column(DateTime, nullable=False)
 
     __table_args__ = (
         Index('idx_player_history_game', 'game_id'),
-        Index('idx_player_history_date', 'recorded_at'),
+        Index('idx_player_history_date', 'created_at'),
     )
 
     @validates('player_count')

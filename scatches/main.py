@@ -1,4 +1,6 @@
 import os
+
+from steam_analysis.app.application import AppMediator
 from steam_analysis.core.client.steamclient import SteamAnalysisFacade
 from dotenv import load_dotenv
 
@@ -17,7 +19,7 @@ def main():
 
     print(f"✅ API ключ загружен: {api_key[:10]}...")
 
-    steam = SteamAnalysisFacade(api_key)
+    # steam = SteamAnalysisFacade(api_key)
 
     # Работа с игроками - чистые CRUD операции
     # player = steam.get_player("76561197960435530")
@@ -34,9 +36,11 @@ def main():
 
     # Работа с играми
     # game = steam.get_game(730)  # CS:GO
-    steam.game_service.collect_categories((5, 10))
-    print(f"Игры: {steam.game_service.get_game_list()}")
-
+    # # steam.game_service.collect_categories((5, 10))
+    # # print(f"Игры: {steam.game_service.get_game_list()}")
+    # print(f"{game=}")
+    # mediator = AppMediator(api_key)
+    # mediator.create_game()
     # game_analysis = steam.analyze_game(730)
     # print(f"Положительных отзывов: {game_analysis['review_analysis']['positive_rate']:.1%}")
 

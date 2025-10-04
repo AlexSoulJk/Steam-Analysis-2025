@@ -5,7 +5,9 @@ from .base import BaseRepository
 from typing import List, Optional, Dict, Any
 
 from ..codes.steamservices import SteamServices
-from ..schemas.game import GameAnalysisData, GameShortInfo, GameCategory
+from ..parsers.json.steamapi.game import GameParser
+from ..schemas import GameShortInfo, GameCategory
+from ..schemas.game.service import GameDataAnalysisCreate
 from ...core.dependencies.basehttp import HTTPClient
 
 import logging
@@ -24,19 +26,17 @@ class GameRepository(BaseRepository):
         self.http_client = http_client
         self.api_key = api_key
         self._full_app_list_cache: Optional[Any] = None
-        self._cache_timestamp = ...
-        self._cache_ttl = ...
 
-    def get_by_id(self, app_id: int, **kwargs) -> Optional[GameAnalysisData]:
+    def get_by_id(self, app_id: int, **kwargs) -> Optional[GameDataAnalysisCreate]:
         """Получить игру по AppID"""
         url = f"{GameRepository.STORE_URL}/api/appdetails"
         params = {'appids': app_id}
 
         try:
             data = self.http_client.get(url, params=params)
-            game_data = data.get(str(app_id), None)
+            game_data = data.get(str(app_id), {'success': False})
             # TODO: Handle error !!
-            if not game_data.get('success') and not game_data:
+            if not game_data.get('success'):
                 logger.warning(f"Game {app_id} not found or failed to load")
                 return None
 
@@ -45,7 +45,7 @@ class GameRepository(BaseRepository):
             logger.error(f"Error getting game {app_id}: {e}")
             return None
 
-    def get_by_ids(self, ids: list[int], **kwargs) -> Optional[List[GameAnalysisData]]:
+    def get_by_ids(self, ids: list[int], **kwargs) -> Optional[List[GameDataAnalysisCreate]]:
         url = f"{GameRepository.STORE_URL}/api/appdetails"
         params = {'appids': ids}
         # TODO: WRITE LOGIC
@@ -100,13 +100,9 @@ class GameRepository(BaseRepository):
 
     def _get_cached_app_list(self) -> List[dict]:
         """Получить кэшированный список приложений"""
-        current_time = time.time()
-
         # Если кэш устарел или пустой, обновляем
-        if (self._full_app_list_cache is None or
-                current_time - self._cache_timestamp > self._cache_ttl):
+        if self._full_app_list_cache is None:
             self._full_app_list_cache = self._fetch_app_list()
-            self._cache_timestamp = current_time
             logger.info(f"Cached app list with {len(self._full_app_list_cache)} items")
 
         return self._full_app_list_cache
@@ -151,106 +147,23 @@ class GameRepository(BaseRepository):
         # TODO: WRITE LOGIC
         pass
 
-    def _parse_game_data(self, app_id: int, raw_data: Dict[str, Any]) -> GameAnalysisData:
+    def _parse_game_data(self, app_id: int, raw_data: Dict[str, Any]) -> GameDataAnalysisCreate:
         """Парсинг сырых данных в структурированный формат для анализа"""
 
-        # Базовая информация
-        basic_info = self._extract_basic_info(app_id, raw_data)
+        game_create_info = GameParser.extract_game_create_info(app_id, raw_data)
+        genres = GameParser.extract_game_genres(raw_data)
+        categories = GameParser.extract_categories(raw_data)
+        platforms = GameParser.extract_platforms(raw_data)
 
-        # Классификация
-        classification = self._extract_classification(raw_data)
-
-        # Локализация
-        localization = self._extract_localization(raw_data)
-
-        # Контент и геймплей
-        content = self._extract_content_info(raw_data)
-
-        # Коммерция
-        commerce = self._extract_commerce_info(raw_data)
-
-        # Метрики популярности
-        metrics = self._extract_metrics(raw_data)
-
-        return GameAnalysisData(
+        return GameDataAnalysisCreate(
             # Базовые идентификаторы
-            app_id=basic_info['app_id'],
-            name=basic_info['name'],
-            type=basic_info['type'],
-
-            # Временные метки
-            release_date=basic_info['release_date'],
-            release_year=basic_info['release_year'],
-            coming_soon=basic_info['coming_soon'],
-
-            # Классификация
-            genres=classification['genres'],
-            categories=classification['categories'],
-            developers=classification['developers'],
-            publishers=classification['publishers'],
-
-            # Локализация
-            supported_languages=localization['supported_languages'],
-            language_options=localization['language_options'],
-
-            # Контент и геймплей
-            is_free=content['is_free'],
-            achievements_count=content['achievements_count'],
-            controller_support=content['controller_support'],
-            platforms=content['platforms'],
-            game_features=content['game_features'],
-
-            # Коммерция
-            price_info=commerce['price_info'],
-
-            # Метрики популярности
-            recommendations_count=metrics['recommendations_count'],
-            metacritic_score=metrics['metacritic_score'],
-            review_score=metrics['review_score'],
-            review_count=metrics['review_count'],
+            game=game_create_info,
+            genres=genres,
+            categories=categories,
+            platforms=platforms,
         )
 
-    def _extract_basic_info(self, app_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Извлечение базовой информации"""
-        release_date = self._parse_release_date(data.get('release_date', {}).get('date'))
 
-        return {
-            'app_id': app_id,
-            'name': data.get('name', 'Unknown'),
-            'type': data.get('type', 'unknown'),
-            'release_date': release_date,
-            'release_year': release_date.year if release_date else None,
-            'coming_soon': data.get('release_date', {}).get('coming_soon', False),
-        }
-
-    @staticmethod
-    def _extract_classification(data: Dict[str, Any]) -> Dict[str, Any]:
-        """Извлечение классификации"""
-        return {
-            'genres': data.get('genres', []),
-            'categories': data.get('categories', []),
-            'developers': data.get('developers', []),
-            'publishers': data.get('publishers', []),
-        }
-
-    @staticmethod
-    def _extract_localization(data: Dict[str, Any]) -> Dict[str, Any]:
-        """Извлечение информации о локализации"""
-        # Парсинг строки supported_languages в список
-        lang_string = data.get('supported_languages', '')
-        languages = [lang.strip() for lang in lang_string.split(',')] if lang_string else []
-
-        # Определение типов локализации по наличию языков
-        language_options = {
-            'interface': any('russian' in lang.lower() for lang in languages),
-            'full_audio': any('audio' in lang.lower() for lang in languages),
-            'subtitles': any('subtitles' in lang.lower() for lang in languages),
-        }
-
-        return {
-            'supported_languages': languages,
-            'language_options': language_options,
-        }
 
     @staticmethod
     def _extract_content_info(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -316,19 +229,3 @@ class GameRepository(BaseRepository):
             'review_score': review_score,
             'review_count': review_count,
         }
-
-    @staticmethod
-    def _parse_release_date(date_string: str) -> Optional[datetime]:
-        """Парсинг даты релиза из строки"""
-        if not date_string:
-            return None
-
-        try:
-            from dateutil import parser
-            return parser.parse(date_string)
-        except:
-            # Fallback для простых форматов
-            try:
-                return datetime.strptime(date_string, '%d %b, %Y')
-            except:
-                return None

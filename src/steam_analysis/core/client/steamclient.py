@@ -18,6 +18,10 @@ class SteamAnalysisFacade:
         self.player_service = PlayerService(self.player_repo, self.game_repo)
         self.game_service = GameService(self.game_repo)
 
+
+    def get_first_app_id(self):
+        return self.game_service.get_first_app_id()
+
     # Player methods
     def get_player(self, steam_id: str) -> Optional[Dict[str, Any]]:
         return self.player_repo.get_by_id(steam_id)
@@ -34,6 +38,9 @@ class SteamAnalysisFacade:
 
     def analyze_game(self, app_id: int) -> Optional[Dict[str, Any]]:
         return self.game_service.get_game_analysis(app_id)
+
+    def get_game_analysis_list(self, app_id: int, chunck_size: int):
+        return self.game_service.get_game_analysis_list(app_id, chunck_size)
 
     def get_game_reviews(self, app_id: int, limit: int = 100):
         return self.game_repo.get_reviews(app_id, limit)

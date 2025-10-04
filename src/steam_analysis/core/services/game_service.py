@@ -1,5 +1,8 @@
+import datetime
 from typing import List, Dict, Any, Optional
 from ..repositories.game_repository import GameRepository
+from ..schemas import GameCreate
+from ..schemas.game.service import GameDataAnalysisCreate, FillGameAnalysisChunk
 from ...resourcemanager.manager import resource_manager
 from ...resourcemanager.resources.codes import ResourceCodes
 
@@ -32,6 +35,22 @@ class GameService:
             'achievements_count': len(schema.get('availableGameStats', {}).get('achievements', [])) if schema else 0
         }
 
+    def get_game_analysis_list(self, app_id: int, chunk_size: int) -> FillGameAnalysisChunk:
+        app_id_list = resource_manager.get_resource(ResourceCodes.GAME_LIST).get_app_id_list(app_id, chunk_size)
+
+        start_time = datetime.datetime.now()
+        data_chunk = list(map(self.game_repo.get_by_id, app_id_list))
+        elapsed_time = datetime.datetime.now() - start_time
+
+        return FillGameAnalysisChunk(start_app_id=app_id_list[0],
+                                     end_app_id=app_id_list[-1],
+                                     response_time=elapsed_time,
+                                     data_chunk=data_chunk)
+
+    @staticmethod
+    def get_first_app_id():
+        return resource_manager.get_resource(ResourceCodes.GAME_LIST).get_first_app_id()
+
     def collect_categories(self, coll_info):
 
         dump_categories = self.resource_manager.get_resource_data(ResourceCodes.GAME_CATEGORIES)
@@ -49,9 +68,7 @@ class GameService:
             for category in t.categories:
                 dump_categories[str(category["id"])] = category["description"]
 
-
         self.resource_manager.update_resource(ResourceCodes.GAME_CATEGORIES, dump_categories)
-
 
     def get_game_list(self,
                       offset: int = 0,
