@@ -4,3 +4,4 @@ class SteamServices:
     ISteamUser = "ISteamUser"
     IPlayerService = "IPlayerService"
     ISteamApps = "ISteamApps"
+    ISteamNews = "ISteamNews"

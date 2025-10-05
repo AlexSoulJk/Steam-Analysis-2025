@@ -27,41 +27,39 @@ class GameRepository(BaseRepository):
         self.api_key = api_key
         self._full_app_list_cache: Optional[Any] = None
 
-    def get_by_id(self, app_id: int, **kwargs) -> Optional[GameDataAnalysisCreate]:
+    def get_by_id(self, app_id: int, lang = None, **kwargs) -> Optional[GameDataAnalysisCreate]:
         """Получить игру по AppID"""
         url = f"{GameRepository.STORE_URL}/api/appdetails"
         params = {'appids': app_id}
+        if lang:
+            params['l'] = lang
 
         try:
             data = self.http_client.get(url, params=params)
             game_data = data.get(str(app_id), {'success': False})
             # TODO: Handle error !!
             if not game_data.get('success'):
-                logger.warning(f"Game {app_id} not found or failed to load")
+                logger.warning(f"\n ❗️ Game {app_id} not found or failed to load")
                 return None
-
             return self._parse_game_data(app_id, game_data['data'])
         except Exception as e:
-            logger.error(f"Error getting game {app_id}: {e}")
+            logger.error(f"\n ❗️ Error getting game {app_id}: {e}")
             return None
 
-    def get_by_ids(self, ids: list[int], **kwargs) -> Optional[List[GameDataAnalysisCreate]]:
-        url = f"{GameRepository.STORE_URL}/api/appdetails"
-        params = {'appids': ids}
-        # TODO: WRITE LOGIC
-        pass
-        # try:
-        #     data = self.http_client.get(url, params=params)
-        #     # game_data = data.get(str(app_id), {})
-        #
-        #     if not game_data.get('success'):
-        #         logger.warning(f"Game {app_id} not found or failed to load")
-        #         return None
-        #
-        #     return self._parse_game_data(app_id, game_data['data'])
-        # except Exception as e:
-        #     logger.error(f"Error getting game {app_id}: {e}")
-        #     return None
+    def get_by_ids(self, ids: list[int], lang = None, **kwargs) -> Optional[List[GameDataAnalysisCreate]]:
+        # url = f"{GameRepository.STORE_URL}/api/appdetails"
+        # params = {'appids': ids}
+
+        results = []
+        for app_id in ids:
+            game = self.get_by_id(app_id, lang, **kwargs)
+            if game:
+                results.append(game)
+            else:
+                logger.warning(f"\n ❗️ Game with AppID {app_id} could not be retrieved.")
+
+        return results if results else None
+
 
     def get_game_list(self,
                       offset: int = 0,
@@ -95,7 +93,7 @@ class GameRepository(BaseRepository):
             ]
 
         except Exception as e:
-            logger.error(f"Error getting game list: {e}")
+            logger.error(f"\n ❗️Error getting game list: {e}")
             return []
 
     def _get_cached_app_list(self) -> List[dict]:
@@ -103,7 +101,7 @@ class GameRepository(BaseRepository):
         # Если кэш устарел или пустой, обновляем
         if self._full_app_list_cache is None:
             self._full_app_list_cache = self._fetch_app_list()
-            logger.info(f"Cached app list with {len(self._full_app_list_cache)} items")
+            logger.info(f"\n ℹ️ Cached app list with {len(self._full_app_list_cache)} items")
 
         return self._full_app_list_cache
 
@@ -111,27 +109,132 @@ class GameRepository(BaseRepository):
         """Загрузить полный список приложений с API"""
         if self.resource_manager.is_resource_expired(ResourceCodes.GAME_LIST):
             url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamApps}/GetAppList/v2/"
-            logger.info("Fetching full app list from Steam API...")
+            logger.info("\n ℹ️ Fetching full app list from Steam API...")
             response = self.http_client.get(url)
             apps = response.get('applist', {}).get('apps', [])
             self.resource_manager.save_resource(ResourceCodes.GAME_LIST, apps)
-            logger.info(f"Retrieved {len(apps)} applications")
+            logger.info(f"\n ℹ️ Retrieved {len(apps)} applications")
         else:
             apps = self.resource_manager.get_resource_data(ResourceCodes.GAME_LIST)
 
         return apps
 
+    # TODO: дописать схему
     def get_schema(self, app_id: int) -> Optional[Dict[str, Any]]:
         """Получить схему игры (достижения, статистика)"""
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetSchemaForGame/v2/"
         params = {'key': self.api_key,
                   'appid': app_id}
+        
+        try:
+            data = self.http_client.get(url, params=params)
+            schema_data = data.get('game', [])
+            if not schema_data:
+                logger.warning(f"\n ❗️ Schema for dame {app_id} not found or failed to load")
+                return None
+            return schema_data
+        
+        except Exception as e:
+            logger.error(f"\n ❗️ Error getting schema for game {app_id}: {e}")
+            return None
 
-        return self.http_client.get(url, params=params)
+    # TODO: дописать схему
+    def get_news(self, app_id: int) -> List[Dict[str, Any]]:
+        """Получить новости об игре"""
+        url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamNews}/GetNewsForApp/v2"
+        params = {'appid': app_id}
 
+        try:
+            data = self.http_client.get(url, params=params)
+            news_data = data.get('appnews', [])
+
+            if not news_data:
+                logger.warning(f"\n ❗️ News for dame {app_id} not found or failed to load")
+                return None
+            # TODO: дописать парсер для news
+            # return self._parse_news_data(app_id, news_data['newsitems'], news_data['count'])
+            return news_data['newsitems']
+        
+        except Exception as e:
+            logger.error(f"\n ❗️ Error getting news for game {app_id}: {e}")
+            return None
+        
+    # TODO: дописать схему
+    def get_achiev_persentage(self, app_id: int) -> List[Dict[str, Any]]:
+        """Получить глобальные проценты выполнения достижений для определённой игры"""
+        url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetGlobalAchievementPercentagesForApp/v2"
+        params = {'gameid': app_id}
+
+        try:
+            data = self.http_client.get(url, params=params)
+            achiev_data = data.get('achievementpercentages', [])
+
+            if not achiev_data:
+                logger.warning(f"\n ❗️ Global achievement percentages for dame {app_id} not found or failed to load")
+                return None
+            # TODO: дописать парсер для achiev
+            # return self._parse_news_data(app_id, news_data['newsitems'], news_data['count'])
+            return achiev_data['achievements']
+        
+        except Exception as e:
+            logger.error(f"\n ❗️ Error getting global achievement percentages for game {app_id}: {e}")
+            return None
+        
+    # TODO: дописать схему
+    # я так и не поняла, как тут отправить в запросе больше одной статистики :(
+    def get_global_stats(self, app_id: int, count: int, names: List[str]) -> List[Dict[str, Any]]:
+        """Получить проценты глобальной статистики для определённой игры"""
+        url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetGlobalStatsForGame/v1"
+        params = {'appid': app_id,
+                  'count': count}
+        
+        if len(names) != count:
+            logger.warning(f"\n ❗️ Ожидалось {count} элементов в names, но получено {len(names)}.")
+            return None
+        
+        for i in range(count):
+            params[f'name[{i}]'] = names[i]
+
+        try:
+            data = self.http_client.get(url, params=params)
+            stats_data = data.get('response', [])
+
+            if 'error' in stats_data:
+                logger.warning(f"\n ❗️ Error getting global stats for game {app_id}: {stats_data.get('error')}")
+                return None
+            # TODO: дописать парсер для global_stats
+            # return self._parse_news_data(app_id, news_data['newsitems'], news_data['count'])
+            return stats_data
+        
+        except Exception as e:
+            logger.error(f"\n ❗️ Error getting global stats for game {app_id}: {e}")
+            return None
+        
+    # TODO: дописать схему
+    def get_number_of_players(self, app_id: int) -> List[Dict[str, Any]]:
+        """Получить общее число игроков, активных в данный момент в указанной игре"""
+        url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetNumberOfCurrentPlayers/v1"
+        params = {'appid': app_id}
+
+        try:
+            data = self.http_client.get(url, params=params)
+            player_data = data.get('response', [])
+
+            if not player_data:
+                logger.warning(f"\n ❗️ Number of players for game {app_id} not found or failed to load")
+                return None
+            # TODO: дописать парсер для number_of_players
+            # return self._parse_news_data(app_id, news_data['newsitems'], news_data['count'])
+            return player_data['player_count']
+        
+        except Exception as e:
+            logger.error(f"\n ❗️ Error getting global stats for game {app_id}: {e}")
+            return None
+        
+    # TODO: дописать схему
     def get_reviews(self, app_id: int, limit: int = 100) -> List[Dict[str, Any]]:
         """Получить отзывы об игре"""
-        url = f"{self.store_url}/appreviews/{app_id}"
+        url = f"{self.STORE_URL}/appreviews/{app_id}"
         params = {
             'json': 1,
             'filter': 'recent',
@@ -140,8 +243,20 @@ class GameRepository(BaseRepository):
             'num_per_page': limit
         }
 
-        data = self.http_client.get(url, params=params)
-        return data.get('reviews', [])
+        try:
+            data = self.http_client.get(url, params=params)
+            if not data.get('success', []):
+                logger.warning(f"\n ❗️ Reviews for dame {app_id} not found or failed to load")
+                return None
+            # TODO: дописать парсер для reviews
+            # return self._parse_news_data(app_id, news_data['reviews'], news_data['query_summary'])
+            return data.get('reviews', [])
+        
+        except Exception as e:
+            logger.error(f"\n ❗️ Error getting reviews for game {app_id}: {e}")
+            return None
+
+
 
     def get_category_list(self) -> List[GameCategory]:
         # TODO: WRITE LOGIC
