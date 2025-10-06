@@ -1,7 +1,7 @@
 {
   "start_app_id": 30,
   "end_app_id": 130,
-  "response_time": "0:00:04.804092",
+  "response_time": "0:00:05.149456",
   "data_chunk": [
     {
       "game": {
@@ -51,13 +51,13 @@
       ],
       "platforms": [
         {
-          "description": null
+          "description": "windows"
         },
         {
-          "description": null
+          "description": "mac"
         },
         {
-          "description": null
+          "description": "linux"
         }
       ]
     },
@@ -125,13 +125,13 @@
       ],
       "platforms": [
         {
-          "description": null
+          "description": "windows"
         },
         {
-          "description": null
+          "description": "mac"
         },
         {
-          "description": null
+          "description": "linux"
         }
       ]
     },
@@ -187,13 +187,13 @@
       ],
       "platforms": [
         {
-          "description": null
+          "description": "windows"
         },
         {
-          "description": null
+          "description": "mac"
         },
         {
-          "description": null
+          "description": "linux"
         }
       ]
     },
@@ -249,13 +249,13 @@
       ],
       "platforms": [
         {
-          "description": null
+          "description": "windows"
         },
         {
-          "description": null
+          "description": "mac"
         },
         {
-          "description": null
+          "description": "linux"
         }
       ]
     },
@@ -347,13 +347,13 @@
       ],
       "platforms": [
         {
-          "description": null
+          "description": "windows"
         },
         {
-          "description": null
+          "description": "mac"
         },
         {
-          "description": null
+          "description": "linux"
         }
       ]
     },
@@ -409,13 +409,13 @@
       ],
       "platforms": [
         {
-          "description": null
+          "description": "windows"
         },
         {
-          "description": null
+          "description": "mac"
         },
         {
-          "description": null
+          "description": "linux"
         }
       ]
     },
@@ -448,7 +448,7 @@
       ],
       "platforms": [
         {
-          "description": null
+          "description": "windows"
         }
       ]
     },
@@ -504,13 +504,13 @@
       ],
       "platforms": [
         {
-          "description": null
+          "description": "windows"
         },
         {
-          "description": null
+          "description": "mac"
         },
         {
-          "description": null
+          "description": "linux"
         }
       ]
     },
@@ -558,13 +558,13 @@
       ],
       "platforms": [
         {
-          "description": null
+          "description": "windows"
         },
         {
-          "description": null
+          "description": "mac"
         },
         {
-          "description": null
+          "description": "linux"
         }
       ]
     }

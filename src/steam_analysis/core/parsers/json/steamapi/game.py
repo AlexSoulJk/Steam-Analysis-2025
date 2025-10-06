@@ -33,7 +33,7 @@ class GameParser:
     @staticmethod
     def extract_platforms(raw_data: Dict[str, Any]) -> List[PlatformCreate]:
         data = raw_data.get("platforms", {})
-        return list(map(lambda x: PlatformCreate(discription=x[0]), filter(lambda x: x[1], data.items())))
+        return list(map(lambda x: PlatformCreate(description=x[0]), filter(lambda x: x[1], data.items())))
 
     # endregion
     # region Support Private Parse methods
