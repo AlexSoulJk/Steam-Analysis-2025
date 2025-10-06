@@ -1,5 +1,6 @@
 from steam_analysis.core.client.steamclient import SteamAnalysisFacade
 from steam_analysis.database.facade import DbFacade
+from steam_analysis.saver_test_data import default_saver
 
 
 class AppMediator:
@@ -12,4 +13,6 @@ class AppMediator:
         # Main game filling case
         game = self.database_facade.get_last_upploaded_game()
         start_app_id = self.steam_facade.get_first_app_id() if game is None else game.id
-        self.database_facade.create_games(self.steam_facade.get_game_analysis_list(start_app_id, chunk_size))
+        fill_butch = self.steam_facade.get_game_analysis_list(start_app_id, chunk_size)
+        default_saver.save_fill_game_batch(fill_butch)
+        # self.database_facade.create_games(fill_butch)

@@ -1,0 +1,572 @@
+{
+  "start_app_id": 30,
+  "end_app_id": 130,
+  "response_time": "0:00:04.804092",
+  "data_chunk": [
+    {
+      "game": {
+        "app_id": 30,
+        "name": "Day of Defeat",
+        "is_free": false,
+        "release_date": "2003-05-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": "game"
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 67,
+          "description": "Camera Comfort"
+        },
+        {
+          "steam_id": 66,
+          "description": "Color Alternatives"
+        },
+        {
+          "steam_id": 68,
+          "description": "Custom Volume Controls"
+        },
+        {
+          "steam_id": 69,
+          "description": "Stereo Sound"
+        },
+        {
+          "steam_id": 8,
+          "description": "Valve Anti-Cheat enabled"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": null
+        },
+        {
+          "description": null
+        },
+        {
+          "description": null
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 40,
+        "name": "Deathmatch Classic",
+        "is_free": false,
+        "release_date": "2001-06-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": "game"
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 49,
+          "description": "PvP"
+        },
+        {
+          "steam_id": 36,
+          "description": "Online PvP"
+        },
+        {
+          "steam_id": 37,
+          "description": "Shared/Split Screen PvP"
+        },
+        {
+          "steam_id": 66,
+          "description": "Color Alternatives"
+        },
+        {
+          "steam_id": 68,
+          "description": "Custom Volume Controls"
+        },
+        {
+          "steam_id": 75,
+          "description": "Keyboard Only Option"
+        },
+        {
+          "steam_id": 69,
+          "description": "Stereo Sound"
+        },
+        {
+          "steam_id": 8,
+          "description": "Valve Anti-Cheat enabled"
+        },
+        {
+          "steam_id": 44,
+          "description": "Remote Play Together"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": null
+        },
+        {
+          "description": null
+        },
+        {
+          "description": null
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 50,
+        "name": "Half-Life: Opposing Force",
+        "is_free": false,
+        "release_date": "1999-11-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": "game"
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 68,
+          "description": "Custom Volume Controls"
+        },
+        {
+          "steam_id": 78,
+          "description": "Adjustable Difficulty"
+        },
+        {
+          "steam_id": 74,
+          "description": "Playable without Timed Input"
+        },
+        {
+          "steam_id": 79,
+          "description": "Save Anytime"
+        },
+        {
+          "steam_id": 8,
+          "description": "Valve Anti-Cheat enabled"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": null
+        },
+        {
+          "description": null
+        },
+        {
+          "description": null
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 60,
+        "name": "Ricochet",
+        "is_free": false,
+        "release_date": "2000-11-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": "game"
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 49,
+          "description": "PvP"
+        },
+        {
+          "steam_id": 36,
+          "description": "Online PvP"
+        },
+        {
+          "steam_id": 68,
+          "description": "Custom Volume Controls"
+        },
+        {
+          "steam_id": 75,
+          "description": "Keyboard Only Option"
+        },
+        {
+          "steam_id": 69,
+          "description": "Stereo Sound"
+        },
+        {
+          "steam_id": 8,
+          "description": "Valve Anti-Cheat enabled"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": null
+        },
+        {
+          "description": null
+        },
+        {
+          "description": null
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 70,
+        "name": "Half-Life",
+        "is_free": false,
+        "release_date": "1998-11-19 00:00:00",
+        "coming_soon": false,
+        "controller_support": "full",
+        "type": "game"
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 49,
+          "description": "PvP"
+        },
+        {
+          "steam_id": 36,
+          "description": "Online PvP"
+        },
+        {
+          "steam_id": 28,
+          "description": "Full controller support"
+        },
+        {
+          "steam_id": 66,
+          "description": "Color Alternatives"
+        },
+        {
+          "steam_id": 68,
+          "description": "Custom Volume Controls"
+        },
+        {
+          "steam_id": 78,
+          "description": "Adjustable Difficulty"
+        },
+        {
+          "steam_id": 75,
+          "description": "Keyboard Only Option"
+        },
+        {
+          "steam_id": 74,
+          "description": "Playable without Timed Input"
+        },
+        {
+          "steam_id": 79,
+          "description": "Save Anytime"
+        },
+        {
+          "steam_id": 69,
+          "description": "Stereo Sound"
+        },
+        {
+          "steam_id": 23,
+          "description": "Steam Cloud"
+        },
+        {
+          "steam_id": 8,
+          "description": "Valve Anti-Cheat enabled"
+        },
+        {
+          "steam_id": 41,
+          "description": "Remote Play on Phone"
+        },
+        {
+          "steam_id": 42,
+          "description": "Remote Play on Tablet"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": null
+        },
+        {
+          "description": null
+        },
+        {
+          "description": null
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 80,
+        "name": "Counter-Strike: Condition Zero",
+        "is_free": false,
+        "release_date": "2004-03-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": "game"
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 66,
+          "description": "Color Alternatives"
+        },
+        {
+          "steam_id": 68,
+          "description": "Custom Volume Controls"
+        },
+        {
+          "steam_id": 78,
+          "description": "Adjustable Difficulty"
+        },
+        {
+          "steam_id": 69,
+          "description": "Stereo Sound"
+        },
+        {
+          "steam_id": 8,
+          "description": "Valve Anti-Cheat enabled"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": null
+        },
+        {
+          "description": null
+        },
+        {
+          "description": null
+        }
+      ]
+    },
+    null,
+    {
+      "game": {
+        "app_id": 92,
+        "name": "Codename Gordon",
+        "is_free": true,
+        "release_date": "2004-05-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": "advertising"
+      },
+      "genres": [
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        },
+        {
+          "steam_id": 37,
+          "description": "Free To Play"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        }
+      ],
+      "platforms": [
+        {
+          "description": null
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 100,
+        "name": "Counter-Strike: Condition Zero",
+        "is_free": false,
+        "release_date": "2004-03-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": "game"
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 66,
+          "description": "Color Alternatives"
+        },
+        {
+          "steam_id": 68,
+          "description": "Custom Volume Controls"
+        },
+        {
+          "steam_id": 78,
+          "description": "Adjustable Difficulty"
+        },
+        {
+          "steam_id": 69,
+          "description": "Stereo Sound"
+        },
+        {
+          "steam_id": 8,
+          "description": "Valve Anti-Cheat enabled"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": null
+        },
+        {
+          "description": null
+        },
+        {
+          "description": null
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 130,
+        "name": "Half-Life: Blue Shift",
+        "is_free": false,
+        "release_date": "2001-06-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": "game"
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 68,
+          "description": "Custom Volume Controls"
+        },
+        {
+          "steam_id": 78,
+          "description": "Adjustable Difficulty"
+        },
+        {
+          "steam_id": 74,
+          "description": "Playable without Timed Input"
+        },
+        {
+          "steam_id": 79,
+          "description": "Save Anytime"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": null
+        },
+        {
+          "description": null
+        },
+        {
+          "description": null
+        }
+      ]
+    }
+  ]
+}
