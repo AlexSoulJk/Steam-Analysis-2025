@@ -1,0 +1,69 @@
+from sqlalchemy import (
+    Column, Integer, String, Boolean, Float, DateTime, Text,
+    ForeignKey, UniqueConstraint, Index
+)
+from sqlalchemy.orm import relationship
+from .base import BaseModel
+
+class User(BaseModel):
+    """Модель пользователя/игрока"""
+    __tablename__ = "users"
+
+    steam_id = Column(String(17), unique=True, nullable=False, index=True)
+    persona_name = Column(String(255))
+    profile_url = Column(String(500))
+    avatar_url = Column(String(500))
+    avatar_medium_url = Column(String(500))
+    avatar_full_url = Column(String(500))
+    time_created = Column(DateTime)
+    last_logoff = Column(DateTime)
+    profile_state = Column(Integer)  # 1 - public, etc.
+    community_visibility_state = Column(Integer)
+
+    # Связи
+    game_ownership = relationship("UserGameOwnership", back_populates="user", cascade="all, delete-orphan")
+    playtime = relationship("UserPlaytime", back_populates="user", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index('idx_user_steam_id', 'steam_id'),
+    )
+
+
+class UserGameOwnership(BaseModel):
+    """Владение играми пользователями"""
+    __tablename__ = "user_game_ownership"
+
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
+    owned = Column(Boolean, default=True)
+    ownership_date = Column(DateTime)
+
+    user = relationship("User", back_populates="game_ownership")
+    game = relationship("Game")
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'game_id', name='uq_user_game_ownership'),
+        Index('idx_ownership_user', 'user_id'),
+        Index('idx_ownership_game', 'game_id'),
+    )
+
+
+class UserPlaytime(BaseModel):
+    """Время игры пользователей"""
+    __tablename__ = "user_playtime"
+
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
+    playtime_forever = Column(Integer)  # общее время в минутах
+    playtime_2weeks = Column(Integer)  # время за 2 недели в минутах
+    last_played = Column(DateTime)
+
+    user = relationship("User", back_populates="playtime")
+    game = relationship("Game")
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'game_id', name='uq_user_playtime'),
+        Index('idx_playtime_user', 'user_id'),
+        Index('idx_playtime_game', 'game_id'),
+        Index('idx_playtime_last_played', 'last_played'),
+    )

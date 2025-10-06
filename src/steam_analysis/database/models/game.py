@@ -68,7 +68,6 @@ class GameMetrics(BaseModel):
 class Genre(DictionaryModel):
     """Справочник жанров"""
     __tablename__ = "genres"
-    # Связи
     games = relationship("GameGenre", back_populates="genre", cascade="all, delete-orphan")
 
 
@@ -142,50 +141,3 @@ class GamePlatform(BaseModel):
         Index('idx_game_platform_game', 'game_id'),
         Index('idx_game_platform_platform', 'platform_id'),
     )
-
-
-class PriceHistory(BaseModel):
-    """История цен игр"""
-    __tablename__ = "price_history"
-
-    game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
-    currency = Column(String(3), default='USD', nullable=False)
-    price_final = Column(Integer)  # в центах
-    discount_percent = Column(Integer, default=0)
-    initial = Column(Integer)
-
-    # Связи
-    game = relationship("Game", back_populates="prices")
-
-    __table_args__ = (
-        Index('idx_price_history_game', 'game_id'),
-        Index('idx_price_history_date', 'created_at'),
-        Index('idx_price_history_currency', 'currency'),
-    )
-
-    @validates('price_final')
-    def validate_price(self, key, price):
-        """Валидация цены"""
-        if price is not None and price < 0:
-            raise ValueError("Price cannot be negative")
-        return price
-
-
-class PlayerCountHistory(BaseModel):
-    """История онлайна игроков"""
-    __tablename__ = "player_count_history"
-
-    game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
-    player_count = Column(Integer, nullable=False)
-
-    __table_args__ = (
-        Index('idx_player_history_game', 'game_id'),
-        Index('idx_player_history_date', 'created_at'),
-    )
-
-    @validates('player_count')
-    def validate_player_count(self, key, count):
-        """Валидация количества игроков"""
-        if count < 0:
-            raise ValueError("Player count cannot be negative")
-        return count
