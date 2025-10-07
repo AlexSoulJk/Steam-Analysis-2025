@@ -23,3 +23,8 @@ class SteamEntityMixin(BaseSchema):
     """Миксин для Steam сущностей"""
     steam_id: int = Field(..., description="ID в Steam API", alias="id")
     description: Optional[str] = Field(None, max_length=1000)
+
+    model_config = ConfigDict(
+        populate_by_name=True,  # Разрешить использовать оба имени
+        alias_generator=None
+    )

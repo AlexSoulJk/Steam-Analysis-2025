@@ -23,24 +23,25 @@ class DictionaryRepository(BaseDBRepository[ModelType, CreateSchemaType, UpdateS
         steam_ids = list(set(steam_ids))
         # Ищем существующие записи
         existing_ids = self.get_by_steam_ids(steam_ids, session=session)
-        existing_map = {item.item: item for item in existing_ids}
+        existing_map = {item.id: item for item in existing_ids}
 
         # Определяем какие нужно создать
-        to_create = []
-        for item_data in items_data:
-            if item_data.steam_id not in existing_map:
-                to_create.append(item_data)
+        to_create = {}
+        for items in items_data:
+            for item_data in items:
+                if item_data.steam_id not in existing_map:
+                    to_create[item_data.steam_id] = item_data
 
         # Создаем новые записи
         if to_create:
-            created_items = self.create_bulk(to_create, session=session)
+            created_items = self.create_bulk(list(to_create.values()), session=session)
             for item in created_items:
-                existing_map[item.id] = item
+                existing_map[str(item.id)] = item
 
         return existing_map
 
-    def get_by_name(self, name: str, session: Session) -> Optional[ModelType]:
-        return self.get_by_field("description", name, session=session)
+    def get_by_description(self, description: str, session: Session) -> Optional[ModelType]:
+        return self.get_by_field("description", description, session=session)
 
     def get_by_steam_ids(self, steam_ids: List[int], session: Session) -> List[ModelType]:
         """Получить записи по списку steam_id"""
@@ -51,7 +52,7 @@ class DictionaryRepository(BaseDBRepository[ModelType, CreateSchemaType, UpdateS
 
     def get_or_create_by_name(self, session: Session, name: str, defaults: Optional[Dict] = None) -> ModelType:
         """Получить или создать запись по имени"""
-        db_obj = self.get_by_name(name, session)
+        db_obj = self.get_by_description(name, session)
         if db_obj:
             return db_obj
 

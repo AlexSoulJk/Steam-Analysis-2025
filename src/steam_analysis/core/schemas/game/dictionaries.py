@@ -13,7 +13,7 @@ class CategoryBase(SteamEntityMixin):
 
 class CategoryCreate(CategoryBase):
     """Схема для создания категории"""
-    pass # Steam API использует 'id'
+    pass  # Steam API использует 'id'
 
 
 class CategoryUpdate(BaseSchema):
@@ -50,7 +50,27 @@ class PlatformBase(BaseSchema):
 class PlatformCreate(PlatformBase):
     pass
 
+
 class PlatformUpdate(BaseSchema):
     pass
+
+
 class PlatformResponse(PlatformBase):
+    pass
+
+
+class TypeBase(BaseSchema):
+    description: Optional[str] = Field(None, max_length=1000)
+    pass
+
+
+class TypeCreate(PlatformBase):
+    pass
+
+
+class TypeUpdate(BaseSchema):
+    pass
+
+
+class TypeResponse(PlatformBase):
     pass

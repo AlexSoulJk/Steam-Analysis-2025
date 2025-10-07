@@ -19,6 +19,32 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                                  app_id,
                                  session=session)
 
+    def create_bulk(self, objects_in: List[GameCreate], session: Session) -> List[Game]:
+        """
+        Массовое создание объектов
+
+        Args:
+            objects_in: Список Pydantic схем
+
+        Returns:
+            Список созданных объектов
+        """
+        db_objects = []
+        for obj_in in objects_in:
+            # Стоит ли так оставлять?? с alias в качестве жестко захоровоженного
+            obj_data = obj_in.model_dump(by_alias=True) if hasattr(obj_in, 'model_dump') else obj_in.dict()
+            db_obj = self.model(**obj_data)
+            db_objects.append(db_obj)
+
+        session.add_all(db_objects)
+        session.commit()
+
+        # Обновляем объекты, чтобы получить их ID
+        for db_obj in db_objects:
+            session.refresh(db_obj)
+
+        return db_objects
+
     def get_with_details(self, session: Session, game_id: int) -> Optional[Game]:
         """Получить игру со всеми связанными данными"""
         return session.query(Game). \

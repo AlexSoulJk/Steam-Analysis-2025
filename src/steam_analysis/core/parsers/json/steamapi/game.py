@@ -1,21 +1,21 @@
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 
-from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate
-from steam_analysis.core.schemas.game.game import GameCreate
+from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, TypeCreate
+from steam_analysis.core.schemas.game.game import GameFromHttp
 
 
 class GameParser:
 
     # region Extraction methods for filling database model GameDataAnalysisCreate
     @staticmethod
-    def extract_game_create_info(app_id: int, raw_data: Dict[str, Any]) -> GameCreate:
+    def extract_game_create_info(app_id: int, raw_data: Dict[str, Any]) -> GameFromHttp:
         """Парсим основную информацию об игре используя существующую GameCreate"""
         release_date = GameParser._parse_release_date(raw_data.get('release_date', {}).get('date'))
-        return GameCreate(
+        return GameFromHttp(
             app_id=app_id,
             name=raw_data.get('name', 'Unknown'),
-            type=raw_data.get('type', 'unknown'),
+            type=TypeCreate(description=raw_data.get('type', 'unknown')),
             is_free=raw_data.get('is_free', False),
             release_date=release_date,
             coming_soon=raw_data.get('release_date', {}).get('coming_soon', False),

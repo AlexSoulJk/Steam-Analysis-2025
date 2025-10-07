@@ -1,7 +1,7 @@
 {
   "start_app_id": 30,
   "end_app_id": 130,
-  "response_time": "0:00:05.149456",
+  "response_time": "0:00:04.820756",
   "data_chunk": [
     {
       "game": {
@@ -11,7 +11,9 @@
         "release_date": "2003-05-01 00:00:00",
         "coming_soon": false,
         "controller_support": "none",
-        "type": "game"
+        "type": {
+          "description": "game"
+        }
       },
       "genres": [
         {
@@ -69,7 +71,9 @@
         "release_date": "2001-06-01 00:00:00",
         "coming_soon": false,
         "controller_support": "none",
-        "type": "game"
+        "type": {
+          "description": "game"
+        }
       },
       "genres": [
         {
@@ -143,7 +147,9 @@
         "release_date": "1999-11-01 00:00:00",
         "coming_soon": false,
         "controller_support": "none",
-        "type": "game"
+        "type": {
+          "description": "game"
+        }
       },
       "genres": [
         {
@@ -205,7 +211,9 @@
         "release_date": "2000-11-01 00:00:00",
         "coming_soon": false,
         "controller_support": "none",
-        "type": "game"
+        "type": {
+          "description": "game"
+        }
       },
       "genres": [
         {
@@ -267,7 +275,9 @@
         "release_date": "1998-11-19 00:00:00",
         "coming_soon": false,
         "controller_support": "full",
-        "type": "game"
+        "type": {
+          "description": "game"
+        }
       },
       "genres": [
         {
@@ -365,7 +375,9 @@
         "release_date": "2004-03-01 00:00:00",
         "coming_soon": false,
         "controller_support": "none",
-        "type": "game"
+        "type": {
+          "description": "game"
+        }
       },
       "genres": [
         {
@@ -428,7 +440,9 @@
         "release_date": "2004-05-01 00:00:00",
         "coming_soon": false,
         "controller_support": "none",
-        "type": "advertising"
+        "type": {
+          "description": "advertising"
+        }
       },
       "genres": [
         {
@@ -460,7 +474,9 @@
         "release_date": "2004-03-01 00:00:00",
         "coming_soon": false,
         "controller_support": "none",
-        "type": "game"
+        "type": {
+          "description": "game"
+        }
       },
       "genres": [
         {
@@ -522,7 +538,9 @@
         "release_date": "2001-06-01 00:00:00",
         "coming_soon": false,
         "controller_support": "none",
-        "type": "game"
+        "type": {
+          "description": "game"
+        }
       },
       "genres": [
         {

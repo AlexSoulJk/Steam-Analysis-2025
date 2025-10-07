@@ -1,5 +1,6 @@
 from steam_analysis.core.client.steamclient import SteamAnalysisFacade
 from steam_analysis.database.facade import DbFacade
+from steam_analysis.loader_test_data import default_loader
 from steam_analysis.saver_test_data import default_saver
 
 
