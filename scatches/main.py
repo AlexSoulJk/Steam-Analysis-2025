@@ -37,8 +37,9 @@ def main():
     # Работа с играми
     print('\n\nРабота с играми\n\n')
     # ----------------------------------------------------------------------------
-    # game = steam.get_game(730)  # CS:GO
-    # print(f"Игра 730: {game}\n\n")
+    game = steam.get_game(730)  # CS:GO
+    print()
+    print(f"Игра 730: {game}\n\n")
 
     # game = steam.get_game(730, 'russian')  # CS:GO
     # print(f"Игра 730 (на русском): {game}\n\n")

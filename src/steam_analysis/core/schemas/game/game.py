@@ -28,7 +28,7 @@ class GameBase(BaseSchema):
     release_date: Optional[datetime] = None
     coming_soon: bool = False
     controller_support: Optional[str] = None
-    type: str = Field(..., min_length=1, max_length=255)
+    type: str = Field(..., min_length=1, max_length=255) 
     # developers: List[str] ??
     # publishers: List[str] ??
 
