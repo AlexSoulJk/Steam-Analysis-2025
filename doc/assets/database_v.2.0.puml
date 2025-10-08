@@ -1,0 +1,203 @@
+@startuml orm_steam_uml
+
+class Game {
+    +id: int
+    +app_id: int
+    +name: str
+    +type_id: int [FK -> GameType]
+    +release_date: datetime
+    +is_free: bool
+    +coming_soon: bool
+    +controller_support: str
+}
+
+class GameType {
+    +id: int
+    +name: str
+}
+
+class Genre {
+    +id: int
+    +steam_id: int
+    +name: str
+}
+
+class Category {
+    +id: int
+    +steam_id: int
+    +name: str
+}
+
+class Platform {
+    +id: int
+    +steam_id: int
+    +name: str
+}
+
+class GameGenre {
+    +game_id: int [FK -> Game]
+    +genre_id: int [FK -> Genre]
+}
+
+class GameCategory {
+    +game_id: int [FK -> Game]
+    +category_id: int [FK -> Category]
+}
+
+class GamePlatform {
+    +game_id: int [FK -> Game]
+    +platform_id: int [FK -> Platform]
+}
+
+class GameMetrics {
+    +id: int
+    +game_id: int [FK -> Game]
+    +recommendations_count: int
+    +review_score: float
+    +review_count: int
+    +peak_players_all_time: int
+}
+
+class Developer {
+    +id: int
+    +name: str
+    +website: str
+}
+
+class Publisher {
+    +id: int
+    +name: str
+    +website: str
+}
+
+class GameDeveloper {
+    +game_id: int [FK -> Game]
+    +developer_id: int [FK -> Developer]
+}
+
+class GamePublisher {
+    +game_id: int [FK -> Game]
+    +publisher_id: int [FK -> Publisher]
+}
+
+class GameNews {
+    +id: int
+    +game_id: int [FK -> Game]
+    +gid: str
+    +title: str
+    +url: str
+}
+
+class Achievement {
+    +id: int
+    +game_id: int [FK -> Game]
+    +name: str
+    +display_name: str
+    +description: str
+    +api_name: str
+    +hidden: bool
+    +global_achievement_rate: float
+}
+
+class AchievementHistory {
+    +id: int
+    +achievement_id: int [FK -> Achievement]
+    +global_achievement_rate: float
+}
+
+class User {
+    +id: int
+    +steam_id: str
+    +persona_name: str
+    +profile_url: str
+}
+
+class UserGameOwnership {
+    +id: int
+    +user_id: int [FK -> User]
+    +game_id: int [FK -> Game]
+    +owned: bool
+}
+
+class UserPlaytime {
+    +id: int
+    +user_id: int [FK -> User]
+    +game_id: int [FK -> Game]
+    +playtime_forever: int
+}
+
+class UserAchievement {
+    +id: int
+    +user_id: int [FK -> User]
+    +game_id: int [FK -> Game]
+    +achievement_id: int [FK -> Achievement]
+    +achieved: bool
+}
+
+class Review {
+    +id: int
+    +user_id: int [FK -> User]
+    +game_id: int [FK -> Game]
+    +recommendation_id: str
+    +review: text
+    +voted_up: bool
+    +votes_up: int
+}
+
+class PlayerCountHistory {
+    +id: int
+    +game_id: int [FK -> Game]
+    +player_count: int
+    +twitch_viewers: int
+}
+
+class PriceHistory {
+    +id: int
+    +game_id: int [FK -> Game]
+    +currency: str
+    +price_final: int
+    +discount_percent: int
+}
+
+class ReviewHistory {
+    +id: int
+    +game_id: int [FK -> Game]
+    +review_score: float
+    +review_count: int
+}
+
+' === Связи ===
+
+Game "1" --> "many" GameMetrics : has
+Game "1" --> "many" GameGenre : categorized_by
+Game "1" --> "many" GameCategory : belongs_to
+Game "1" --> "many" GamePlatform : available_on
+Game "1" --> "many" GameNews : news
+Game "1" --> "many" Achievement : achievements
+Game "1" --> "many" PlayerCountHistory : player_stats
+Game "1" --> "many" PriceHistory : price_history
+Game "1" --> "many" ReviewHistory : review_stats
+Game "1" --> "many" Review : user_reviews
+Game "1" --> "many" GameDeveloper : developers
+Game "1" --> "many" GamePublisher : publishers
+
+Genre "1" --> "many" GameGenre : links
+Category "1" --> "many" GameCategory : links
+Platform "1" --> "many" GamePlatform : links
+
+Achievement "1" --> "many" AchievementHistory : history
+
+User "1" --> "many" UserGameOwnership : owns
+User "1" --> "many" UserPlaytime : plays
+User "1" --> "many" UserAchievement : achievements
+User "1" --> "many" Review : writes
+
+Game "1" --> "many" UserGameOwnership : owned_by
+Game "1" --> "many" UserPlaytime : playtime
+Game "1" --> "many" UserAchievement : user_achievements
+
+Developer "1" --> "many" GameDeveloper : develops
+Publisher "1" --> "many" GamePublisher : publishes
+
+@enduml
+
