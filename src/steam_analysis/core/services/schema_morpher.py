@@ -12,7 +12,7 @@ class SchemaMorpher:
         for game in games:
             game_data = game.model_dump()
             type_name = game_data.pop('type')  # Убираем поле type
-            type_id = types.get(type_name)
-            res.append(GameCreate(**game_data, type_id=type_id))
+            game_type = types.get(type_name["description"])
+            res.append(GameCreate(**game_data, type_id=game_type.id))
 
         return res

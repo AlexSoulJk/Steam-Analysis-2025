@@ -1,5 +1,6 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload, Session
 
 from steam_analysis.core.schemas import GameCreate, GameUpdate
@@ -11,6 +12,7 @@ from ...models.game import GameGenre, GameCategory, GamePlatform
 
 class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
     """Репозиторий для работы с играми"""
+
     def __init__(self):
         super().__init__(model=Game)
 
@@ -18,6 +20,20 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
         return self.get_by_field("app_id",
                                  app_id,
                                  session=session)
+
+    def get_existing_by_app_ids(self, app_ids: List[int], session: Session) -> Dict[int, Game]:
+        """
+        Получить существующие игры по списку app_ids одним запросом
+        Возвращает словарь {app_id: game_object}
+        """
+        if not app_ids:
+            return {}
+
+        query = select(self.model).where(self.model.app_id.in_(app_ids))
+        result = session.execute(query)
+        existing_games = result.scalars().all()
+
+        return {game.app_id: game for game in existing_games}
 
     def create_bulk(self, objects_in: List[GameCreate], session: Session) -> List[Game]:
         """
@@ -30,7 +46,20 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             Список созданных объектов
         """
         db_objects = []
-        for obj_in in objects_in:
+        app_ids = list(map(lambda x: x.app_id, objects_in))
+        existing_games_map = self.get_existing_by_app_ids(app_ids, session)
+
+        new_games = [
+            obj for obj in objects_in
+            if obj.app_id not in existing_games_map
+        ]
+
+        existing_games = list(existing_games_map.values())
+
+        if not new_games:
+            return existing_games
+
+        for obj_in in new_games:
             # Стоит ли так оставлять?? с alias в качестве жестко захоровоженного
             obj_data = obj_in.model_dump(by_alias=True) if hasattr(obj_in, 'model_dump') else obj_in.dict()
             db_obj = self.model(**obj_data)
@@ -43,7 +72,7 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
         for db_obj in db_objects:
             session.refresh(db_obj)
 
-        return db_objects
+        return existing_games + db_objects
 
     def get_with_details(self, session: Session, game_id: int) -> Optional[Game]:
         """Получить игру со всеми связанными данными"""
@@ -75,6 +104,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
 
     def get_last_uploaded_game(self, session: Session) -> Optional[Game]:
         """Получить последнюю загруженную игру по app_id"""
-        return session.query(Game).\
-            order_by(Game.app_id.desc()).\
+        return session.query(Game). \
+            order_by(Game.app_id.desc()). \
             first()
