@@ -1,21 +1,21 @@
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 
-from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, StatsCreate, AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
-from steam_analysis.core.schemas.game.game import GameCreate
+from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, TypeCreate, StatsCreate, AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
+from steam_analysis.core.schemas.game.game import GameCreate, GameFromHttp
 
 
 class GameParser:
 
     # region Extraction methods for filling database model GameDataAnalysisCreate
     @staticmethod
-    def extract_game_create_info(app_id: int, raw_data: Dict[str, Any]) -> GameCreate:
+    def extract_game_create_info(app_id: int, raw_data: Dict[str, Any]) -> GameFromHttp:
         """Парсим основную информацию об игре используя существующую GameCreate"""
         release_date = GameParser._parse_release_date(raw_data.get('release_date', {}).get('date'))
-        return GameCreate(
+        return GameFromHttp(
             app_id=app_id,
             name=raw_data.get('name', 'Unknown'),
-            type=raw_data.get('type', 'unknown'),
+            type=TypeCreate(description=raw_data.get('type', 'unknown')),
             is_free=raw_data.get('is_free', False),
             release_date=release_date,
             coming_soon=raw_data.get('release_date', {}).get('coming_soon', False),
@@ -33,29 +33,27 @@ class GameParser:
     @staticmethod
     def extract_platforms(raw_data: Dict[str, Any]) -> List[PlatformCreate]:
         data = raw_data.get("platforms", {})
-        return list(map(lambda x: PlatformCreate(discription=x[0]), filter(lambda x: x[1], data.items())))
-    
+        return list(map(lambda x: PlatformCreate(description=x[0]), filter(lambda x: x[1], data.items())))
+
     @staticmethod
     def extract_stats(raw_data: Dict[str, Any]) -> List[StatsCreate]:
         return list(map(lambda x: StatsCreate(**x), raw_data.get('stats', [])))
-    
+
     @staticmethod
     def extract_achievs(raw_data: Dict[str, Any]) -> List[AchievCreate]:
         return list(map(lambda x: AchievCreate(**x), raw_data.get('achievements', [])))
-    
+
     @staticmethod
     def extract_achievs_percent(raw_data: Dict[str, Any]) -> List[AchievPercentCreate]:
         return list(map(lambda x: AchievPercentCreate(**x), raw_data.get('achievements', [])))
-    
+
     @staticmethod
     def extract_reviews(raw_data: Dict[str, Any]) -> List[ReviewCreate]:
         return list(map(lambda x: ReviewCreate(**x), raw_data.get('reviews', [])))
-    
+
     @staticmethod
     def extract_news(raw_data: Dict[str, Any]) -> List[NewCreate]:
         return list(map(lambda x: NewCreate(**x), raw_data.get('newsitems', [])))
-    
-    
 
     # endregion
     # region Support Private Parse methods

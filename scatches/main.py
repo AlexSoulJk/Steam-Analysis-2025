@@ -106,10 +106,10 @@ def main():
     # ----------------------------------------------------------------------------
 
     # # steam.game_service.collect_categories((5, 10))
-    # # print(f"Игры: {steam.game_service.get_game_list()}")
+    print(f"Игры: {steam.game_service.get_game_list()}")
     # print(f"{game=}")
-    # mediator = AppMediator(api_key)
-    # mediator.create_game()
+    mediator = AppMediator(api_key)
+    mediator.create_game()
     # game_analysis = steam.analyze_game(730)
     # print(f"Положительных отзывов: {game_analysis['review_analysis']['positive_rate']:.1%}")
 

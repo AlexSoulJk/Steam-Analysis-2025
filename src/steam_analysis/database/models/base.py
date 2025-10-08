@@ -46,8 +46,8 @@ class DictionaryModel(BaseModel):
     """Абстрактная модель для справочников"""
     __abstract__ = True
 
-    name = Column(String(100), unique=True, nullable=False, index=True)
-    description = Column(String(255))
+    # name = Column(String(100), unique=True, nullable=False, index=True)
+    description = Column(String(255), unique=True, index=True)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}(name='{self.name}')>"
+        return f"<{self.__class__.__name__}(name='{self.description}')>"

@@ -128,7 +128,8 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         db_objects = []
         for obj_in in objects_in:
-            obj_data = obj_in.model_dump() if hasattr(obj_in, 'model_dump') else obj_in.dict()
+            # Стоит ли так оставлять?? с alias в качестве жестко захоровоженного
+            obj_data = obj_in.model_dump(by_alias=True) if hasattr(obj_in, 'model_dump') else obj_in.dict()
             db_obj = self.model(**obj_data)
             db_objects.append(db_obj)
 

@@ -3,11 +3,11 @@ from typing import List, Optional
 
 from steam_analysis.core.schemas.base import BaseSchema
 from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, StatsCreate, AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
-from steam_analysis.core.schemas.game.game import GameCreate
+from steam_analysis.core.schemas.game.game import GameCreate, GameFromHttp
 
 
 class GameDataAnalysisCreate(BaseSchema):
-    game: GameCreate
+    game: GameFromHttp
     genres: List[GenreCreate]
     categories: List[CategoryCreate]
     platforms: List[PlatformCreate]

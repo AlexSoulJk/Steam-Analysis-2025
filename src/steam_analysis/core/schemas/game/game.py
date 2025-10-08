@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import Field
 
 from steam_analysis.core.schemas.base import BaseSchema, TimestampMixin, IDMixin
-from .dictionaries import CategoryResponse, GenreResponse, PlatformResponse
+from .dictionaries import CategoryResponse, GenreResponse, PlatformResponse, TypeBase, TypeCreate
 
 
 @dataclass
@@ -28,14 +28,17 @@ class GameBase(BaseSchema):
     release_date: Optional[datetime] = None
     coming_soon: bool = False
     controller_support: Optional[str] = None
-    type: str = Field(..., min_length=1, max_length=255) 
     # developers: List[str] ??
     # publishers: List[str] ??
 
 
+class GameFromHttp(GameBase):
+    type: TypeBase
+
+
 class GameCreate(GameBase):
     """DTO для создания игры"""
-    pass
+    type_id: int
 
 
 class GameUpdate(BaseSchema):
