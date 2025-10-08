@@ -19,7 +19,7 @@ def main():
 
     print(f"✅ API ключ загружен: {api_key[:10]}...")
 
-    # steam = SteamAnalysisFacade(api_key)
+    steam = SteamAnalysisFacade(api_key)
 
     # Работа с игроками - чистые CRUD операции
     # player = steam.get_player("76561197960435530")
@@ -66,7 +66,45 @@ def main():
     # print(f"Общее время в играх: {analysis['total_playtime_hours']} часов")
 
     # Работа с играми
-    # game = steam.get_game(730)  # CS:GO
+    print('\n\nРабота с играми\n\n')
+    # ----------------------------------------------------------------------------
+    game = steam.get_game(730)  # CS:GO
+    print()
+    print(f"Игра 730: {game}\n\n")
+
+    # game = steam.get_game(730, 'russian')  # CS:GO
+    # print(f"Игра 730 (на русском): {game}\n\n")
+
+    # games = steam.get_game_list([730,80])  # CS:GO
+    # print(f"Игры 80, 730: {games}\n\n")
+    # for g in games:
+    #     print(f"-- Игра: {g}\n")
+
+    # games = steam.get_game_list([730,80], 'russian')  # CS:GO
+    # print(f"Игры 80, 730 (на русском): {games}\n\n")
+    # for g in games:
+    #     print(f"-- Игра (на русском): {g}\n")
+
+    # news = steam.get_news(2976790)
+    # print(f"Новости для игры 2976790: {news}\n\n")
+
+    # achiev_p = steam.get_achiev_persentage(730)
+    # print(f"Глобальные проценты выполнения достижений для игры 730: {achiev_p}\n\n")
+
+    # global_stats = steam.get_global_stats(730, 1, ['PLAY_CS2'])
+    # print(f"Глобальная статистика для игры 730: {global_stats}\n\n")
+
+    # players = steam.get_number_of_players(730)
+    # print(f"Количество игроков для игры 730: {players}\n\n")
+
+    # reviews = steam.get_reviews(730)
+    # print(f"Отзывы для игры 730: {reviews}\n\n")
+
+    # schema = steam.get_schema(730)
+    # print(f"Схема для игры 730: {schema}\n\n")
+
+    # ----------------------------------------------------------------------------
+
     # # steam.game_service.collect_categories((5, 10))
     # # print(f"Игры: {steam.game_service.get_game_list()}")
     # print(f"{game=}")

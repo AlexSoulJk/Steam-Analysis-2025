@@ -42,8 +42,29 @@ class SteamAnalysisFacade:
         return self.player_service.analyze_gaming_preferences(steam_id)
 
     # Game methods
-    def get_game(self, app_id: int) -> Optional[Dict[str, Any]]:
-        return self.game_repo.get_by_id(app_id)
+    def get_game(self, app_id: int, lang = None) -> Optional[Dict[str, Any]]:
+        return self.game_repo.get_by_id(app_id, lang)
+
+    def get_game_list(self, app_ids: list[int], lang = None,) -> Optional[List[Dict[str, Any]]]:
+        return self.game_repo.get_by_ids(app_ids, lang)
+    
+    def get_schema(self, app_id: int) -> Optional[List[Dict[str, Any]]]:
+        return self.game_repo.get_schema(app_id)
+
+    def get_news(self, app_id: int) -> Optional[List[Dict[str, Any]]]:
+        return self.game_repo.get_news(app_id)
+    
+    def get_achiev_persentage(self, app_id: int) -> Optional[List[Dict[str, Any]]]:
+        return self.game_repo.get_achiev_persentage(app_id)
+    
+    def get_global_stats(self, app_id: int, count: int, names: List[str]) -> Optional[List[Dict[str, Any]]]:
+        return self.game_repo.get_global_stats(app_id, count, names)
+    
+    def get_number_of_players(self, app_id: int) -> Optional[List[Dict[str, Any]]]:
+        return self.game_repo.get_number_of_players(app_id)
+    
+    def get_reviews(self, app_id: int) -> Optional[List[Dict[str, Any]]]:
+        return self.game_repo.get_reviews(app_id)
 
     def analyze_game(self, app_id: int) -> Optional[Dict[str, Any]]:
         return self.game_service.get_game_analysis(app_id)
