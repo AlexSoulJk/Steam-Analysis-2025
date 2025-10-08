@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, Any, List
 from ...core.dependencies.basehttp import RequestsClient, RequestsWithDelayClient
 from ..repositories.player_repository import PlayerRepository
 from ..repositories.game_repository import GameRepository
@@ -26,8 +26,17 @@ class SteamAnalysisFacade:
     def get_player(self, steam_id: str) -> Optional[Dict[str, Any]]:
         return self.player_repo.get_by_id(steam_id)
 
+    def get_players_info(self, steam_ids: List[str]) -> Optional[List[Any]]:
+        return self.player_repo.get_by_ids(steam_ids)
+
     def get_player_full_profile(self, steam_id: str) -> Optional[Dict[str, Any]]:
         return self.player_service.get_player_profile(steam_id)
+
+    def get_player_achievements_by_one_game(self, steam_id: str, app_id: str) -> List[Dict[str, Any]]:
+        return self.player_repo.get_player_achievements(steam_id, app_id)
+
+    def get_player_game_stats(self, steam_id: str, app_id: str) -> List[Dict[str, Any]]:
+        return self.player_repo.get_player_game_stats(steam_id, app_id)
 
     def analyze_player(self, steam_id: str) -> Optional[Dict[str, Any]]:
         return self.player_service.analyze_gaming_preferences(steam_id)
