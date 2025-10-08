@@ -21,7 +21,12 @@ class PlayerRepository(BaseRepository):
         return players[0] if players else None
 
     def get_by_ids(self, steam_ids: list[str], **kwargs) -> Optional[List[Any]]:
-        pass
+        """Получить информацию по списку SteamID игроков"""
+        url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUser}/GetPlayerSummaries/v2/"
+        params = {'key': self.api_key, 'steamids': ','.join(steam_ids)}
+        data = self.http_client.get(url, params=params)
+        players = data.get('response', {}).get('players', [])
+        return players if players else None
 
     def get_friends(self, steam_id: str) -> List[Dict[str, Any]]:
         """Получить друзей игрока"""
@@ -43,3 +48,42 @@ class PlayerRepository(BaseRepository):
 
         data = self.http_client.get(url, params=params)
         return data.get('response', {}).get('games', [])
+
+    def get_steam_level(self, steam_id: str) -> int:
+        """Получить уровень игрока"""
+        url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.IPlayerService}/GetSteamLevel/v1/"
+        params = {
+            'key': self.api_key,
+            'steamid': steam_id,
+        }
+
+        data = self.http_client.get(url, params=params)
+        return data.get('response', {}).get('player_level')
+
+    def get_player_achievements(self, steam_id: str, app_id: str) -> Optional[List[Dict[str, Any]]]:
+        """Получить достижения игрока по его SteamId и app_id игры"""
+        url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUserStats}/GetPlayerAchievements/v1/"
+        params = {
+            'key': self.api_key,
+            'steamid': steam_id,
+            'appid': app_id,
+        }
+        try:
+            data = self.http_client.get(url, params=params)
+            return data.get('playerstats', {}).get('achievements', [])
+        except:
+            return None
+
+    def get_player_game_stats(self, steam_id: str, app_id: str) -> Optional[List[Dict[str, Any]]]:
+        """Получить статистики игрока по его SteamId в игры с app_id """
+        url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUserStats}/GetUserStatsForGame/v2/"
+        params = {
+            'key': self.api_key,
+            'steamid': steam_id,
+            'appid': app_id,
+        }
+        try:
+            data = self.http_client.get(url, params=params)
+            return data.get('playerstats', {}).get('stats', [])
+        except:
+            return None
