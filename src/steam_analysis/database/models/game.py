@@ -18,16 +18,25 @@ class Game(BaseModel):
     controller_support = Column(String(50))
     is_free = Column(Boolean, default=False)
 
-    # Связи
     game_type = relationship("GameType")
     metrics = relationship("GameMetrics", back_populates="game", uselist=False, cascade="all, delete-orphan")
     genres = relationship("GameGenre", back_populates="game", cascade="all, delete-orphan")
     categories = relationship("GameCategory", back_populates="game", cascade="all, delete-orphan")
     platforms = relationship("GamePlatform", back_populates="game", cascade="all, delete-orphan")
-    prices = relationship("PriceHistory", back_populates="game", cascade="all, delete-orphan")
-    # prop strategy is_check_for_metric
 
-    # Индексы
+    reviews = relationship("Review", back_populates="game", cascade="all, delete-orphan")
+    news = relationship("News", back_populates="game", cascade="all, delete-orphan")
+    achievements = relationship("Achievement", back_populates="game", cascade="all, delete-orphan")
+    developers = relationship("GameDeveloper", back_populates="game", cascade="all, delete-orphan")
+    publishers = relationship("GamePublisher", back_populates="game", cascade="all, delete-orphan")
+
+    users_owned = relationship("UserGameOwnership", back_populates="game", cascade="all, delete-orphan")
+    user_achievements = relationship("UserAchievement", back_populates="game", cascade="all, delete-orphan")
+
+    review_history = relationship("ReviewHistory", back_populates="game", cascade="all, delete-orphan")
+    prices = relationship("PriceHistory", back_populates="game", cascade="all, delete-orphan")
+    player_counts = relationship("PlayerCountHistory", back_populates="game", cascade="all, delete-orphan")
+
     __table_args__ = (
         Index('idx_games_app_id', 'app_id'),
         Index('idx_games_name', 'name'),
@@ -56,7 +65,6 @@ class GameMetrics(BaseModel):
     review_count = Column(Integer, default=0)
     peak_players_all_time = Column(Integer, default=0)
 
-    # Связь
     game = relationship("Game", back_populates="metrics")
 
     __table_args__ = (
@@ -68,18 +76,26 @@ class GameMetrics(BaseModel):
 class Genre(DictionaryModel):
     """Справочник жанров"""
     __tablename__ = "genres"
+
+    steam_id = Column(String(50), unique=True, index=True, nullable=False) #???????????
+
     games = relationship("GameGenre", back_populates="genre", cascade="all, delete-orphan")
 
 
 class Category(DictionaryModel):
     """Справочник категорий"""
     __tablename__ = "categories"
-    # Связи
+
+    steam_id = Column(String(50), unique=True, index=True, nullable=False)  # ???????????
+
     games = relationship("GameCategory", back_populates="category", cascade="all, delete-orphan")
 
 
 class Platform(DictionaryModel):
     __tablename__ = "platforms"
+
+    steam_id = Column(String(50), unique=True, index=True, nullable=True)  # ???????????
+
     games = relationship("GamePlatform", back_populates="platform", cascade="all, delete-orphan")
 
 
@@ -95,7 +111,6 @@ class GameGenre(BaseModel):
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
     genre_id = Column(Integer, ForeignKey('genres.id', ondelete='CASCADE'), nullable=False)
 
-    # Связи
     game = relationship("Game", back_populates="genres")
     genre = relationship("Genre", back_populates="games")
 
@@ -113,7 +128,6 @@ class GameCategory(BaseModel):
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
     category_id = Column(Integer, ForeignKey('categories.id', ondelete='CASCADE'), nullable=False)
 
-    # Связи
     game = relationship("Game", back_populates="categories")
     category = relationship("Category", back_populates="games")
 
@@ -132,7 +146,6 @@ class GamePlatform(BaseModel):
     platform_id = Column(Integer, ForeignKey('platforms.id', ondelete='CASCADE'), nullable=False)
     supported = Column(Boolean, default=True)
 
-    # Связи
     game = relationship("Game", back_populates="platforms")
     platform = relationship("Platform", back_populates="games")
 
@@ -140,4 +153,56 @@ class GamePlatform(BaseModel):
         UniqueConstraint('game_id', 'platform_id', name='uq_game_platform'),
         Index('idx_game_platform_game', 'game_id'),
         Index('idx_game_platform_platform', 'platform_id'),
+    )
+
+
+class News(BaseModel):
+    """Новости игры"""
+    __tablename__ = "news"
+
+    game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
+    gid = Column(String(100), unique=True, nullable=False)
+    title = Column(String(500))
+    url = Column(String(500))
+    is_external_url = Column(Boolean, default=False)
+    author = Column(String(255))
+    contents = Column(Text)
+    feedlabel = Column(String(255))
+    date = Column(Integer)  # timestamp
+    feedname = Column(String(255))
+    feed_type = Column(Integer)
+
+    game = relationship("Game", back_populates="news")
+
+    __table_args__ = (
+        Index('idx_news_game', 'game_id'),
+        Index('idx_news_date', 'date'),
+    )
+
+
+class Achievement(BaseModel):
+    """Достижения игры"""
+    __tablename__ = "achievements"
+
+    game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
+    name = Column(String(255), nullable=False)
+    display_name = Column(String(255), nullable=False)
+    description = Column(Text)
+    icon_url = Column(String(500))
+    icon_gray_url = Column(String(500))
+    achieved = Column(Boolean, default=False)
+    unlock_time = Column(DateTime)
+    global_achievement_rate = Column(Float)  # Процент игроков, получивших достижение
+
+    api_name = Column(String(255), nullable=False)  # Technical name from API
+    hidden = Column(Boolean, default=False)  # Hidden achievement
+
+    user_achievements = relationship("UserAchievement", back_populates="achievement", cascade="all, delete-orphan")
+    game = relationship("Game", back_populates="achievements")
+    history = relationship("AchievementHistory", back_populates="achievement", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        UniqueConstraint('game_id', 'name', name='uq_achievement_game_name'),
+        Index('idx_achievements_game', 'game_id'),
+        Index('idx_achievements_name', 'name'),
     )

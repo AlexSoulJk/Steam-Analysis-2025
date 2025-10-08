@@ -7,12 +7,11 @@ from .base import BaseModel
 
 
 class PlayerCountHistory(BaseModel):
-    """История онлайна игроков (улучшенная)"""
+    """История онлайна игроков"""
     __tablename__ = "player_count_history"
 
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
     player_count = Column(Integer, nullable=False)
-    # Дополнительные метрики
     twitch_viewers = Column(Integer)  # Количество зрителей на Twitch
     trend_24h = Column(Float)  # Изменение за 24 часа в %
 
@@ -26,18 +25,17 @@ class PlayerCountHistory(BaseModel):
 
 
 class PriceHistory(BaseModel):
-    """История цен (улучшенная)"""
+    """История цен"""
     __tablename__ = "price_history"
 
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
     currency = Column(String(3), default='USD', nullable=False)
-    price_final = Column(Integer)  # в центах
-    price_initial = Column(Integer)  # исходная цена в центах
+    price_final= Column(Integer)
+    price_initial = Column(Integer)
     discount_percent = Column(Integer, default=0)
-    # Дополнительные поля
-    price_original = Column(Integer)  # цена до скидки
+    price_original = Column(Integer)
     purchase_available = Column(Boolean, default=True)
-    package_id = Column(Integer)  # ID пакета, если применимо
+    package_id = Column(Integer)
 
     game = relationship("Game", back_populates="prices")
 
@@ -50,7 +48,7 @@ class PriceHistory(BaseModel):
 
 
 class ReviewHistory(BaseModel):
-    """История отзывов (временной ряд)"""
+    """История отзывов"""
     __tablename__ = "review_history"
 
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
@@ -59,10 +57,25 @@ class ReviewHistory(BaseModel):
     positive_reviews = Column(Integer, default=0)
     negative_reviews = Column(Integer, default=0)
 
-    game = relationship("Game")
+    game = relationship("Game", back_populates="review_history")
 
     __table_args__ = (
         Index('idx_review_history_game', 'game_id'),
         Index('idx_review_history_date', 'created_at'),
         Index('idx_review_history_game_date', 'game_id', 'created_at'),
+    )
+
+
+class AchievementHistory(BaseModel):
+    """История изменения статистики достижений"""
+    __tablename__ = "achievement_history"
+
+    achievement_id = Column(Integer, ForeignKey('achievements.id', ondelete='CASCADE'), nullable=False)
+    global_achievement_rate = Column(Float, nullable=False)
+
+    achievement = relationship("Achievement", back_populates="history")
+
+    __table_args__ = (
+        Index('idx_achievement_history_achievement', 'achievement_id'),
+        Index('idx_achievement_history_date', 'created_at'),
     )

@@ -5,6 +5,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from .base import BaseModel
 
+
 class User(BaseModel):
     """Модель пользователя/игрока"""
     __tablename__ = "users"
@@ -20,31 +21,13 @@ class User(BaseModel):
     profile_state = Column(Integer)  # 1 - public, etc.
     community_visibility_state = Column(Integer)
 
-    # Связи
     game_ownership = relationship("UserGameOwnership", back_populates="user", cascade="all, delete-orphan")
     playtime = relationship("UserPlaytime", back_populates="user", cascade="all, delete-orphan")
+    achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
+    reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index('idx_user_steam_id', 'steam_id'),
-    )
-
-
-class UserGameOwnership(BaseModel):
-    """Владение играми пользователями"""
-    __tablename__ = "user_game_ownership"
-
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
-    owned = Column(Boolean, default=True)
-    ownership_date = Column(DateTime)
-
-    user = relationship("User", back_populates="game_ownership")
-    game = relationship("Game")
-
-    __table_args__ = (
-        UniqueConstraint('user_id', 'game_id', name='uq_user_game_ownership'),
-        Index('idx_ownership_user', 'user_id'),
-        Index('idx_ownership_game', 'game_id'),
     )
 
 
