@@ -17,11 +17,15 @@ class PlayerService:
         # Обогащаем данными
         games = self.player_repo.get_owned_games(steam_id)
         friends = self.player_repo.get_friends(steam_id)
+        steam_level = self.player_repo.get_steam_level(steam_id)
 
         return {
             'profile': profile,
+            'steam_level': steam_level,
             'games_count': len(games),
+            'games_ids': [game.get('appid') for game in games],
             'friends_count': len(friends),
+            'friends_ids': [friend.get('steamid') for friend in friends],
             'total_playtime': sum(game.get('playtime_forever', 0) for game in games),
             'recent_games': sorted(games, key=lambda x: x.get('playtime_forever', 0), reverse=True)[:5]
         }
