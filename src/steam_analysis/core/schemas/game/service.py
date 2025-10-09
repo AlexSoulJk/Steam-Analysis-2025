@@ -17,6 +17,10 @@ class FillGameAnalysisChunk(BaseSchema):
     start_app_id: int
     end_app_id: int
 
+    # null amount
+    # not null amount
+    #
+
     response_time: datetime.timedelta
     data_chunk: List[Optional[GameDataAnalysisCreate]]
 

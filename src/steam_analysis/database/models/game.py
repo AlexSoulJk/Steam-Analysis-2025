@@ -77,8 +77,6 @@ class Genre(DictionaryModel):
     """Справочник жанров"""
     __tablename__ = "genres"
 
-    steam_id = Column(String(50), unique=True, index=True, nullable=False) #???????????
-
     games = relationship("GameGenre", back_populates="genre", cascade="all, delete-orphan")
 
 
@@ -86,15 +84,11 @@ class Category(DictionaryModel):
     """Справочник категорий"""
     __tablename__ = "categories"
 
-    steam_id = Column(String(50), unique=True, index=True, nullable=False)  # ???????????
-
     games = relationship("GameCategory", back_populates="category", cascade="all, delete-orphan")
 
 
 class Platform(DictionaryModel):
     __tablename__ = "platforms"
-
-    steam_id = Column(String(50), unique=True, index=True, nullable=True)  # ???????????
 
     games = relationship("GamePlatform", back_populates="platform", cascade="all, delete-orphan")
 

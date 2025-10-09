@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 from steam_analysis.database.models.base import BaseModel
 from steam_analysis.database.models.game import Game, Genre, Category, Platform, GameType
 from steam_analysis.database.models.game import GameGenre, GameCategory, GamePlatform
-from steam_analysis.database.models.game import PriceHistory, PlayerCountHistory, GameMetrics
+from steam_analysis.database.models.timeseries import PriceHistory, PlayerCountHistory
 
 config = context.config
 

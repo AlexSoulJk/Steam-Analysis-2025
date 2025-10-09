@@ -39,11 +39,11 @@ class GameRepository(BaseRepository):
             game_data = data.get(str(app_id), {'success': False})
             # TODO: Handle error !!
             if not game_data.get('success'):
-                logger.warning(f"\n ❗️ Game {app_id} not found or failed to load")
+                logger.warning(f"\n ❗️ Game app_id: {app_id} not found or failed to load")
                 return None
             return self._parse_game_data(app_id, game_data['data'])
         except Exception as e:
-            logger.error(f"\n ❗️ Error getting game {app_id}: {e}")
+            logger.error(f"\n ❗️ Error getting game app_id:{app_id}: {e}")
             return None
 
     def get_by_ids(self, ids: list[int], lang = None, **kwargs) -> Optional[List[GameDataAnalysisCreate]]:

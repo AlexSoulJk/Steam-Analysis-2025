@@ -19,7 +19,9 @@ class GameList(Resource):
     def get_app_id_list(self, app_id_start: int, size: int) -> Optional[List[GameShortInfo]]:
         if not self.data:
             return None
-        start_index = list(filter(lambda x: x['appid'] == app_id_start, self.data))[0]['appid']
+        # count = 0
+        # start_index = list(filter(lambda x, count: x['appid'] == app_id_start, count += 1, self.data))[0]['appid']
+        start_index = next(i for i, item in enumerate(self.data) if item['appid'] == app_id_start)
         end_index = min(len(self.data), start_index + size)
         return list(map(lambda x: x['appid'], self.data[start_index:end_index]))
 
