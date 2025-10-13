@@ -1,3 +1,4 @@
+from steam_analysis.core.schemas.game.service import GameCreateReportInfo
 from steam_analysis.strategies.basestrategy import BaseStrategy
 
 
@@ -8,3 +9,6 @@ class GameCreateStrategy(BaseStrategy):
 
     def get_data(self) -> tuple[int, int]:
         return 1, 2
+
+    def create_report(self, data: GameCreateReportInfo):
+        pass

@@ -6,6 +6,11 @@ from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryC
     AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
 from steam_analysis.core.schemas.game.game import GameCreate, GameFromHttp
 
+class GameCreateReportInfo(BaseSchema):
+    start_app_id: int
+    end_app_id: int
+    response_time: datetime.timedelta
+
 
 class GameDataAnalysisCreate(BaseSchema):
     game: GameFromHttp
@@ -29,6 +34,11 @@ class FillGameAnalysisChunk(BaseSchema):
     response_time: datetime.timedelta
     data_chunk: List[Optional[GameDataAnalysisCreate]]
 
+    def get_report_into(self) -> GameCreateReportInfo:
+        return GameCreateReportInfo(start_app_id=self.start_app_id,
+                                    end_app_id=self.end_app_id,
+                                    response_time=self.response_time)
+
 
 class FillTypeSchemaChunk(BaseSchema):
     app_ids: list[int]
@@ -36,6 +46,7 @@ class FillTypeSchemaChunk(BaseSchema):
     data_chunck: Dict[int, TypeAnalysesSchema]
     response_time: datetime.timedelta
     success_count: int
+
 
 # endregion
 

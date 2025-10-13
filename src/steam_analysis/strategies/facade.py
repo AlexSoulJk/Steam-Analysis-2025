@@ -1,5 +1,7 @@
 from enum import Enum
 
+from steam_analysis.core.schemas.game.service import GameCreateReportInfo
+
 
 class StrategyInfoProvider:
 
@@ -24,3 +26,9 @@ class StrategyInfoProvider:
 
     def get_game_timed_data_info(self) -> list[int]:
         return self._get_fill_strategy(StrategyInfoProvider.Code.fill_game_timed_data).get_data()
+
+    def add_report_game_create_info(self, report_info: GameCreateReportInfo):
+        self._get_fill_strategy(StrategyInfoProvider.Code.fill_game_create).create_report(report_info)
+
+    def add_report_game_timed_data_info(self, report_info: GameCreateReportInfo):
+        self._get_fill_strategy(StrategyInfoProvider.Code.fill_game_timed_data).create_report(report_info)

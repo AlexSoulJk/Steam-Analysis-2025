@@ -10,3 +10,7 @@ class BaseStrategy(ABC):
     @abstractmethod
     def get_data(self) -> Any:
         pass
+
+    @abstractmethod
+    def create_report(self, data):
+        pass

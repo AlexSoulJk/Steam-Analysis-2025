@@ -23,6 +23,7 @@ class AppMediator:
         # default_saver.save_fill_game_batch(fill_butch)
         print("fill_butch: ", fill_butch)
         self.database_facade.create_games(fill_butch)
+        self.strategy_facade.add_report_game_create_info(fill_butch.get_report_into())
 
     def create_time_game_butch(self):
         app_ids = [] # todo: need to get from strategy
