@@ -4,6 +4,7 @@ from steam_analysis.core.client.steamclient import SteamAnalysisFacade
 from steam_analysis.database.facade import DbFacade
 from steam_analysis.loader_test_data import default_loader
 from steam_analysis.saver_test_data import default_saver
+from steam_analysis.strategies.facade import StrategyInfoProvider
 
 
 class AppMediator:
@@ -11,6 +12,7 @@ class AppMediator:
     def __init__(self, steam_api_key: str):
         self.steam_facade = SteamAnalysisFacade(steam_api_key)
         self.database_facade = DbFacade()
+        self.strategy_facade = StrategyInfoProvider()
 
     def create_game(self, chunk_size: int = 10):
         # Main game filling case
