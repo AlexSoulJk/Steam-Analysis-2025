@@ -72,5 +72,8 @@ class SteamAnalysisFacade:
     def get_game_analysis_list(self, app_id: int, chunck_size: int):
         return self.game_service.get_game_analysis_list(app_id, chunck_size)
 
+    def get_game_timed_data(self, app_ids: list[int]):
+        return self.game_service.get_game_timed_data(app_ids)
+
     def get_game_reviews(self, app_id: int, limit: int = 100):
         return self.game_repo.get_reviews(app_id, limit)

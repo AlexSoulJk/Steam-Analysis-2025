@@ -2,7 +2,7 @@ import datetime
 from typing import List, Dict, Any, Optional
 from ..repositories.game_repository import GameRepository
 from ..schemas import GameCreate
-from ..schemas.game.service import GameDataAnalysisCreate, FillGameAnalysisChunk
+from ..schemas.game.service import GameDataAnalysisCreate, FillGameAnalysisChunk, FillTypeSchemaChunk
 from ...resourcemanager.manager import resource_manager
 from ...resourcemanager.resources.codes import ResourceCodes
 
@@ -46,6 +46,9 @@ class GameService:
                                      end_app_id=app_id_list[-1],
                                      response_time=elapsed_time,
                                      data_chunk=data_chunk)
+
+    def get_game_timed_data(self, app_ids: list[int]) -> FillTypeSchemaChunk:
+        pass
 
     @staticmethod
     def get_first_app_id():

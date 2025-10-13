@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 from steam_analysis.config import test_data_path
-from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk
+from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillTypeSchemaChunk
 
 
 class SaveTestData:
@@ -39,5 +39,7 @@ class SaveTestData:
             print(f"❌ Ошибка сохранения: {e}")
             return None
 
+    def save_fill_game_timed_data(self, fill_model: FillTypeSchemaChunk):
+        pass
 
 default_saver = SaveTestData(test_data_path)

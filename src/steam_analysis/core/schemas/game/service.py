@@ -1,8 +1,9 @@
 import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from steam_analysis.core.schemas.base import BaseSchema
-from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, StatsCreate, AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
+from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, StatsCreate, \
+    AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
 from steam_analysis.core.schemas.game.game import GameCreate, GameFromHttp
 
 
@@ -13,6 +14,10 @@ class GameDataAnalysisCreate(BaseSchema):
     platforms: List[PlatformCreate]
 
 
+class TypeAnalysesSchema(BaseSchema):
+    pass
+
+# region FillChunk schemas
 class FillGameAnalysisChunk(BaseSchema):
     start_app_id: int
     end_app_id: int
@@ -24,6 +29,15 @@ class FillGameAnalysisChunk(BaseSchema):
     response_time: datetime.timedelta
     data_chunk: List[Optional[GameDataAnalysisCreate]]
 
+
+class FillTypeSchemaChunk(BaseSchema):
+    app_ids: list[int]
+    start_time: datetime.datetime
+    data_chunck: Dict[int, TypeAnalysesSchema]
+    response_time: datetime.timedelta
+    success_count: int
+
+# endregion
 
 class SchemaDataAnalysisCreate(BaseSchema):
     game_id: int

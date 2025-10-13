@@ -21,3 +21,9 @@ class AppMediator:
         # default_saver.save_fill_game_batch(fill_butch)
         print("fill_butch: ", fill_butch)
         self.database_facade.create_games(fill_butch)
+
+    def create_time_game_butch(self):
+        app_ids = [] # todo: need to get from strategy
+        fill_butch = self.steam_facade.get_game_timed_data(app_ids)
+        default_saver.save_fill_game_timed_data(fill_butch)
+        pass
