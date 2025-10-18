@@ -113,6 +113,7 @@ def main():
     # print(f"{game=}")
     # mediator = AppMediator(api_key)
     # mediator.create_game()
+    # mediator.create_time_game_butch()
     # game_analysis = steam.analyze_game(730)
     # print(f"Положительных отзывов: {game_analysis['review_analysis']['positive_rate']:.1%}")
 
