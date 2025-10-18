@@ -65,9 +65,9 @@ def main():
     # analysis = steam.analyze_player("76561197960287966")
     # print(f"Общее время в играх: {analysis['total_playtime_hours']} часов")
 
+# ----------------------------------------------------------------------------
     # Работа с играми
-    # print('\n\nРабота с играми\n\n')
-    # # ----------------------------------------------------------------------------
+    print('\n\nРабота с играми\n\n')
     # game = steam.get_game(730)  # CS:GO
     # print()
     # print(f"Игра 730: {game}\n\n")
@@ -103,13 +103,16 @@ def main():
     # schema = steam.get_schema(730)
     # print(f"Схема для игры 730: {schema}\n\n")
 
-    # ----------------------------------------------------------------------------
+    game_timed_data = steam.get_game_timed_data([730, 2976790])
+    print(f"Получение дополнительной информации об играх, зависящей от времени: \n{game_timed_data}")
+
+# ----------------------------------------------------------------------------
 
     # # steam.game_service.collect_categories((5, 10))
-    print(f"Игры: {steam.game_service.get_game_list()}")
+    # print(f"Игры: {steam.game_service.get_game_list()}")
     # print(f"{game=}")
-    mediator = AppMediator(api_key)
-    mediator.create_game()
+    # mediator = AppMediator(api_key)
+    # mediator.create_game()
     # game_analysis = steam.analyze_game(730)
     # print(f"Положительных отзывов: {game_analysis['review_analysis']['positive_rate']:.1%}")
 
