@@ -26,6 +26,7 @@ class AnalysisChunk(AnalysisBaseModel):
     started_at = Column(DateTime)
     finished_at = Column(DateTime)
     request_count = Column(Integer, default=0)
+    last_processed_app_id = Column(Integer, nullable=True)  # прогресс в чанке
 
     completed = Column(Boolean, default=False)  # можно оставить для обратной совместимости
 
@@ -60,6 +61,7 @@ class GameDataAnalysis(AnalysisBaseModel):
     categories = Column(JSON, nullable=True)        # категории
     platforms = Column(JSON, nullable=True)         # платформы
     error_log = Column(Text, nullable=True)         # ошибка, если не удалось обработать игру
+    processed = Column(Boolean, default=False)      # true если уже записано в основную БД
 
     chunk = relationship("AnalysisChunk", back_populates="game_data")
 
