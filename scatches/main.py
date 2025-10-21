@@ -103,8 +103,8 @@ def main():
     # schema = steam.get_schema(730)
     # print(f"Схема для игры 730: {schema}\n\n")
 
-    game_timed_data = steam.get_game_timed_data([730, 2976790])
-    print(f"Получение дополнительной информации об играх, зависящей от времени: \n{game_timed_data}")
+    # game_timed_data = steam.get_game_timed_data([730, 2976790])
+    # print(f"Получение дополнительной информации об играх, зависящей от времени: \n{game_timed_data}")
 
 # ----------------------------------------------------------------------------
 
