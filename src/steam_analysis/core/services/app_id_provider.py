@@ -44,12 +44,6 @@ class AppIdProviderService:
         step: int = 100,
         processed_by: Optional[str] = None,
     ) -> List[AnalysisChunk]:
-        """
-        Создает чанки для диапазона app_id (например, 1000–9999) с заданным шагом.
-        Пример:
-            create_chunks_by_range(1000, 1200, step=50)
-            → создаст чанки [1000–1049], [1050–1099], [1100–1149], [1150–1199]
-        """
         chunks = []
         current = start_id
 
@@ -67,12 +61,6 @@ class AppIdProviderService:
         chunk_size: int = 100,
         processed_by: Optional[str] = None,
     ) -> List[AnalysisChunk]:
-        """
-        Создает чанки из произвольного списка app_id (например, если ID идут не подряд).
-        Пример:
-            create_chunks_from_list([123, 999, 1500, 1510], chunk_size=2)
-            → создаст чанки с app_ids: [123, 999], [1500, 1510]
-        """
         chunks = []
         for i in range(0, len(app_id_list), chunk_size):
             subset = app_id_list[i:i + chunk_size]
@@ -81,9 +69,6 @@ class AppIdProviderService:
         return chunks
 
     def get_next_chunk(self, limit: int = 1) -> Optional[AnalysisChunk]:
-        """
-        Получить следующий чанк, который еще не обрабатывался.
-        """
         chunk = (
             self.db.execute(
                 select(AnalysisChunk)
@@ -112,9 +97,6 @@ class AppIdProviderService:
         response_time: Optional[float] = None,
         processed_by: Optional[str] = None,
     ):
-        """
-        Пометить чанк как завершенный и обновить статистику.
-        """
         stmt = (
             update(AnalysisChunk)
             .where(AnalysisChunk.id == chunk_id)

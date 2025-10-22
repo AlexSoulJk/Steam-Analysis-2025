@@ -70,6 +70,13 @@ class GameService:
 
         self.resource_manager.update_resource(ResourceCodes.GAME_CATEGORIES, dump_categories)
 
+    def get_all_app_ids(self) -> list[int]:
+        """Возвращает все app_id из GameList ресурса"""
+        game_list_resource = self.resource_manager.get_resource(ResourceCodes.GAME_LIST)
+        if not game_list_resource or not game_list_resource.data:
+            return []
+        return [item['appid'] for item in game_list_resource.data]
+
     def get_game_list(self,
                       offset: int = 0,
                       size: int = 100):

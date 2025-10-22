@@ -1,87 +1,58 @@
 from steam_analysis.core.client.steamclient import SteamAnalysisFacade
 from steam_analysis.database.facade import DbFacade
-from steam_analysis.database.analysis_facade import AnalysisDbFacade  # 👈 добавляем
-from pathlib import Path
-import time
+from steam_analysis.database.analysis_facade import AnalysisDbFacade
+
+from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk
 
 
 class AppMediator:
-    def __init__(self, steam_api_key: str, operator_name: str = "system"):
+
+    def __init__(self, steam_api_key: str):
         self.steam_facade = SteamAnalysisFacade(steam_api_key)
         self.database_facade = DbFacade()
-        self.analysis_facade = AnalysisDbFacade()
-        self.operator_name = operator_name
+        self.analysis_service = AnalysisDbFacade()
 
     def create_game(self, chunk_size: int = 10):
-        # --- Получаем чанк ---
-        next_chunk = self.analysis_facade.get_next_chunk()
-        if not next_chunk:
-            print("❌ Нет чанков для обработки.")
-            return
+        # Получаем последний загруженный app_id
+        last_game = self.database_facade.get_last_upploaded_game()
+        start_app_id = self.steam_facade.get_first_app_id() if last_game is None else last_game.app_id
 
-        print(f"⚙️ Обрабатываем чанк {next_chunk.id} "
-              f"[{next_chunk.start_app_id}-{next_chunk.end_app_id}]")
+        # Создаем чанк в аналитической базе
+        chunk_ids = list(range(start_app_id, start_app_id + chunk_size))
+        chunk = self.analysis_service.create_chunk(chunk_ids, processed_by="mediator")
 
-        # --- Запрашиваем игры из Steam API ---
-        start_time = time.time()
-        fill_butch = None
-        try:
-            fill_butch = self.steam_facade.get_game_analysis_list(
-                next_chunk.start_app_id,
-                chunk_size
-            )
-        except Exception as e:
-            self.analysis_facade.mark_chunk_failed(next_chunk.id, str(e))
-            print(f"❌ Ошибка при загрузке чанка: {e}")
-            return
-        total_response_time = time.time() - start_time
+        # Получаем данные через Steam API
+        fill_butch = self.steam_facade.get_game_analysis_list(start_app_id, chunk_size)
 
-        # --- Обработка игр и запись в обе базы ---
-        processed = 0
-        failed = 0
+        # Сохраняем в аналитической базе и фильтруем успешные игры для основной базы
+        successful_games = []
         for game_data in fill_butch.data_chunk:
             if game_data is None:
-                failed += 1
                 continue
-
-            app_id = game_data.game.appid
             try:
-                self.analysis_facade.log_game_analysis(
-                    chunk_id=next_chunk.id,
-                    app_id=app_id,
-                    status="success",
-                    response_time=total_response_time / chunk_size,
-                    genres=[g.description for g in game_data.genres],
-                    categories=[c.description for c in game_data.categories],
-                    platforms=[p.description for p in game_data.platforms],
-                    stats=None,
-                    achievements=None
-                )
-                processed += 1
+                self.analysis_service.add_game_data(chunk.id, game_data)
+                successful_games.append(game_data)  # только успешные
             except Exception as e:
-                self.analysis_facade.log_game_analysis(
-                    chunk_id=next_chunk.id,
-                    app_id=app_id,
-                    status="failed",
-                    error_log=str(e)
+                # Записываем ошибку в аналитическую базу
+                self.analysis_service.add_game_data(
+                    chunk.id, game_data, status="failed", error_log=str(e)
                 )
-                failed += 1
 
-        # --- Сохраняем игры в основную базу ---
-        if fill_butch:
-            self.database_facade.create_games(fill_butch)
+        # Сохраняем только успешные игры в основной базе
+        if successful_games:
+            fill_chunk_successful = FillGameAnalysisChunk(
+                start_app_id=start_app_id,
+                end_app_id=start_app_id + chunk_size - 1,
+                response_time=fill_butch.response_time,
+                data_chunk=successful_games
+            )
+            self.database_facade.create_games(fill_chunk_successful)
 
-        # --- Завершаем чанк ---
-        self.analysis_facade.mark_chunk_completed(
-            chunk_id=next_chunk.id,
-            null_count=failed,
-            not_null_count=processed,
-            failed_count=failed
-        )
+        # Завершаем чанк
+        self.analysis_service.mark_chunk_complete(chunk.id)
 
-        print(f"✅ Чанк {next_chunk.id} завершён: {processed} успешно, {failed} с ошибками.")
 
-# class AppMediator:
+# class AppMediatorOld:
 #
 #     def __init__(self, steam_api_key: str):
 #         self.steam_facade = SteamAnalysisFacade(steam_api_key)
