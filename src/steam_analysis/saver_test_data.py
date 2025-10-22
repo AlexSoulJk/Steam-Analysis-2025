@@ -41,7 +41,29 @@ class SaveTestData:
             return None
 
     def save_fill_game_timed_data(self, fill_model: FillTypeSchemaChunk):
-        pass
+        """Сохраняет батч данных в JSON файл"""
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d")
+            filename = f"timed_games_{timestamp}_{fill_model.success_count}_of_{len(fill_model.app_ids)}.json"
+            filepath = self.dir_to_save / Path(filename)
+
+            data_dict = fill_model.model_dump()
+
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(data_dict, f, indent=2, ensure_ascii=False, default=str)
+
+            print(f"✅ Данные сохранены в: {filepath}")
+            print(f"📊 Статистика:")
+            print(f"   - Игры: {fill_model.app_ids}")
+            print(f"   - Количество игр в батче: {len(fill_model.app_ids)}")
+            print(f"   - Успешных парсингов: {fill_model.success_count}")
+            print(f"   - Время выполнения: {fill_model.response_time}")
+
+            return filepath
+
+        except Exception as e:
+            print(f"❌ Ошибка сохранения: {e}")
+            return None
 
     def save_fill_player_butch(self, fill_model: FillPlayerAnalysisChunk) -> bool:
         """Сохраняет батч данных без информации по играм в JSON файл"""

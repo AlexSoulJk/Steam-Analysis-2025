@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 from typing import List
 
 from steam_analysis.core.client.steamclient import SteamAnalysisFacade
@@ -27,7 +28,13 @@ class AppMediator:
         self.strategy_facade.add_report_game_create_info(fill_butch.get_report_into())
 
     def create_time_game_butch(self):
-        app_ids = [] # todo: need to get from strategy
+        with open('test_data/games_30_130_20251006.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        app_ids = [item['game']['app_id'] for item in data['data_chunk'] if item is not None]
+
+        print(app_ids)
+
         fill_butch = self.steam_facade.get_game_timed_data(app_ids)
         default_saver.save_fill_game_timed_data(fill_butch)
         pass

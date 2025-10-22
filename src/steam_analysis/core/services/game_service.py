@@ -2,7 +2,7 @@ import datetime
 from typing import List, Dict, Any, Optional
 from ..repositories.game_repository import GameRepository
 from ..schemas import GameCreate
-from ..schemas.game.service import GameDataAnalysisCreate, FillGameAnalysisChunk, FillTypeSchemaChunk
+from ..schemas.game.service import GameDataAnalysisCreate, TypeAnalysesSchema, FillGameAnalysisChunk, FillTypeSchemaChunk
 from ...resourcemanager.manager import resource_manager
 from ...resourcemanager.resources.codes import ResourceCodes
 
@@ -48,7 +48,38 @@ class GameService:
                                      data_chunk=data_chunk)
 
     def get_game_timed_data(self, app_ids: list[int]) -> FillTypeSchemaChunk:
-        pass
+        start_time = datetime.datetime.now()
+        data_chunck = {}
+        success_count = 0
+
+        for app_id in app_ids:
+            news = self.game_repo.get_news(app_id)
+            achiev_persentage = self.game_repo.get_achiev_persentage(app_id)
+            # global_stats = self.game_repo.get_global_stats(app_id, ..)
+            number_of_players = self.game_repo.get_number_of_players(app_id)
+            reviews = self.game_repo.get_reviews(app_id, limit=50)
+            if news != None or achiev_persentage != None or number_of_players != None or reviews != None:
+                success_count += 1
+
+            data = TypeAnalysesSchema(
+                news = news,
+                achiev_persentage = achiev_persentage,
+                number_of_players = number_of_players,
+                reviews = reviews
+            )
+            data_chunck[app_id] = data
+            
+        response_time = datetime.datetime.now() - start_time
+
+        return FillTypeSchemaChunk(
+            app_ids = app_ids,
+            start_time = start_time,
+            data_chunck = data_chunck,
+            response_time = response_time,
+            success_count = success_count
+        )
+
+
 
     @staticmethod
     def get_first_app_id():
