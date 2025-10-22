@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+from typing import List
 
 from steam_analysis.core.client.steamclient import SteamAnalysisFacade
 from steam_analysis.database.facade import DbFacade
@@ -15,7 +16,7 @@ class AppMediator:
         self.database_facade = DbFacade()
         self.strategy_facade = StrategyInfoProvider()
 
-    def create_game(self, chunk_size: int = 10):
+    def create_game(self, chunk_size: int = 10) -> object:
         # Main game filling case
         game = self.database_facade.get_last_upploaded_game()
         start_app_id = self.steam_facade.get_first_app_id() if game is None else game.app_id
@@ -36,3 +37,12 @@ class AppMediator:
 
         fill_butch = self.steam_facade.get_game_timed_data(app_ids)
         default_saver.save_fill_game_timed_data(fill_butch)
+        pass
+
+    def create_player_butch(self, steam_ids: List[str]):
+        fill_butch = self.steam_facade.get_player_data_bunch(steam_ids)
+        default_saver.save_fill_player_butch(fill_butch)
+
+    def create_time_player_butch(self, steam_ids: List[str]):
+        fill_butch = self.steam_facade.get_player_time_data_bunch(steam_ids)
+        default_saver.save_fill_player_time_butch(fill_butch)
