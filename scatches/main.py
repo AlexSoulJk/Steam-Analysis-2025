@@ -112,10 +112,11 @@ def main():
     # mediator.create_game()
     # game_analysis = steam.analyze_game(730)
     # print(f"Положительных отзывов: {game_analysis['review_analysis']['positive_rate']:.1%}")
-    friends_of_friends = steam.get_players_ids_by_one("76561197960265731", depth=2)
-    print(f"Друзья + друзья друзей: {len(friends_of_friends)}\n{friends_of_friends}")
+    # friends_of_friends = steam.get_players_ids_by_one("76561197960265731", depth=2)
+    # print(f"Друзья + друзья друзей: {len(friends_of_friends)}\n*")
     # mediator.create_time_player_butch(["76561197960435530", "76561197960265731"])
-    mediator.create_time_player_butch(friends_of_friends)
+    # mediator.create_player_butch(["76561197960435530", "76561197960265731"])
+    # mediator.create_time_player_butch(["76561197960265731"])
 
 
 if __name__ == "__main__":

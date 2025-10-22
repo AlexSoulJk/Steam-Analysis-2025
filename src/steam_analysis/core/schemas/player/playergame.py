@@ -16,7 +16,7 @@ class PlaytimeBase(BaseSchema):
 
 
 class OwnershipBase(BaseSchema):
-    """Базовая модель владения игрой"""
+    """Базовая модель владения игрой как переделать?"""
     owned: bool = Field(True)
     ownership_date: Optional[datetime] = Field(None)
 

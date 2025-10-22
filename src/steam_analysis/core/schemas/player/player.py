@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import IntEnum
 
@@ -42,6 +42,11 @@ class SteamUserDynamic(BaseSchema):
 class PlayerFromHttp(PlayerBase):
     """Игрок с данными из Steam API"""
     last_logoff: Optional[datetime] = None
+    friends: Optional[List[str]] = None
+    steam_level: Optional[int] = None
+    loccountrycode: Optional[str] = None
+    locstatecode: Optional[str] = None
+    loccityid: Optional[int] = None
 
 
 class PlayerCreate(PlayerBase):
@@ -92,7 +97,7 @@ class PlayerWithAchievements(PlayerResponse):
 
 
 class PlayerWithReviews(PlayerResponse):
-    """Игрок с отзывами"""
+    """Игрок с отзывами - как их можно получать (имеется модель, но как она заполняется)"""
     reviews: List[ReviewBase] = []
     reviews_count: int = 0
     positive_reviews: int = 0
@@ -104,5 +109,18 @@ class PlayerFullProfile(PlayerResponse):
     playtime: List[PlaytimeBase] = []
     owned_games: List[OwnershipBase] = []
     achievements: List[AchievementBase] = []
-    reviews: List[ReviewBase] = []
+    # reviews: List[ReviewBase] = []
+    steam_level: Optional[int] = None
+    friends: Optional[List[str]] = None
+    loccountrycode: Optional[str] = None
+    locstatecode: Optional[str] = None
+    loccityid: Optional[int] = None
+
+
+class PlayerFullFromHttp(PlayerFromHttp):
+    owned_games: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    # playtime: List[PlaytimeBase] = []
+    # owned_games: List[OwnershipBase] = []
+    # achievements: List[AchievementBase] = []
+    # reviews: List[ReviewBase] = []
 

@@ -3,7 +3,7 @@ from typing import List, Optional, Dict
 
 from steam_analysis.core.schemas.base import BaseSchema
 
-from steam_analysis.core.schemas.player.player import PlayerFromHttp
+from steam_analysis.core.schemas.player.player import PlayerFromHttp, PlayerFullFromHttp
 from .playergame import AchievementBase, OwnershipBase, ReviewBase, PlaytimeBase
 
 
@@ -21,10 +21,7 @@ class PlayerDataAnalysisCreate(BaseSchema):
 
 class PlayerAnalysesSchema(BaseSchema):
     """Схема анализа игрока"""
-    playtime: List[PlaytimeBase] = []
-    owned_games: List[OwnershipBase] = []
-    achievements: List[AchievementBase] = []
-    reviews: List[ReviewBase] = []
+    player: PlayerFullFromHttp
 
 
 # region FillChunk schemas

@@ -2,8 +2,10 @@ import datetime
 from typing import List, Dict, Any, Optional, Set
 from ..repositories.player_repository import PlayerRepository
 from ..repositories.game_repository import GameRepository
-from ..schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate
-from ..schemas.player.player import PlayerFromHttp
+from ..schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate, FillPlayerSchemaChunk,\
+    PlayerAnalysesSchema
+from ..schemas.player.player import PlayerFromHttp, PlayerFullFromHttp
+from ..schemas.player.playergame import AchievementBase, OwnershipBase, ReviewBase, PlaytimeBase
 
 
 class PlayerService:
@@ -136,18 +138,16 @@ class PlayerService:
 
         for steam_id in sorted_steam_ids:
             if steam_id in players_dict:
-                player_analysis = self._create_single_player_analysis(players_dict[steam_id])
+                player_from_http = self._create_player_from_Http(players_dict[steam_id])
+                player_analysis = PlayerDataAnalysisCreate(player=player_from_http)
                 data_chunk.append(player_analysis)
             else:
                 data_chunk.append(None)
 
         return data_chunk
 
-    def _create_single_player_analysis(self, player_data: Dict[str, Any]) \
-            -> Optional[PlayerDataAnalysisCreate]:
-        """
-        Создает анализ для одного игрока с проверками полей
-        """
+    def _create_player_from_Http(self, player_data: Dict[str, Any]) -> Optional[PlayerFromHttp]:
+        """Создать объект игрока из Http"""
         try:
             # Безопасное извлечение timestamp полей
             time_created = None
@@ -158,8 +158,11 @@ class PlayerService:
             if 'lastlogoff' in player_data and player_data['lastlogoff']:
                 last_logoff = datetime.datetime.fromtimestamp(player_data['lastlogoff'])
 
-            # Создаем объект с безопасными значениями по умолчанию
-            player_from_http = PlayerFromHttp(
+            steam_id = player_data.get('steamid', '')
+            friends = self.player_repo.get_friends(steam_id)
+            steam_level = self.player_repo.get_steam_level(steam_id)
+
+            return PlayerFromHttp(
                 steam_id=player_data.get('steamid', ''),
                 persona_name=player_data.get('personaname'),
                 profile_url=player_data.get('profileurl'),
@@ -169,11 +172,142 @@ class PlayerService:
                 time_created=time_created,
                 profile_state=player_data.get('profilestate'),
                 community_visibility_state=player_data.get('communityvisibilitystate'),
-                last_logoff=last_logoff
+                last_logoff=last_logoff,
+                friends=[friend['steamid'] for friend in friends] if friends else [],
+                steam_level=steam_level,
+                loccountrycode=player_data.get('loccountrycode'),
+                locstatecode=player_data.get('locstatecode'),
+                loccityid=player_data.get('loccityid')
             )
-            return PlayerDataAnalysisCreate(player=player_from_http)
-
         except Exception as e:
-            print(f"Error creating player analysis: {e}")
+            print(f"Error creating player base: {e}")
             return None
 
+    def get_player_full_data(self, steam_ids: list[str]) -> FillPlayerSchemaChunk:
+        """Получить полные данные игроков"""
+        start_time = datetime.datetime.now()
+
+        if not steam_ids:
+            response_time = datetime.datetime.now() - start_time
+            return FillPlayerSchemaChunk(
+                steam_ids=[],
+                start_time=start_time,
+                data_chunk={},
+                response_time=response_time,
+                success_count=0
+            )
+
+        # Сортируем Steam ID для консистентности
+        sorted_steam_ids = sorted(steam_ids)
+        data_chunk = {}
+        success_count = 0
+
+        # Получаем базовые данные всех игроков
+        players_basic_data = self.player_repo.get_by_ids(sorted_steam_ids)
+
+        # Создаем словарь для быстрого доступа по steam_id
+        players_dict = {player['steamid']: player for player in players_basic_data}
+
+        # Обрабатываем каждого игрока
+        for steam_id in sorted_steam_ids:
+            try:
+                if steam_id in players_dict:
+                    print(f"Start processed {steam_id}")
+                    player_full_data = self._get_single_player_full_data(players_dict[steam_id])
+                    if player_full_data:
+                        # Создаем анализ игрока
+                        player_analysis = PlayerAnalysesSchema(player=player_full_data)
+                        data_chunk[steam_id] = player_analysis
+                        success_count += 1
+                        print(f"Successfully processed {steam_id}")
+                    else:
+                        print(f"Failed to get full data for {steam_id}")
+                else:
+                    print(f"No basic data found for {steam_id}")
+
+            except Exception as e:
+                print(f"Error processing {steam_id}: {e}")
+                continue
+
+        response_time = datetime.datetime.now() - start_time
+
+        return FillPlayerSchemaChunk(
+            steam_ids=sorted_steam_ids,
+            start_time=start_time,
+            data_chunk=data_chunk,
+            response_time=response_time,
+            success_count=success_count
+        )
+
+    def _get_single_player_full_data(self, player_data: Dict[str, Any]) -> Optional[PlayerFullFromHttp]:
+        """Получить полные данные Http для одного игрока"""
+        try:
+            steam_id = player_data.get('steamid', '')
+            # Создаем базовый объект игрока
+            player_base = self._create_player_from_Http(player_data)
+            if not player_base:
+                print(f"Failed to create player base for {steam_id}")
+                return None
+
+            owned_games_structed = self._get_structured_owned_games(steam_id)
+
+            # Создаем полный объект игрока
+            return PlayerFullFromHttp(
+                **player_base.dict(),
+                owned_games=owned_games_structed
+            )
+
+        except Exception as e:
+            print(f"Error getting full data for user: {e}")
+            return None
+
+    def _get_structured_owned_games(self, steam_id: str) -> Dict[str, Dict[str, Any]]:
+        """Получить структурированные данные об играх"""
+        try:
+            owned_games_data = self.player_repo.get_owned_games(steam_id)
+            structured_games = {}
+
+            for game in owned_games_data:
+                app_id = str(game.get('appid'))
+
+                # Создаем OwnershipBase
+                ownership_date = None
+                # как правильно взять?
+                # if game.get('rtime_purchased'):
+                #     ownership_date = datetime.datetime.fromtimestamp(game['rtime_purchased'])
+
+                ownership = OwnershipBase(
+                    owned=True,
+                    ownership_date=ownership_date
+                )
+
+                # Создаем PlaytimeBase
+                last_played = None
+                if game.get('last_played'):
+                    last_played = datetime.datetime.fromtimestamp(game['last_played'])
+
+                playtime = PlaytimeBase(
+                    playtime_forever=game.get('playtime_forever', 0),
+                    playtime_2weeks=game.get('playtime_2weeks', 0),
+                    last_played=last_played
+                )
+
+                # Получаем достижения для этой игры
+                achievements = self.player_repo.get_player_achievements(steam_id, app_id)
+
+                # Получаем заработанные статистики
+                stats = self.player_repo.get_player_game_stats(steam_id, app_id)
+
+                # Структурируем данные
+                structured_games[app_id] = {
+                    # 'owned': ownership,
+                    'playtime': playtime,
+                    'achievements': achievements,
+                    'stats': stats
+                }
+
+            return structured_games
+
+        except Exception as e:
+            print(f"Error getting structured games for {steam_id}: {e}")
+            return {}
