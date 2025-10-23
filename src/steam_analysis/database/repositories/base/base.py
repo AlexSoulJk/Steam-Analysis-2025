@@ -134,11 +134,14 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             db_objects.append(db_obj)
 
         session.add_all(db_objects)
-        session.commit()
 
         # Обновляем объекты, чтобы получить их ID
         for db_obj in db_objects:
             session.refresh(db_obj)
+
+        session.commit()
+
+
 
         return db_objects
 

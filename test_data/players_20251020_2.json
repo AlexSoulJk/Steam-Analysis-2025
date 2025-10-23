@@ -1,0 +1,38 @@
+{
+  "start_steam_id": "76561197960265731",
+  "end_steam_id": "76561197960435530",
+  "response_time": "0:00:00.659541",
+  "data_chunk": [
+    {
+      "player": {
+        "steam_id": "76561197960265731",
+        "persona_name": "EJ",
+        "profile_url": "https://steamcommunity.com/id/erikj/",
+        "avatar_url": "https://avatars.steamstatic.com/168eb0f2a603cef40869abedb970a7c58daec084.jpg",
+        "avatar_medium_url": "https://avatars.steamstatic.com/168eb0f2a603cef40869abedb970a7c58daec084_medium.jpg",
+        "avatar_full_url": "https://avatars.steamstatic.com/168eb0f2a603cef40869abedb970a7c58daec084_full.jpg",
+        "time_created": "2003-09-10 14:14:46",
+        "profile_state": 1,
+        "community_visibility_state": 3,
+        "last_logoff": null
+      }
+    },
+    {
+      "player": {
+        "steam_id": "76561197960435530",
+        "persona_name": "Robin",
+        "profile_url": "https://steamcommunity.com/id/robinwalker/",
+        "avatar_url": "https://avatars.steamstatic.com/81b5478529dce13bf24b55ac42c1af7058aaf7a9.jpg",
+        "avatar_medium_url": "https://avatars.steamstatic.com/81b5478529dce13bf24b55ac42c1af7058aaf7a9_medium.jpg",
+        "avatar_full_url": "https://avatars.steamstatic.com/81b5478529dce13bf24b55ac42c1af7058aaf7a9_full.jpg",
+        "time_created": "2003-09-13 01:59:49",
+        "profile_state": 1,
+        "community_visibility_state": 3,
+        "last_logoff": null
+      }
+    }
+  ],
+  "processed_count": 2,
+  "success_count": 2,
+  "error_count": 0
+}

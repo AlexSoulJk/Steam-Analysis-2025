@@ -23,13 +23,14 @@ class DictionaryRepository(BaseDBRepository[ModelType, CreateSchemaType, UpdateS
         steam_ids = list(set(steam_ids))
         # Ищем существующие записи
         existing_ids = self.get_by_steam_ids(steam_ids, session=session)
+        existing_descriptions = set(map(lambda x: x.description, existing_ids))
         existing_map = {item.id: item for item in existing_ids}
 
         # Определяем какие нужно создать
         to_create = {}
         for items in items_data:
             for item_data in items:
-                if item_data.steam_id not in existing_map:
+                if item_data.steam_id not in existing_map and item_data.description not in existing_descriptions:
                     to_create[item_data.steam_id] = item_data
 
         # Создаем новые записи
