@@ -18,7 +18,7 @@ class GameDataAnalysisCreate(BaseSchema):
     categories: List[CategoryCreate]
     platforms: List[PlatformCreate]
 
-
+      
 class SchemaDataAnalysisCreate(BaseSchema):
     game_id: int
     game_version: int
