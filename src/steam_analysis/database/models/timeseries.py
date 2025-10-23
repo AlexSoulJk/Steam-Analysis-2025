@@ -79,3 +79,24 @@ class AchievementHistory(BaseModel):
         Index('idx_achievement_history_achievement', 'achievement_id'),
         Index('idx_achievement_history_date', 'created_at'),
     )
+
+
+class ReviewDynamicData(BaseModel):
+    """Динамические данные по конкретному отзыву"""
+    __tablename__ = "review_dynamic_data"
+
+    review_id = Column(Integer, ForeignKey('reviews.id', ondelete='CASCADE'), nullable=False)
+    recommendation_id = Column(String(100), nullable=False, index=True)
+    voted_up = Column(Boolean)
+    votes_up = Column(Integer, default=0)
+    votes_funny = Column(Integer, default=0)
+    weighted_vote_score = Column(Float)
+    comment_count = Column(Integer, default=0)
+
+    review = relationship("Review", back_populates="dynamic_data")
+
+    __table_args__ = (
+        UniqueConstraint('review_id', 'recommendation_id', name='uq_review_dynamic'),
+        Index('idx_review_dynamic_review', 'review_id'),
+        Index('idx_review_dynamic_recommendation', 'recommendation_id'),
+    )

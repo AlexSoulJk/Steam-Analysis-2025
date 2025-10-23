@@ -13,7 +13,6 @@ class UserGameOwnership(BaseModel):
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
     owned = Column(Boolean, default=True)
-    ownership_date = Column(DateTime)
 
     user = relationship("User", back_populates="game_ownership")
     game = relationship("Game")
@@ -48,8 +47,12 @@ class Review(BaseModel):
     written_during_early_access = Column(Boolean, default=False)
     primarily_steam_deck = Column(Boolean, default=False)
 
+
     game = relationship("Game", back_populates="reviews")
     user = relationship("User", back_populates="reviews")
+
+    dynamic_data = relationship("ReviewDynamicData", back_populates="review", cascade="all, delete-orphan",
+                                uselist=False)
 
     __table_args__ = (
         Index('idx_reviews_game', 'game_id'),
@@ -81,4 +84,19 @@ class UserAchievement(BaseModel):
         Index('idx_user_achievements_user', 'user_id'),
         Index('idx_user_achievements_game', 'game_id'),
         Index('idx_user_achievements_unlock_time', 'unlock_time'),
+    )
+
+
+class UserLogoffHistory(BaseModel):
+    """История выходов пользователя"""
+    __tablename__ = "user_logoff_history"
+
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    last_logoff = Column(DateTime, nullable=False)
+
+    user = relationship("User", back_populates="logoff_history")
+
+    __table_args__ = (
+        Index('idx_logoff_user', 'user_id'),
+        Index('idx_logoff_date', 'last_logoff'),
     )
