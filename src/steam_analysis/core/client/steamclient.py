@@ -22,6 +22,9 @@ class SteamAnalysisFacade:
     def get_first_app_id(self):
         return self.game_service.get_first_app_id()
 
+    def get_all_app_ids(self) -> list[int]:
+        return self.game_service.get_all_app_ids()
+
     # Player methods
     def get_player(self, steam_id: str) -> Optional[Dict[str, Any]]:
         return self.player_repo.get_by_id(steam_id)
@@ -86,3 +89,4 @@ class SteamAnalysisFacade:
 
     def get_game_reviews(self, app_id: int, limit: int = 100):
         return self.game_repo.get_reviews(app_id, limit)
+

@@ -50,16 +50,11 @@ class GameDataAnalysis(AnalysisBaseModel):
     chunk_id = Column(Integer, ForeignKey("analysis_chunks.id", ondelete="CASCADE"), nullable=False)
 
     app_id = Column(Integer, nullable=False, index=True)
-    version = Column(Integer, default=1)  # версия данных (для перезапуска анализа)
 
     status = Column(String(50), default="success")  # success / failed / partial
     response_time = Column(Float)                   # время ответа API по конкретной игре
-    stats = Column(JSON, nullable=True)             # метрики/статистика (StatsCreate)
-    achievements = Column(JSON, nullable=True)      # достижения (AchievCreate / AchievPercentCreate)
-    genres = Column(JSON, nullable=True)            # жанры
-    categories = Column(JSON, nullable=True)        # категории
-    platforms = Column(JSON, nullable=True)         # платформы
     error_log = Column(Text, nullable=True)         # ошибка, если не удалось обработать игру
+    processed = Column(Boolean, default=False)      # true если уже записано в основную БД
 
     chunk = relationship("AnalysisChunk", back_populates="game_data")
 
