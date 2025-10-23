@@ -1,0 +1,33 @@
+@startuml
+[AppMediator] as Mediator
+[SteamAnalysisFacade] as SteamFacade
+[DataBaseFacade] as MainDB
+[AnalysisDbFacade] as AnalyticsDB
+
+Mediator o-- SteamFacade
+Mediator o-- MainDB 
+Mediator o-- AnalyticsDB
+
+note right of Mediator
+  <b>Центральный координатор</b>
+  Предоставляет методы для решения Use-Cases\nпосредством агрегирования:
+  - Заполнение базы
+  - Предоставление данных для анализа
+end note
+
+note bottom of SteamFacade
+  <b>Фасад работы с Steam</b>
+  - Инкапсулирует в себе сервисы, которые\nвзаимодействуют с внешним Api (пока только Steam)
+  - Выполняет роль обвязки над сервисами
+end note
+
+note bottom of MainDB
+  <b>Фасад основной БД</b>
+  Работа с базой данных steam-analysis.db\nчерез репозитории
+end note
+
+note bottom of AnalyticsDB
+  <b>Фасад служебной БД</b>
+  Работа с базой данных db-analytics.db\nчерез репозитории
+end note
+@enduml
