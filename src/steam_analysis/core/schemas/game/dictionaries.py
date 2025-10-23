@@ -3,7 +3,8 @@ from typing import Optional
 
 from pydantic import Field
 
-from steam_analysis.core.schemas.base import SteamEntityMixin, StatsAchievMixin, AchievPercentMixin, BaseSchema, ReviewMixin, NewMixin
+from steam_analysis.core.schemas.base import (SteamEntityMixin, StatsMixin, AchievMixin, 
+                                              AchievPercentMixin, BaseSchema, ReviewMixin, NewMixin)
 
 
 class CategoryBase(SteamEntityMixin):
@@ -53,10 +54,10 @@ class PlatformResponse(PlatformBase):
     pass
 
 
-class StatsBase(StatsAchievMixin):
+class StatsBase(StatsMixin):
     pass
 
-class  StatsCreate(StatsBase):
+class StatsCreate(StatsBase):
     pass
 
 class StatsUpdate(BaseSchema):
@@ -66,7 +67,7 @@ class StatsResponse(StatsBase):
     pass
 
 
-class AchievBase(StatsAchievMixin):
+class AchievBase(AchievMixin):
     pass
 
 class AchievCreate(AchievBase):

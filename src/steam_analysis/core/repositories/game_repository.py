@@ -137,7 +137,7 @@ class GameRepository(BaseRepository):
             logger.error(f"\n ❗️ Error getting schema for game {app_id}: {e}")
             return None
 
-    def get_news(self, app_id: int) -> List[Dict[str, Any]]:
+    def get_news(self, app_id: int) -> Optional[NewsDataAnalysisCreate]:
         """Получить новости об игре"""
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamNews}/GetNewsForApp/v2"
         params = {'appid': app_id}
