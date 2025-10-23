@@ -183,8 +183,8 @@ class PlayerService:
             print(f"Error creating player base: {e}")
             return None
 
-    def get_player_full_data(self, steam_ids: list[str]) -> FillPlayerSchemaChunk:
-        """Получить полные данные игроков"""
+    def get_player_game_data(self, steam_ids: list[str]) -> FillPlayerSchemaChunk:
+        """Получить данные по играм для пользователей"""
         start_time = datetime.datetime.now()
 
         if not steam_ids:
@@ -202,28 +202,18 @@ class PlayerService:
         data_chunk = {}
         success_count = 0
 
-        # Получаем базовые данные всех игроков
-        players_basic_data = self.player_repo.get_by_ids(sorted_steam_ids)
-
-        # Создаем словарь для быстрого доступа по steam_id
-        players_dict = {player['steamid']: player for player in players_basic_data}
-
         # Обрабатываем каждого игрока
         for steam_id in sorted_steam_ids:
             try:
-                if steam_id in players_dict:
-                    print(f"Start processed {steam_id}")
-                    player_full_data = self._get_single_player_full_data(players_dict[steam_id])
-                    if player_full_data:
-                        # Создаем анализ игрока
-                        player_analysis = PlayerAnalysesSchema(player=player_full_data)
-                        data_chunk[steam_id] = player_analysis
-                        success_count += 1
-                        print(f"Successfully processed {steam_id}")
-                    else:
-                        print(f"Failed to get full data for {steam_id}")
-                else:
-                    print(f"No basic data found for {steam_id}")
+                print(f"Start processed {steam_id}")
+                owned_games = self._get_structured_owned_games(steam_id)
+
+                player_analysis = PlayerAnalysesSchema(
+                    owned_games=owned_games
+                )
+                data_chunk[steam_id] = player_analysis
+                success_count += 1
+                print(f"Successfully processed {steam_id}")
 
             except Exception as e:
                 print(f"Error processing {steam_id}: {e}")
@@ -238,28 +228,6 @@ class PlayerService:
             response_time=response_time,
             success_count=success_count
         )
-
-    def _get_single_player_full_data(self, player_data: Dict[str, Any]) -> Optional[PlayerFullFromHttp]:
-        """Получить полные данные Http для одного игрока"""
-        try:
-            steam_id = player_data.get('steamid', '')
-            # Создаем базовый объект игрока
-            player_base = self._create_player_from_Http(player_data)
-            if not player_base:
-                print(f"Failed to create player base for {steam_id}")
-                return None
-
-            owned_games_structed = self._get_structured_owned_games(steam_id)
-
-            # Создаем полный объект игрока
-            return PlayerFullFromHttp(
-                **player_base.dict(),
-                owned_games=owned_games_structed
-            )
-
-        except Exception as e:
-            print(f"Error getting full data for user: {e}")
-            return None
 
     def _get_structured_owned_games(self, steam_id: str) -> Dict[str, Dict[str, Any]]:
         """Получить структурированные данные об играх"""

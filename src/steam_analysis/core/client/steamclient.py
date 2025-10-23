@@ -51,7 +51,7 @@ class SteamAnalysisFacade:
         return self.player_service.get_player_data_analysis(steam_ids)
 
     def get_player_time_data_bunch(self, steam_ids: list[str]):
-        return self.player_service.get_player_full_data(steam_ids)
+        return self.player_service.get_player_game_data(steam_ids)
 
     # Game methods
     def get_game(self, app_id: int, lang = None) -> Optional[Dict[str, Any]]:
