@@ -1,0 +1,52 @@
+@startuml
+[SteamAnalysisFacade] as Facade
+
+[GameServices] as GameService
+[PlayerServices] as PlayerService
+
+[GameClient] as GameClient
+[PlayerClient] as PlayerClient
+
+[BaseClient] as BaseClient
+[HttpClientWithDelay] as HttpClient
+
+Facade o-- GameService
+Facade o-- PlayerService
+
+GameService o-- GameClient
+PlayerService o-- PlayerClient
+
+GameClient -|> BaseClient
+PlayerClient -|> BaseClient
+
+BaseClient o-- HttpClient
+
+note top of Facade
+  <b>Фасад работы с Steam</b>
+  Унифицированный интерфейс для всех\nопераций с данными Steam
+end note
+
+note right of GameService
+  <b>Сервис игр</b>
+  Бизнес-логика работы с играми
+end note
+
+note left of PlayerService
+  <b>Сервис игроков</b>
+  Бизнес-логика работы с игроками
+end note
+
+note right of BaseClient
+  <b>Базовый клиент</b>
+  Общая логика для всех API-клиентов:
+  - Обработка ошибок
+  - Базовые заголовки
+  - Логирование
+end note
+
+note bottom of HttpClient
+  <b>HTTP клиент с задержками</b>
+  Гарантирует соблюдение лимитов API
+  Обрабатывает повторы
+end note
+@enduml

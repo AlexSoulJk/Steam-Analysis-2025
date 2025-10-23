@@ -1,0 +1,78 @@
+@startuml
+actor User as user
+participant "AppMediator" as mediator
+participant "AnalysisDbFacade" as analysis_facade
+participant "AnalysisChunkRepository" as chunk_repo
+participant "SteamAnalysisFacade" as steam_facade
+participant "GameService" as game_service
+participant "GameClient" as game_client
+participant "DBFacade" as db_facade
+participant "GameRepository" as game_repo
+participant "GenreRepository" as genre_repo
+participant "CategoryRepository" as category_repo
+
+user -> mediator: create_games()
+activate mediator
+
+mediator -> analysis_facade: get_games_batch()
+activate analysis_facade
+
+analysis_facade -> chunk_repo: get_pending_chunk()
+activate chunk_repo
+chunk_repo --> analysis_facade: chunk(app_ids)
+
+analysis_facade --> mediator: app_ids
+deactivate analysis_facade
+
+mediator -> steam_facade: get_game_analysis_list(app_ids)
+activate steam_facade
+
+steam_facade -> game_service: get_game_analysis_list(app_ids)
+activate game_service
+
+game_service -> game_client: get_games_data(app_ids)
+activate game_client
+game_client --> game_service: raw_game_data
+deactivate game_client
+
+game_service --> steam_facade: processed_game_data
+deactivate game_service
+
+steam_facade --> mediator: game_data_list
+deactivate steam_facade
+
+mediator -> db_facade: create_games(game_data_list)
+activate db_facade
+
+db_facade -> game_repo: create(game_data)
+activate game_repo
+game_repo --> db_facade:
+deactivate game_repo
+
+db_facade -> genre_repo: update_genres(game_genres)
+activate genre_repo
+genre_repo --> db_facade:
+deactivate genre_repo
+
+db_facade -> category_repo: update_categories(game_categories)
+activate category_repo
+category_repo --> db_facade:
+deactivate category_repo
+
+db_facade --> mediator:
+deactivate db_facade
+
+mediator -> analysis_facade: mark_chunk_completed()
+activate analysis_facade
+
+analysis_facade --> chunk_repo
+
+chunk_repo --> analysis_facade
+deactivate chunk_repo
+
+analysis_facade --> mediator:
+deactivate analysis_facade
+
+mediator --> user: batch_created
+deactivate mediator
+@enduml
