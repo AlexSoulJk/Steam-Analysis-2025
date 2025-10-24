@@ -165,3 +165,13 @@ class DbFacade:
     def get_last_upploaded_game(self):
         with get_db() as session:
             return self.game_repos.get_last_uploaded_game(session=session)
+
+    # region Gets Row data for simple-visualisation
+    def get_games_by_categories(self):
+        pass
+
+    def get_games_by_genres(self):
+        pass
+
+    # endregion
+
