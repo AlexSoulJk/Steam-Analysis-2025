@@ -72,7 +72,7 @@ class AppMediator:
         fill_butch = self.steam_facade.get_player_data_bunch(steam_ids)
         default_saver.save_fill_player_butch(fill_butch)
 
-    def create_time_player_butch(self, steam_ids: List[str]):
+    def create_player_game_butch(self, steam_ids: List[str]):
         fill_butch = self.steam_facade.get_player_time_data_bunch(steam_ids)
-        default_saver.save_fill_player_time_butch(fill_butch)
+        default_saver.save_fill_player_game_butch(fill_butch)
     # endregion

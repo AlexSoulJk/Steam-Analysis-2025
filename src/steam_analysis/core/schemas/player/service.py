@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 from steam_analysis.core.schemas.base import BaseSchema
 
@@ -21,7 +21,7 @@ class PlayerDataAnalysisCreate(BaseSchema):
 
 class PlayerAnalysesSchema(BaseSchema):
     """Схема анализа игрока"""
-    player: PlayerFullFromHttp
+    owned_games: Dict[str, Dict[str, Any]]
 
 
 # region FillChunk schemas

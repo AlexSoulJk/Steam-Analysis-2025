@@ -93,12 +93,12 @@ class SaveTestData:
             print(f"❌ Ошибка сохранения: {e}")
             return
 
-    def save_fill_player_time_butch(self, fill_model: FillPlayerSchemaChunk) -> bool:
+    def save_fill_player_game_butch(self, fill_model: FillPlayerSchemaChunk) -> bool:
         """Сохраняет батч данных с информацией по играм в JSON файл"""
         try:
             # Создаем имя файла с timestamp и диапазоном app_id
             timestamp = datetime.now().strftime("%Y%m%d")
-            filename = f"players_timed_{timestamp}_{fill_model.success_count}.json"
+            filename = f"players_game_{timestamp}_{fill_model.success_count}.json"
             filepath = self.dir_to_save / Path(filename)
 
             # Конвертируем в словарь с обработкой специальных типов
