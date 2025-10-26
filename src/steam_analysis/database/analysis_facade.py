@@ -119,3 +119,7 @@ class AnalysisDbFacade:
         """Получаем следующий чанк для обработки"""
         with get_analysis_db() as db:
             return db.query(AnalysisChunk).filter(AnalysisChunk.status == "pending").order_by(AnalysisChunk.id).first()
+
+    def get_last_upploaded_game(self) -> Optional[GameDataAnalysis]:
+        with get_analysis_db() as session:
+            return self.data_game_preparer.get_last_uploaded_game(session=session)

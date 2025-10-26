@@ -22,7 +22,8 @@ class AppMediator:
         last_game = self.analysis_service.get_last_upploaded_game()
         start_app_id = self.steam_facade.get_first_app_id() if last_game is None else last_game.app_id
         data_for_create = self.game_analysis_creator.get_game_analysis_data_for_create_from_resource(start_app_id)
-        self.analysis_service.create_chunk_by_service(*data_for_create)
+        default_saver.save_fill_game_analysis_butch_chunck(data_for_create)
+        # self.analysis_service.create_chunk_by_service(*data_for_create)
 
     # region Fill steam-analysis.db
     def create_game(self, chunk_size: int = 10):

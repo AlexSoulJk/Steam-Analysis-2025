@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 from steam_analysis.config import test_data_path
+from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillTypeSchemaChunk
 from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, FillPlayerSchemaChunk
 
@@ -115,6 +116,31 @@ class SaveTestData:
             print(f"   - Успешных парсингов: {fill_model.success_count}")
             print(f"   - Время выполнения: {fill_model.response_time}")
 
+            return True
+
+        except Exception as e:
+            print(f"❌ Ошибка сохранения: {e}")
+            return False
+
+    def save_fill_game_analysis_butch_chunck(self, data_for_create:
+                                                    tuple[list[GameAnalysisChunkCreate], list[list[GameAnalysisFromJson]]]):
+        try:
+            # Создаем имя файла с timestamp и диапазоном app_id
+            timestamp = datetime.now().strftime("%Y%m%d")
+            filename = f"game_chunk_create_{timestamp}.json"
+            filepath = self.dir_to_save / Path(filename)
+            # Конвертируем в словарь с обработкой специальных типов
+            # Сохраняем в JSON с красивым форматированием
+            chunk, games_in_chunks = data_for_create
+            res = []
+            for chunk, games in zip(chunk, games_in_chunks):
+                res.append({"chunk": chunk.model_dump(),
+                            "games": list(map(lambda x: x.model_dump(), games))})
+
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(res, f, indent=2, ensure_ascii=False, default=str)
+
+            print(f"✅ Данные для создания бача игр сохранены в: {filepath}")
             return True
 
         except Exception as e:

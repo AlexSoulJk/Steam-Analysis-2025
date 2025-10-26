@@ -119,8 +119,7 @@ class AnalysisChunk(AnalysisBaseModel):
 
     __table_args__ = (
         Index('idx_analysis_chunk_status', 'status'),
-        Index('idx_analysis_chunk_start', 'start_app_id'),
-        Index('idx_analysis_chunk_end', 'end_app_id'),
+        Index('idx_analysis_chunk_processed_by', 'processed_by'),
         CheckConstraint('started_at IS NULL OR finished_at IS NULL OR started_at <= finished_at',
                         name='check_timeline_order'),
     )
@@ -136,7 +135,7 @@ class GameDataAnalysis(AnalysisBaseModel):
 
     status = Column(String(50), default="pending")  # success / failed / partial
     error_log = Column(Text, nullable=True)  # ошибка, если не удалось обработать игру
-    chunk = relationship("AnalysisChunk", back_populates="game_data")
+    chunk = relationship("AnalysisChunk", back_populates="games")
     created_at = Column(DateTime)
 
     __table_args__ = (

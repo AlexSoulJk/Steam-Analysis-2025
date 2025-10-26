@@ -17,7 +17,8 @@ class Resource(ABC):
     def __init__(self,
                  name: ResourceCodes,  # Теперь типизировано
                  resource_base_path: Path,
-                 ttl_hours: int = 24):
+                 ttl_hours: int = 24,
+                 is_need_for_expired_checking: bool = False):
         self.name: ResourceCodes = name
         self.ttl_hours = ttl_hours
         self._data: Optional[List] = None
@@ -27,6 +28,7 @@ class Resource(ABC):
         self._is_loaded = False
         self._ensure_resources_dir()
         self._init_source()
+        self._is_need_for_expired_checking = is_need_for_expired_checking
 
     def _init_source(self):
         tmp = self.load()
@@ -38,9 +40,9 @@ class Resource(ABC):
     def is_expired(self) -> bool:
         """Проверить, устарели ли данные"""
         status = self._last_updated == 0 or (time.time() - self._last_updated) > (self.ttl_hours * 3600)
-        if status and self._is_loaded:
+        if status and self._is_loaded and self._is_need_for_expired_checking:
             self.clear()
-        return status
+        return status and self._is_need_for_expired_checking
 
 
     @property

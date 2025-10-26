@@ -12,7 +12,7 @@ class GameAnalysisBase(BaseSchema):
     name: str = Field(..., min_length=1, max_length=255)
 
 
-class GameAnalysisFromJson(BaseSchema):
+class GameAnalysisFromJson(GameAnalysisBase):
     created_at: datetime
 
     @classmethod

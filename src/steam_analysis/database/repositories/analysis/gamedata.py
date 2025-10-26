@@ -32,3 +32,8 @@ class GameAnalysisRepository(BaseAnalysisRepository[GameDataAnalysis, GameAnalys
         existing_games = result.scalars().all()
 
         return {game.app_id: game for game in existing_games}
+
+    def get_last_uploaded_game(self, session: Session) -> Optional[GameDataAnalysis]:
+        return session.query(GameDataAnalysis). \
+            order_by(GameDataAnalysis.app_id.desc()). \
+            first()
