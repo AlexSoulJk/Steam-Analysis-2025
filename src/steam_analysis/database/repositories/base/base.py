@@ -140,9 +140,6 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             session.refresh(db_obj)
 
         session.commit()
-
-
-
         return db_objects
 
     def update(

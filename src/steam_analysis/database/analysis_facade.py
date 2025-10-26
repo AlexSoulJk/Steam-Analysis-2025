@@ -6,12 +6,13 @@ from typing import List, Optional
 from datetime import datetime
 
 from steam_analysis.config import analysis_db_path  # путь к analysis-db.sqlite
+from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson
 from steam_analysis.core.services.app_id_provider import AppIdProviderService
 from steam_analysis.database.models.servicemodels import AnalysisChunk, GameDataAnalysis
 
 from steam_analysis.config import analysis_db_path
 from steam_analysis.core.schemas.game.service import GameDataAnalysisCreate, FillGameAnalysisChunk
-
+from steam_analysis.database.services.game_analysis_preparer import GamePreparer
 
 analysis_engine = create_engine(f"sqlite:///{analysis_db_path}")
 AnalysisSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=analysis_engine)
@@ -31,6 +32,7 @@ def get_analysis_session() -> Session:
     """Просто вернуть открытую сессию для ручного управления"""
     return AnalysisSessionLocal()
 
+
 def safe_app_id(game_data) -> int:
     if game_data is None:
         return 0
@@ -48,7 +50,6 @@ def safe_app_id(game_data) -> int:
     return 0
 
 
-
 class AnalysisDbFacade:
     """
     Фасад для работы с базой анализа (analysis-db).
@@ -57,11 +58,18 @@ class AnalysisDbFacade:
 
     def __init__(self):
         self.provider = None  # сервис провайдера app_id создаётся лениво
+        self.data_game_preparer = GamePreparer()
 
     def _get_provider(self, session: Session) -> AppIdProviderService:
         if not self.provider:
             self.provider = AppIdProviderService(session)
         return self.provider
+
+    def create_chunk_by_service(self, chunks: list[GameAnalysisChunkCreate],
+                                games: list[list[GameAnalysisFromJson]]):
+
+        with get_analysis_db() as session:
+            self.data_game_preparer.create_chuncks(chunks, games, session)
 
     def create_chunk(self, app_ids: List[int], processed_by: Optional[str] = None) -> AnalysisChunk:
         """Создаем новый чанк для обработки"""

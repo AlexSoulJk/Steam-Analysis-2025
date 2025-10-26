@@ -9,7 +9,7 @@ def generate_distribution_by_feature(data, title_name,
 
 
 def main():
-    dir_to_save = fr"{examples_statistics_images_path}gameclustering"
+    dir_to_save = fr"{examples_statistics_images_path}/gameclustering"
     pdp = ProcessedDataProvider()
 
     distribution, genres_name = pdp.get_games_by_genres()

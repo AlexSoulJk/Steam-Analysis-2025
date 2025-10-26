@@ -79,8 +79,6 @@ class GameService:
             success_count = success_count
         )
 
-
-
     @staticmethod
     def get_first_app_id():
         return resource_manager.get_resource(ResourceCodes.GAME_LIST).get_first_app_id()
