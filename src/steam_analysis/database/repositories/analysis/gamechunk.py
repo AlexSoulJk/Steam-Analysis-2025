@@ -15,16 +15,24 @@ class GameChunkRepository(BaseAnalysisRepository[AnalysisChunk, GameAnalysisChun
     def __init__(self):
         super().__init__(model=AnalysisChunk)
 
+    def _get_next_chunk_by_status_and_name(self, status: str, processor_name: str, session: Session):
+        obj: AnalysisChunk = session.query(AnalysisChunk).filter(AnalysisChunk.status == status and
+                                                                 AnalysisChunk.processed_by == processor_name).order_by(
+            AnalysisChunk.id).first()
+        obj.status = "in_progress"
+        return obj
 
-    # def create_bulk(self, objects_in: List[GameAnalysisChunkCreate],
-    #                 session: Session) -> List[AnalysisChunk]:
-    #     """
-    #     Массовое создание объектов
-    #
-    #     Args:
-    #         objects_in: Список Pydantic схем
-    #         session: Session
-    #     Returns:
-    #         Список созданных объектов
-    #     """
+    def get_next_pending_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
+        return self._get_next_chunk_by_status_and_name(status="pending",
+                                                       processor_name=processor_name,
+                                                       session=session)
 
+    def get_next_faild_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
+        return self._get_next_chunk_by_status_and_name(status="faild",
+                                                       processor_name=processor_name,
+                                                       session=session)
+
+    def get_next_particle_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
+        return self._get_next_chunk_by_status_and_name(status="particle_success",
+                                                       processor_name=processor_name,
+                                                       session=session)

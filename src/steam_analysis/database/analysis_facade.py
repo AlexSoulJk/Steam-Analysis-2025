@@ -13,6 +13,7 @@ from steam_analysis.database.models.servicemodels import AnalysisChunk, GameData
 from steam_analysis.config import analysis_db_path
 from steam_analysis.core.schemas.game.service import GameDataAnalysisCreate, FillGameAnalysisChunk
 from steam_analysis.database.services.game_analysis_preparer import GamePreparer
+from steam_analysis.database.services.game_data_provider import GameAnalysisProvider
 
 analysis_engine = create_engine(f"sqlite:///{analysis_db_path}")
 AnalysisSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=analysis_engine)
@@ -59,6 +60,7 @@ class AnalysisDbFacade:
     def __init__(self):
         self.provider = None  # сервис провайдера app_id создаётся лениво
         self.data_game_preparer = GamePreparer()
+        self.provider_service = GameAnalysisProvider()
 
     def _get_provider(self, session: Session) -> AppIdProviderService:
         if not self.provider:
@@ -119,6 +121,12 @@ class AnalysisDbFacade:
         """Получаем следующий чанк для обработки"""
         with get_analysis_db() as db:
             return db.query(AnalysisChunk).filter(AnalysisChunk.status == "pending").order_by(AnalysisChunk.id).first()
+
+    def get_next_pending_chunk_by_service(self, processor_name: str) -> Optional[AnalysisChunk]:
+        """Получаем следующий чанк для обработки"""
+        with get_analysis_db() as session:
+            return self.provider_service.get_next_pending_chunk_by_processor_name(processor_name=processor_name,
+                                                                           session=session)
 
     def get_last_upploaded_game(self) -> Optional[GameDataAnalysis]:
         with get_analysis_db() as session:
