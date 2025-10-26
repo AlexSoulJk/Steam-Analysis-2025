@@ -136,6 +136,7 @@ class GameDataAnalysis(AnalysisBaseModel):
     status = Column(String(50), default="pending")  # success / failed / partial
     error_log = Column(Text, nullable=True)  # ошибка, если не удалось обработать игру
     chunk = relationship("AnalysisChunk", back_populates="games")
+    name = Column(String(150))
     created_at = Column(DateTime)
 
     __table_args__ = (

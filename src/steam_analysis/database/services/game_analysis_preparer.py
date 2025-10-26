@@ -14,6 +14,15 @@ class GamePreparer:
         self.game_model_repo = GameAnalysisRepository()
         self.chunk_repo = GameChunkRepository()
 
+    def _prepare_game_list_for_create(self, created_chunks: List[AnalysisChunk],
+                                      games: List[List[GameAnalysisFromJson]]) -> List[GameAnalysisCreate]:
+        res = []
+        for created_chunk, game_in_chunk in zip(created_chunks, games):
+            res.extend(list(map(lambda x: GameAnalysisCreate.from_json_model(json_data=x,
+                                                                             chunk_id=created_chunk.id),
+                                game_in_chunk)))
+        return res
+
     def create_chuncks(self, chuncks: List[GameAnalysisChunkCreate],
                        games: List[List[GameAnalysisFromJson]], session: Session):
 
@@ -22,13 +31,14 @@ class GamePreparer:
 
         chunk_without_games = self.chunk_repo.create_bulk(objects_in=chuncks,
                                                           session=session)
-        created_chunk_id = list(map(lambda x: x.id, chunk_without_games))
-        self.game_model_repo.create_bulk(objects_in=list(map(GameAnalysisCreate.from_json_model,
-                                                             zip(games, created_chunk_id))),
+
+        prepared_games = self._prepare_game_list_for_create(chunk_without_games,
+                                                            games)
+
+        self.game_model_repo.create_bulk(objects_in=prepared_games,
                                          session=session)
 
         pass
 
     def get_last_uploaded_game(self, session: Session) -> Optional[GameDataAnalysis]:
         return self.game_model_repo.get_last_uploaded_game(session)
-
