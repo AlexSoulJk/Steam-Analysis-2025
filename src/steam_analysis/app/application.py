@@ -37,8 +37,8 @@ class AppMediator:
         # Получаем данные через Steam API
         fill_butch = self.steam_facade.get_game_analysis_list(chunk_for_create)
 
-        default_saver.save_fill_game_batch(fill_butch)
-        
+        # default_saver.save_fill_game_batch(fill_butch)
+
         # Сохраняем в аналитической базе и фильтруем успешные игры для основной базы
         # successful_games = []
         # for game_data in fill_butch.data_chunk:
@@ -61,10 +61,9 @@ class AppMediator:
         #         response_time=fill_butch.response_time,
         #         data_chunk=successful_games
         #     )
-        #     self.database_facade.create_games(fill_chunk_successful)
-
+        self.database_facade.create_games(fill_butch.data_chunk)
         # Завершаем чанк
-        # self.analysis_service.mark_chunk_complete(chunk.id)
+        self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
     def create_time_game_butch(self):
         with open('test_data/games_30_130_20251006.json', 'r', encoding='utf-8') as f:

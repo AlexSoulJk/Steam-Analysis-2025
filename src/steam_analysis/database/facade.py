@@ -1,6 +1,6 @@
 import os
 from operator import or_
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from steam_analysis.config import db_path
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, GameDataAnalysisCreate
@@ -148,8 +148,8 @@ class DbFacade:
 
         return unique_relations
 
-    def create_games(self, games_info_chunk: FillGameAnalysisChunk):
-        data_without_none = list(filter(lambda x: x is not None, games_info_chunk.data_chunk))
+    def create_games(self, games_info_chunk: List[Optional[GameDataAnalysisCreate]]):
+        data_without_none = list(filter(lambda x: x is not None, games_info_chunk))
 
         prep_info = self._prepare_data_for_game_creation(data_without_none=data_without_none)
         games_to_create = SchemaMorpher.game_create_from_http_to_database(

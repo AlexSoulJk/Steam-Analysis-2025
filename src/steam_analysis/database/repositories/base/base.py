@@ -144,6 +144,7 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def update(
             self,
             *,
+            no_commit: bool = False,
             db_obj: ModelType,
             obj_in: Union[UpdateSchemaType, Dict[str, Any]],
             session: Session
@@ -170,7 +171,9 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if hasattr(db_obj, field):
                 setattr(db_obj, field, value)
 
-        session.commit()
+        if not no_commit:
+            session.commit()
+
         session.refresh(db_obj)
 
         return db_obj
@@ -179,7 +182,8 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             self,
             id: Any,
             obj_in: Union[UpdateSchemaType, Dict[str, Any]],
-            session: Session
+            session: Session,
+            no_comit: bool = False,
     ) -> Optional[ModelType]:
         """
         Обновить объект по ID
@@ -195,7 +199,7 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if not db_obj:
             return None
 
-        return self.update(db_obj=db_obj, obj_in=obj_in, session=session)
+        return self.update(db_obj=db_obj, obj_in=obj_in, session=session, no_comit=no_comit)
 
     def delete(self, id: Any, session: Session) -> bool:
         """

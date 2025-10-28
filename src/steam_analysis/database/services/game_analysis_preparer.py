@@ -2,7 +2,8 @@ from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
-from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson, GameAnalysisCreate
+from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson, GameAnalysisCreate, \
+    GameAnalysisChunkForRequest
 from steam_analysis.database.models.servicemodels import AnalysisChunk, GameDataAnalysis
 from steam_analysis.database.repositories.analysis.gamechunk import GameChunkRepository
 from steam_analysis.database.repositories.analysis.gamedata import GameAnalysisRepository
@@ -37,8 +38,17 @@ class GamePreparer:
 
         self.game_model_repo.create_bulk(objects_in=prepared_games,
                                          session=session)
+        session.commit()
 
         pass
 
     def get_last_uploaded_game(self, session: Session) -> Optional[GameDataAnalysis]:
         return self.game_model_repo.get_last_uploaded_game(session)
+
+    def mark_game_chunk_complete(self, chunk: GameAnalysisChunkForRequest, session):
+        self.chunk_repo.update_by_id(chunk.chunk.id, obj_in=chunk.chunk,
+                                     session=session, no_comit=True)
+        for game in chunk.chunk_games:
+            self.game_model_repo.update_by_id(chunk.chunk.id, obj_in=game,
+                                              session=session, no_comit=True)
+        pass
