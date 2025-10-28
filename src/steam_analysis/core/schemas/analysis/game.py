@@ -67,6 +67,9 @@ class GameAnalysisChunkUpdate(BaseSchema):
     started_at: Optional[datetime] = None
     finished_at: Optional[datetime] = None
 
+class GameAnalysisChunckForResponse(GameAnalysisChunkUpdate):
+    games: List[GameAnalysisUpdate]
+
 
 # ДОПОЛНИТЕЛЬНО: схема для ответа с играми
 class GameAnalysisChunkWithGames(GameAnalysisChunkUpdate):

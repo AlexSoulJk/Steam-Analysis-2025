@@ -27,7 +27,7 @@ class AnalysisChunk(AnalysisBaseModel):
         "GameDataAnalysis",
         back_populates="chunk",
         cascade="all, delete-orphan",
-        lazy="dynamic"  # ← это позволит делать запросы типа chunk.games.filter_by(...)
+        lazy="select"  # ← это позволит делать запросы типа chunk.games.filter_by(...)
     )
 
     # region app_id props

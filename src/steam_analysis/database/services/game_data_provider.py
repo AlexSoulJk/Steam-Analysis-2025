@@ -12,7 +12,11 @@ class GameAnalysisProvider:
         self.chunk_repo = GameChunkRepository()
 
     def get_next_pending_chunk_by_processor_name(self, processor_name: str, session: Session):
-        return self.chunk_repo.get_next_pending_chunk_by_name(processor_name, session)
+        chunk = self.chunk_repo.get_next_pending_chunk_by_name(processor_name, session)
+        chunk.games = self.game_model_repo.mark_list_as_in_progress(chunk.games, session)
+        session.commit()
+        session.refresh(chunk)
+        return chunk
 
     def mark_as_in_particle(self, chunk: GameAnalysisChunkUpdate, session: Session):
         pass

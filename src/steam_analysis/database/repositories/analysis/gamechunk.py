@@ -1,7 +1,7 @@
 from typing import Optional, List, Dict
 
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload, Session
+from sqlalchemy import select, and_
+from sqlalchemy.orm import joinedload, Session, selectinload
 
 from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisChunkUpdate, \
     GameAnalysisCreate
@@ -15,24 +15,53 @@ class GameChunkRepository(BaseAnalysisRepository[AnalysisChunk, GameAnalysisChun
     def __init__(self):
         super().__init__(model=AnalysisChunk)
 
-    def _get_next_chunk_by_status_and_name(self, status: str, processor_name: str, session: Session):
-        obj: AnalysisChunk = session.query(AnalysisChunk).filter(AnalysisChunk.status == status and
-                                                                 AnalysisChunk.processed_by == processor_name).order_by(
-            AnalysisChunk.id).first()
-        obj.status = "in_progress"
+    def _get_next_chunk_by_status_and_name(self, status: str, processor_name: str, session: Session) -> Optional[
+        AnalysisChunk]:
+        obj = session.query(AnalysisChunk) \
+            .filter(
+            and_(
+                AnalysisChunk.status == status,
+                AnalysisChunk.processed_by == processor_name
+            )
+        ) \
+            .order_by(AnalysisChunk.id) \
+            .with_for_update().options(selectinload(AnalysisChunk.games)).first()
         return obj
 
+    def mark_as_in_progress(self, chunk: AnalysisChunk,
+                            session: Session) -> AnalysisChunk:
+        # chunk.status = "in_progress"
+        # session.refresh(chunk)
+        return chunk
+
+    def update_status_after_processing(self, chunk: GameAnalysisChunkUpdate,
+                                       session: Session) -> AnalysisChunk:
+        chunk_model = self.update_by_id(chunk.id, chunk, session=session)
+        return chunk_model
+
     def get_next_pending_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
-        return self._get_next_chunk_by_status_and_name(status="pending",
-                                                       processor_name=processor_name,
-                                                       session=session)
+        obj = self._get_next_chunk_by_status_and_name(status="pending",
+                                                      processor_name=processor_name,
+                                                      session=session)
+        # if obj:
+        #     self.mark_as_in_progress(obj, session)
+
+        return obj
 
     def get_next_faild_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
-        return self._get_next_chunk_by_status_and_name(status="faild",
-                                                       processor_name=processor_name,
-                                                       session=session)
+        obj = self._get_next_chunk_by_status_and_name(status="failed",
+                                                      processor_name=processor_name,
+                                                      session=session)
+        if obj:
+            self.mark_as_in_progress(obj, session)
+
+        return obj
 
     def get_next_particle_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
-        return self._get_next_chunk_by_status_and_name(status="particle_success",
-                                                       processor_name=processor_name,
-                                                       session=session)
+        obj = self._get_next_chunk_by_status_and_name(status="particle_success",
+                                                      processor_name=processor_name,
+                                                      session=session)
+        if obj:
+            self.mark_as_in_progress(obj, session)
+
+        return obj

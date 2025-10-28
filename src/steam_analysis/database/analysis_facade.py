@@ -6,7 +6,8 @@ from typing import List, Optional
 from datetime import datetime
 
 from steam_analysis.config import analysis_db_path  # путь к analysis-db.sqlite
-from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson
+from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson, \
+    GameAnalysisChunkUpdate, GameAnalysisChunckForResponse
 from steam_analysis.core.services.app_id_provider import AppIdProviderService
 from steam_analysis.database.models.servicemodels import AnalysisChunk, GameDataAnalysis
 
@@ -122,11 +123,12 @@ class AnalysisDbFacade:
         with get_analysis_db() as db:
             return db.query(AnalysisChunk).filter(AnalysisChunk.status == "pending").order_by(AnalysisChunk.id).first()
 
-    def get_next_pending_chunk_by_service(self, processor_name: str) -> Optional[AnalysisChunk]:
+    def get_next_pending_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunckForResponse]:
         """Получаем следующий чанк для обработки"""
         with get_analysis_db() as session:
-            return self.provider_service.get_next_pending_chunk_by_processor_name(processor_name=processor_name,
-                                                                           session=session)
+            return GameAnalysisChunckForResponse.from_orm(
+                self.provider_service.get_next_pending_chunk_by_processor_name(processor_name=processor_name,
+                                                                               session=session))
 
     def get_last_upploaded_game(self) -> Optional[GameDataAnalysis]:
         with get_analysis_db() as session:

@@ -37,3 +37,12 @@ class GameAnalysisRepository(BaseAnalysisRepository[GameDataAnalysis, GameAnalys
         return session.query(GameDataAnalysis). \
             order_by(GameDataAnalysis.app_id.desc()). \
             first()
+
+    def mark_list_as_in_progress(self, games_to_mark: List[GameDataAnalysis], session: Session):
+
+        for game in games_to_mark:
+            game.status = "in_progress"
+
+        session.flush(games_to_mark)
+
+        return games_to_mark

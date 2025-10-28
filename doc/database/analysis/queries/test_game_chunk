@@ -1,0 +1,10 @@
+/*
+Запрос для возврата в pending in_progress только игр
+*/
+UPDATE game_data_analysis
+SET status = 'pending'
+WHERE id IN (
+    SELECT id
+    FROM game_data_analysis
+    WHERE status = 'in_progress'
+);
