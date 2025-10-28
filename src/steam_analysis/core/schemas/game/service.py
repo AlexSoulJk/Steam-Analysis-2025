@@ -1,6 +1,7 @@
 import datetime
 from typing import List, Optional, Dict
 
+from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkForRequest
 from steam_analysis.core.schemas.base import BaseSchema
 from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, StatsCreate, \
     AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
@@ -64,14 +65,7 @@ class TypeAnalysesSchema(BaseSchema):
 
 # region FillChunk schemas
 class FillGameAnalysisChunk(BaseSchema):
-    start_app_id: int
-    end_app_id: int
-
-    # null amount
-    # not null amount
-    #
-
-    response_time: datetime.timedelta
+    data_for_analysis_db: GameAnalysisChunkForRequest
     data_chunk: List[Optional[GameDataAnalysisCreate]]
 
     def get_report_into(self) -> GameCreateReportInfo:

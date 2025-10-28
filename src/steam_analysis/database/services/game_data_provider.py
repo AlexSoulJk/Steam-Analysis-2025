@@ -12,7 +12,12 @@ class GameAnalysisProvider:
         self.chunk_repo = GameChunkRepository()
 
     def get_next_pending_chunk_by_processor_name(self, processor_name: str, session: Session):
+
         chunk = self.chunk_repo.get_next_pending_chunk_by_name(processor_name, session)
+
+        if chunk is None:
+            raise Exception(f"Chunk storage for {processor_name} is empty. Please fill analysis-db")
+
         chunk.games = self.game_model_repo.mark_list_as_in_progress(chunk.games, session)
         session.commit()
         session.refresh(chunk)

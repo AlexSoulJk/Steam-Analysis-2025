@@ -18,7 +18,7 @@ class SaveTestData:
         try:
             # Создаем имя файла с timestamp и диапазоном app_id
             timestamp = datetime.now().strftime("%Y%m%d")
-            filename = f"games_{fill_model.start_app_id}_{fill_model.end_app_id}_{timestamp}.json"
+            filename = f"games_chunk_{timestamp}.json"
             filepath = self.dir_to_save / Path(filename)
 
             # Конвертируем в словарь с обработкой специальных типов
@@ -30,10 +30,10 @@ class SaveTestData:
 
             print(f"✅ Данные сохранены в: {filepath}")
             print(f"📊 Статистика:")
-            print(f"   - Диапазон app_id: {fill_model.start_app_id} - {fill_model.end_app_id}")
+            # print(f"   - Диапазон app_id: {fill_model.start_app_id} - {fill_model.end_app_id}")
             print(f"   - Игр в батче: {len(fill_model.data_chunk)}")
-            print(f"   - Успешных парсингов: {sum(1 for item in fill_model.data_chunk if item is not None)}")
-            print(f"   - Время выполнения: {fill_model.response_time}")
+            # print(f"   - Успешных парсингов: {sum(1 for item in fill_model.data_chunk if item is not None)}")
+            print(f"   - Время выполнения: {fill_model.data_for_analysis_db.chunk.response_time}")
 
             return filepath
 

@@ -1,4 +1,7 @@
 from typing import Optional, Dict, Any, List
+
+from ..schemas.analysis.game import GameAnalysisChunkForResponse
+from ..schemas.game.service import FillGameAnalysisChunk
 from ...core.dependencies.basehttp import RequestsClient, RequestsWithDelayClient
 from ..repositories.player_repository import PlayerRepository
 from ..repositories.game_repository import GameRepository
@@ -54,8 +57,8 @@ class SteamAnalysisFacade:
         return self.player_service.get_player_game_data(steam_ids)
 
     # Game methods
-    def get_game(self, app_id: int, lang = None) -> Optional[Dict[str, Any]]:
-        return self.game_repo.get_by_id(app_id, lang)
+    # def get_game(self, app_id: int, lang = None) -> Optional[Dict[str, Any]]:
+    #     return self.game_repo.get_by_id(app_id, lang)
 
     def get_game_list(self, app_ids: list[int], lang = None,) -> Optional[List[Dict[str, Any]]]:
         return self.game_repo.get_by_ids(app_ids, lang)
@@ -78,11 +81,8 @@ class SteamAnalysisFacade:
     def get_reviews(self, app_id: int) -> Optional[List[Dict[str, Any]]]:
         return self.game_repo.get_reviews(app_id)
 
-    def analyze_game(self, app_id: int) -> Optional[Dict[str, Any]]:
-        return self.game_service.get_game_analysis(app_id)
-
-    def get_game_analysis_list(self, app_id: int, chunck_size: int):
-        return self.game_service.get_game_analysis_list(app_id, chunck_size)
+    def get_game_analysis_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillGameAnalysisChunk:
+        return self.game_service.get_game_analysis_list(chunk_procession)
 
     def get_game_timed_data(self, app_ids: list[int]):
         return self.game_service.get_game_timed_data(app_ids)

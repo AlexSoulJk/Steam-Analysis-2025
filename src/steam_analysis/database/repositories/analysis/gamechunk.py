@@ -40,6 +40,7 @@ class GameChunkRepository(BaseAnalysisRepository[AnalysisChunk, GameAnalysisChun
         return chunk_model
 
     def get_next_pending_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
+        # TODO: Add exceptions for some cases
         obj = self._get_next_chunk_by_status_and_name(status="pending",
                                                       processor_name=processor_name,
                                                       session=session)
