@@ -17,7 +17,7 @@ class SaveTestData:
         """Сохраняет батч данных в JSON файл"""
         try:
             # Создаем имя файла с timestamp и диапазоном app_id
-            timestamp = datetime.now().strftime("%Y%m%d")
+            timestamp = datetime.now().strftime("%Y%m%d%M")
             filename = f"games_chunk_{timestamp}.json"
             filepath = self.dir_to_save / Path(filename)
 

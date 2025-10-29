@@ -1,0 +1,607 @@
+{
+  "data_for_analysis_db": {
+    "chunk_games": [
+      {
+        "id": 251,
+        "status": "null_state",
+        "error_log": "Game app_id: 2150 not found or failed to load"
+      },
+      {
+        "id": 252,
+        "status": "null_state",
+        "error_log": "Game app_id: 2200 not found or failed to load"
+      },
+      {
+        "id": 253,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 254,
+        "status": "null_state",
+        "error_log": "Game app_id: 2270 not found or failed to load"
+      },
+      {
+        "id": 255,
+        "status": "null_state",
+        "error_log": "Game app_id: 2280 not found or failed to load"
+      },
+      {
+        "id": 256,
+        "status": "null_state",
+        "error_log": "Game app_id: 2310 not found or failed to load"
+      },
+      {
+        "id": 257,
+        "status": "null_state",
+        "error_log": "Game app_id: 2320 not found or failed to load"
+      },
+      {
+        "id": 258,
+        "status": "null_state",
+        "error_log": "Game app_id: 2350 not found or failed to load"
+      },
+      {
+        "id": 259,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 260,
+        "status": "null_state",
+        "error_log": "Game app_id: 2403 not found or failed to load"
+      },
+      {
+        "id": 261,
+        "status": "null_state",
+        "error_log": "Game app_id: 2410 not found or failed to load"
+      },
+      {
+        "id": 262,
+        "status": "null_state",
+        "error_log": "Game app_id: 2413 not found or failed to load"
+      },
+      {
+        "id": 263,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 264,
+        "status": "null_state",
+        "error_log": "Game app_id: 2430 not found or failed to load"
+      },
+      {
+        "id": 265,
+        "status": "null_state",
+        "error_log": "Game app_id: 2450 not found or failed to load"
+      },
+      {
+        "id": 266,
+        "status": "null_state",
+        "error_log": "Game app_id: 2460 not found or failed to load"
+      },
+      {
+        "id": 267,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 268,
+        "status": "null_state",
+        "error_log": "Game app_id: 2505 not found or failed to load"
+      },
+      {
+        "id": 269,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 270,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 271,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 272,
+        "status": "null_state",
+        "error_log": "Game app_id: 2530 not found or failed to load"
+      },
+      {
+        "id": 273,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 274,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 275,
+        "status": "particle",
+        "error_log": ""
+      }
+    ],
+    "chunk": {
+      "id": 11,
+      "status": "particle_success",
+      "response_time": 12.367996,
+      "error_log": "Game app_id: 2150 not found or failed to load\nGame app_id: 2200 not found or failed to load\n\nGame app_id: 2270 not found or failed to load\nGame app_id: 2280 not found or failed to load\nGame app_id: 2310 not found or failed to load\nGame app_id: 2320 not found or failed to load\nGame app_id: 2350 not found or failed to load\n\nGame app_id: 2403 not found or failed to load\nGame app_id: 2410 not found or failed to load\nGame app_id: 2413 not found or failed to load\n\nGame app_id: 2430 not found or failed to load\nGame app_id: 2450 not found or failed to load\nGame app_id: 2460 not found or failed to load\n\nGame app_id: 2505 not found or failed to load\n\n\n\nGame app_id: 2530 not found or failed to load",
+      "started_at": "2025-10-30 00:50:43.467550",
+      "finished_at": "2025-10-30 00:50:55.835546"
+    }
+  },
+  "data_chunk": [
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 2210,
+        "name": "Quake 4",
+        "is_free": false,
+        "release_date": "2011-08-04 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 23,
+          "description": "Steam Cloud"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 2400,
+        "name": "The Ship: Murder Party",
+        "is_free": false,
+        "release_date": "2006-07-11 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        },
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        },
+        {
+          "steam_id": 3,
+          "description": "RPG"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 49,
+          "description": "PvP"
+        },
+        {
+          "steam_id": 36,
+          "description": "Online PvP"
+        },
+        {
+          "steam_id": 47,
+          "description": "LAN PvP"
+        },
+        {
+          "steam_id": 29,
+          "description": "Steam Trading Cards"
+        },
+        {
+          "steam_id": 8,
+          "description": "Valve Anti-Cheat enabled"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 2420,
+        "name": "The Ship: Single Player",
+        "is_free": false,
+        "release_date": "2006-11-20 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        },
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        },
+        {
+          "steam_id": 3,
+          "description": "RPG"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 2500,
+        "name": "Shadowgrounds",
+        "is_free": false,
+        "release_date": "2006-05-08 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 24,
+          "description": "Shared/Split Screen"
+        },
+        {
+          "steam_id": 29,
+          "description": "Steam Trading Cards"
+        },
+        {
+          "steam_id": 44,
+          "description": "Remote Play Together"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        },
+        {
+          "description": "mac"
+        }
+      ]
+    },
+    null,
+    {
+      "game": {
+        "app_id": 2510,
+        "name": "Shadowgrounds Demo",
+        "is_free": true,
+        "release_date": "2006-05-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 2520,
+        "name": "Gumboy - Crazy Adventures™",
+        "is_free": false,
+        "release_date": "2006-12-19 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        },
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 2525,
+        "name": "Gumboy - Crazy Adventures™",
+        "is_free": false,
+        "release_date": "2006-12-19 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        },
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    {
+      "game": {
+        "app_id": 2540,
+        "name": "RIP - Trilogy™",
+        "is_free": false,
+        "release_date": "2007-06-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        },
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 9,
+          "description": "Co-op"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 2545,
+        "name": "RIP - Trilogy™",
+        "is_free": false,
+        "release_date": "2007-06-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        },
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 9,
+          "description": "Co-op"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 2550,
+        "name": "RIP - Trilogy™",
+        "is_free": false,
+        "release_date": "2007-06-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        },
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 9,
+          "description": "Co-op"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    }
+  ]
+}

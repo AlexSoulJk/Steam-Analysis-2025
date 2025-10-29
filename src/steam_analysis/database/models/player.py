@@ -23,7 +23,12 @@ class User(BaseModel):
     achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
     logoff_history = relationship("UserLogoffHistory", back_populates="user", cascade="all, delete-orphan")
-    friends = relationship("Friend", back_populates="user", cascade="all, delete-orphan")
+    friends = relationship(
+        "Friend",
+        foreign_keys="Friend.user_id",  # ⬅️ ЯВНО указываем какой foreign key использовать
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index('idx_user_steam_id', 'steam_id'),
