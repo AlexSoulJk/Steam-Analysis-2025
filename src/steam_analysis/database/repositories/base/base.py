@@ -149,32 +149,23 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             obj_in: Union[UpdateSchemaType, Dict[str, Any]],
             session: Session
     ) -> ModelType:
-        """
-        Обновить существующий объект
 
-        Args:
-            db_obj: Объект из базы данных
-            obj_in: Pydantic схема или словарь с данными для обновления
-
-        Returns:
-            Обновленный объект
-        """
-        # Преобразуем входные данные в словарь
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
-            update_data = obj_in.model_dump(exclude_unset=True) if hasattr(obj_in, 'model_dump') else obj_in.dict(
-                exclude_unset=True)
+            update_data = obj_in.model_dump(exclude_unset=True)
 
-        # Обновляем поля объекта
         for field, value in update_data.items():
             if hasattr(db_obj, field):
-                setattr(db_obj, field, value)
+                current_value = getattr(db_obj, field)
+                if current_value != value:
+                    setattr(db_obj, field, value)
+
+        session.add(db_obj)
 
         if not no_commit:
             session.commit()
-
-        session.refresh(db_obj)
+            session.refresh(db_obj)
 
         return db_obj
 
@@ -183,7 +174,7 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             id: Any,
             obj_in: Union[UpdateSchemaType, Dict[str, Any]],
             session: Session,
-            no_comit: bool = False,
+            no_commit: bool = False,
     ) -> Optional[ModelType]:
         """
         Обновить объект по ID
@@ -199,7 +190,7 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if not db_obj:
             return None
 
-        return self.update(db_obj=db_obj, obj_in=obj_in, session=session, no_comit=no_comit)
+        return self.update(db_obj=db_obj, obj_in=obj_in, session=session, no_commit=no_commit)
 
     def delete(self, id: Any, session: Session) -> bool:
         """
@@ -258,7 +249,7 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = session.execute(query)
         return result.scalar_one_or_none() is not None
 
-    def count(self, session: Session,filters: Optional[Dict] = None) -> int:
+    def count(self, session: Session, filters: Optional[Dict] = None) -> int:
         """
         Получить количество объектов по фильтрам
 

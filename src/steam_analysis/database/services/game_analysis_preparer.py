@@ -47,8 +47,9 @@ class GamePreparer:
 
     def mark_game_chunk_complete(self, chunk: GameAnalysisChunkForRequest, session):
         self.chunk_repo.update_by_id(chunk.chunk.id, obj_in=chunk.chunk,
-                                     session=session, no_comit=True)
+                                     session=session, no_commit=True)
         for game in chunk.chunk_games:
-            self.game_model_repo.update_by_id(chunk.chunk.id, obj_in=game,
-                                              session=session, no_comit=True)
+            self.game_model_repo.update_by_id(game.id, obj_in=game,
+                                              session=session, no_commit=True)
+        session.commit()
         pass

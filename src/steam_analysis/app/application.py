@@ -35,7 +35,7 @@ class AppMediator:
         chunk_for_create = self.analysis_service.get_next_pending_chunk_by_service(self.processor_name)
 
         # Получаем данные через Steam API
-        fill_butch = self.steam_facade.get_game_analysis_list(chunk_for_create)
+        # fill_butch = self.steam_facade.get_game_analysis_list(chunk_for_create)
 
         # default_saver.save_fill_game_batch(fill_butch)
 
@@ -61,7 +61,8 @@ class AppMediator:
         #         response_time=fill_butch.response_time,
         #         data_chunk=successful_games
         #     )
-        self.database_facade.create_games(fill_butch.data_chunk)
+        fill_butch = default_loader.load_fill_game_batch(filename="games_chunk_20251028.json")
+        # self.database_facade.create_games(fill_butch.data_chunk)
         # Завершаем чанк
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 

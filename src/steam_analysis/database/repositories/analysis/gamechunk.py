@@ -30,7 +30,7 @@ class GameChunkRepository(BaseAnalysisRepository[AnalysisChunk, GameAnalysisChun
 
     def mark_as_in_progress(self, chunk: AnalysisChunk,
                             session: Session) -> AnalysisChunk:
-        # chunk.status = "in_progress"
+        chunk.status = "in_progress"
         session.refresh(chunk)
         return chunk
 
