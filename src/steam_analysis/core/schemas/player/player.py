@@ -27,7 +27,9 @@ class PlayerBase(BaseSchema):
     persona_name: Optional[str] = Field(None, max_length=255)
     profile_url: Optional[str] = Field(None, max_length=500)
     time_created: Optional[datetime] = None
+    profile_state: Optional[int] = None
     community_visibility_state: Optional[CommunityVisibilityState] = None
+    steam_level: Optional[int] = Field(None, ge=0)
 
 
 class SteamUserDynamic(BaseSchema):
@@ -53,6 +55,7 @@ class PlayerUpdate(BaseSchema):
     persona_name: Optional[str] = Field(None, max_length=255)
     profile_url: Optional[str] = Field(None, max_length=500)
     last_logoff: Optional[datetime] = None
+    profile_state: Optional[int] = Field(None, ge=0)
     community_visibility_state: Optional[CommunityVisibilityState] = None
     steam_level: Optional[int] = Field(None, ge=0)
 
@@ -75,7 +78,7 @@ class FriendBase(BaseSchema):
     """Базовая схема для друга"""
     user_id: int
     friend_id: int
-    status: FriendStatus = Field(default=FriendStatus.VALID)
+    status: FriendStatus = Field(default=FriendStatus.INVALID)
 
 
 class FriendCreate(FriendBase):

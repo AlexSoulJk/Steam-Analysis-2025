@@ -45,8 +45,8 @@ class PlayerGameOwnershipRepository(BaseDBRepository[UserGameOwnership, Ownershi
             existing = UserGameOwnership(**ownership_create.model_dump())
             session.add(existing)
 
-        # session.commit()
-        # session.refresh(existing)
+        session.commit()
+        session.refresh(existing)
         return existing
 
     def create_ownerships_bulk(self, session: Session,
@@ -80,14 +80,13 @@ class PlayerGameOwnershipRepository(BaseDBRepository[UserGameOwnership, Ownershi
                     skipped.append(ownership_data)
             else:
                 new_ownership = UserGameOwnership(**ownership_data.model_dump())
-                # session.add(new_ownership)
+                session.add(new_ownership)
                 created.append(new_ownership)
 
-        session.add_all(created)
-        # session.commit()
-        #
-        # for item in created + updated:
-        #     session.refresh(item)
+        session.commit()
+
+        for item in created + updated:
+            session.refresh(item)
 
         return {
             'created': created,
