@@ -66,8 +66,8 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
         friend = Friend(**friend_create.model_dump())
 
         session.add(friend)
-        # session.commit()
-        # session.refresh(friend)
+        session.commit()
+        session.refresh(friend)
         return friend
 
     def get_existing_friendships(self, session: Session,
@@ -177,14 +177,13 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
                 friend_data['status'] = final_status.value  # Переопределяем статус
 
                 new_friend = Friend(**friend_data)
-                # session.add(new_friend)
+                session.add(new_friend)
                 created_friends.append(new_friend)
 
-        session.add_all(created_friends)
-        # session.commit()
-        #
-        # for friend in created_friends + updated_friends:
-        #     session.refresh(friend)
+        session.commit()
+
+        for friend in created_friends + updated_friends:
+            session.refresh(friend)
 
         return {
             'created': created_friends,
@@ -201,6 +200,6 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
         friendship = self.get_friendship(session, user_id, friend_id)
         if friendship:
             friendship.status = status.value
-            # session.commit()
-            # session.refresh(friendship)
+            session.commit()
+            session.refresh(friendship)
         return friendship

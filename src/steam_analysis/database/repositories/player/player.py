@@ -63,7 +63,7 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
             db_objects.append(db_obj)
 
         session.add_all(db_objects)
-        # session.commit()
+        session.commit()
 
         for db_obj in db_objects:
             session.refresh(db_obj)
@@ -133,8 +133,8 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         )
 
         session.add(logoff_entry)
-        # session.commit()
-        # session.refresh(logoff_entry)
+        session.commit()
+        session.refresh(logoff_entry)
         return logoff_entry
 
     def create_logoff_entry_from_schema(self, session: Session,
@@ -163,10 +163,10 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         ]
 
         session.add_all(logoff_entries)
-        # session.commit()
-        #
-        # for entry in logoff_entries:
-        #     session.refresh(entry)
+        session.commit()
+
+        for entry in logoff_entries:
+            session.refresh(entry)
 
         return {
             'created': logoff_entries,
