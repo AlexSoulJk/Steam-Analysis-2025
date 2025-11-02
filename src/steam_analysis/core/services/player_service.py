@@ -159,7 +159,7 @@ class PlayerService:
                 last_logoff = datetime.datetime.fromtimestamp(player_data['lastlogoff'])
 
             steam_id = player_data.get('steamid', '')
-            friends = self.player_repo.get_friends(steam_id)
+            # friends = self.player_repo.get_friends(steam_id)
             steam_level = self.player_repo.get_steam_level(steam_id)
 
             return PlayerFromHttp(
@@ -173,7 +173,7 @@ class PlayerService:
                 profile_state=player_data.get('profilestate'),
                 community_visibility_state=player_data.get('communityvisibilitystate'),
                 last_logoff=last_logoff,
-                friends=[friend['steamid'] for friend in friends] if friends else [],
+                # friends=[friend['steamid'] for friend in friends] if friends else [],
                 steam_level=steam_level,
                 loccountrycode=player_data.get('loccountrycode'),
                 locstatecode=player_data.get('locstatecode'),
@@ -239,15 +239,9 @@ class PlayerService:
                 app_id = str(game.get('appid'))
 
                 # Создаем OwnershipBase
-                ownership_date = None
-                # как правильно взять?
-                # if game.get('rtime_purchased'):
-                #     ownership_date = datetime.datetime.fromtimestamp(game['rtime_purchased'])
-
-                ownership = OwnershipBase(
-                    owned=True,
-                    ownership_date=ownership_date
-                )
+                # ownership = OwnershipBase(
+                #     owned=True
+                # )
 
                 # Создаем PlaytimeBase
                 last_played = None
@@ -255,6 +249,8 @@ class PlayerService:
                     last_played = datetime.datetime.fromtimestamp(game['last_played'])
 
                 playtime = PlaytimeBase(
+                    user_id=0,
+                    game_id=0,
                     playtime_forever=game.get('playtime_forever', 0),
                     playtime_2weeks=game.get('playtime_2weeks', 0),
                     last_played=last_played
