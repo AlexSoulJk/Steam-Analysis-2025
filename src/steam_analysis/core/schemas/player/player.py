@@ -29,7 +29,6 @@ class PlayerBase(BaseSchema):
     time_created: Optional[datetime] = None
     profile_state: Optional[int] = None
     community_visibility_state: Optional[CommunityVisibilityState] = None
-    steam_level: Optional[int] = Field(None, ge=0)
 
 
 class SteamUserDynamic(BaseSchema):
