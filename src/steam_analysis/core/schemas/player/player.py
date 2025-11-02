@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from enum import IntEnum
+from enum import IntEnum, Enum
 
 from pydantic import Field
 
@@ -26,12 +26,10 @@ class PlayerBase(BaseSchema):
     steam_id: str = Field(..., min_length=17, max_length=17)
     persona_name: Optional[str] = Field(None, max_length=255)
     profile_url: Optional[str] = Field(None, max_length=500)
-    avatar_url: Optional[str] = Field(None, max_length=500)
-    avatar_medium_url: Optional[str] = Field(None, max_length=500)
-    avatar_full_url: Optional[str] = Field(None, max_length=500)
     time_created: Optional[datetime] = None
     profile_state: Optional[int] = None
     community_visibility_state: Optional[CommunityVisibilityState] = None
+    steam_level: Optional[int] = Field(None, ge=0)
 
 
 class SteamUserDynamic(BaseSchema):
@@ -42,8 +40,6 @@ class SteamUserDynamic(BaseSchema):
 class PlayerFromHttp(PlayerBase):
     """Игрок с данными из Steam API"""
     last_logoff: Optional[datetime] = None
-    friends: Optional[List[str]] = None
-    steam_level: Optional[int] = None
     loccountrycode: Optional[str] = None
     locstatecode: Optional[str] = None
     loccityid: Optional[int] = None
@@ -58,12 +54,10 @@ class PlayerUpdate(BaseSchema):
     """DTO для обновления игрока"""
     persona_name: Optional[str] = Field(None, max_length=255)
     profile_url: Optional[str] = Field(None, max_length=500)
-    avatar_url: Optional[str] = Field(None, max_length=500)
-    avatar_medium_url: Optional[str] = Field(None, max_length=500)
-    avatar_full_url: Optional[str] = Field(None, max_length=500)
     last_logoff: Optional[datetime] = None
     profile_state: Optional[int] = Field(None, ge=0)
     community_visibility_state: Optional[CommunityVisibilityState] = None
+    steam_level: Optional[int] = Field(None, ge=0)
 
 
 class PlayerResponse(PlayerBase):
@@ -72,6 +66,38 @@ class PlayerResponse(PlayerBase):
     last_logoff: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+
+
+class FriendStatus(str, Enum):
+    VALID = 'valid'
+    INVALID = 'invalid'
+    PENDING = 'pending'
+
+
+class FriendBase(BaseSchema):
+    """Базовая схема для друга"""
+    user_id: int
+    friend_id: int
+    status: FriendStatus = Field(default=FriendStatus.INVALID)
+
+
+class FriendCreate(FriendBase):
+    """DTO для создания связи дружбы"""
+    pass
+
+
+class FriendResponse(FriendBase):
+    """DTO для ответа с данными друга"""
+    id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    friend_info: Optional[PlayerResponse] = None
+
+
+class PlayerWithFriends(PlayerResponse):
+    """Игрок с друзьями"""
+    friends: List[FriendResponse] = []
+    friends_count: int = 0
 
 
 class PlayerWithPlaytime(PlayerResponse):
@@ -111,7 +137,7 @@ class PlayerFullProfile(PlayerResponse):
     achievements: List[AchievementBase] = []
     # reviews: List[ReviewBase] = []
     steam_level: Optional[int] = None
-    friends: Optional[List[str]] = None
+    # friends: Optional[List[str]] = None
     loccountrycode: Optional[str] = None
     locstatecode: Optional[str] = None
     loccityid: Optional[int] = None
