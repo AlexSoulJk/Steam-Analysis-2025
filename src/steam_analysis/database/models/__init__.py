@@ -1,4 +1,5 @@
-from steam_analysis.database.models.player import User
+from steam_analysis.database.models.player import User, UserPlaytime, Friend
+from steam_analysis.database.models.playergame import UserGameOwnership, UserAchievement, UserLogoffHistory
 from steam_analysis.database.models.gamedeveloper import GameDeveloper, GamePublisher
 from steam_analysis.database.models.developer import Developer, Publisher
 from steam_analysis.database.models.playergame import Review
@@ -17,6 +18,11 @@ __all__ = [
     "Developer",
     "Publisher",
     "User",
+    "UserPlaytime",
+    "UserGameOwnership",
+    "UserAchievement",
+    "UserLogoffHistory",
+    "Friend",
     "Review",
     "Game",
     "GameGenre",
