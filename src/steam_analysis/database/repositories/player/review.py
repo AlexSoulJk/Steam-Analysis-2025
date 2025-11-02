@@ -52,8 +52,8 @@ class ReviewRepository(BaseDBRepository[Review, ReviewCreate, Any]):
             existing = Review(**review_create.model_dump())
             session.add(existing)
 
-        # session.commit()
-        # session.refresh(existing)
+        session.commit()
+        session.refresh(existing)
         return existing
 
     def create_reviews_bulk(self, session: Session,
@@ -102,16 +102,14 @@ class ReviewRepository(BaseDBRepository[Review, ReviewCreate, Any]):
             else:
                 # Создаем новый отзыв
                 new_review = Review(**review_data.model_dump())
-                # session.add(new_review)
+                session.add(new_review)
                 created_reviews.append(new_review)
 
-        if created_reviews:
-            session.add_all(created_reviews)
-        # session.commit()
-        #
-        # # Обновляем объекты чтобы получить ID
-        # for review in created_reviews + updated_reviews:
-        #     session.refresh(review)
+        session.commit()
+
+        # Обновляем объекты чтобы получить ID
+        for review in created_reviews + updated_reviews:
+            session.refresh(review)
 
         return {
             'created': created_reviews,
