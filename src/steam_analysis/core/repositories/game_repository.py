@@ -137,7 +137,7 @@ class GameRepository(BaseRepository):
             logger.error(f"\n ❗️ Error getting schema for game {app_id}: {e}")
             return None
 
-    def get_news(self, app_id: int) -> List[Dict[str, Any]]:
+    def get_news(self, app_id: int) -> Optional[NewsDataAnalysisCreate]:
         """Получить новости об игре"""
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamNews}/GetNewsForApp/v2"
         params = {'appid': app_id}
@@ -222,7 +222,6 @@ class GameRepository(BaseRepository):
             logger.error(f"\n ❗️ Error getting global stats for game {app_id}: {e}")
             return None
         
-    # TODO: вот тут проверить схемки надо!
     def get_reviews(self, app_id: int, limit: int = 100) -> Optional[ReviewsDataAnalysisCreate]:
         """Получить отзывы об игре"""
         url = f"{self.STORE_URL}/appreviews/{app_id}"

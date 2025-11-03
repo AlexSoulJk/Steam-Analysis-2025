@@ -44,12 +44,12 @@ class AchievPercentMixin(BaseSchema):
 class ReviewAuthorMixin(BaseSchema):
     """Схема для автора отзыва"""
     steam_id: str = Field(..., alias="steamid")
-    num_games_owned: int = Field(..., ge=0)
+    # num_games_owned: int = Field(..., ge=0)
     num_reviews: int = Field(..., ge=0)
-    playtime_forever: int = Field(..., ge=0)
-    playtime_last_two_weeks: int = Field(..., ge=0)
+    # playtime_forever: int = Field(..., ge=0)
+    # playtime_last_two_weeks: int = Field(..., ge=0)
     playtime_at_review: int = Field(..., ge=0)
-    last_played: int = Field(..., ge=0)
+    # last_played: int = Field(..., ge=0)
 
 class ReviewMixin(BaseSchema):
     """Миксин для отзыва"""
@@ -64,18 +64,18 @@ class ReviewMixin(BaseSchema):
     votes_funny: int = Field(..., ge=0)
     weighted_vote_score: float = Field(..., ge=0, le=1)
     comment_count: int = Field(..., ge=0)
-    steam_purchase: bool
+    # steam_purchase: bool
     received_for_free: bool
     written_during_early_access: bool
-    primarily_steam_deck: bool
+    # primarily_steam_deck: bool
 
 
 class NewMixin(BaseSchema):
     """Миксин для новости по игре"""
     gid: str = Field(..., description="ID новости")
     title: str = Field(..., description="Заголовок новости")
-    url: str = Field(..., description="URL новости")
-    is_external_url: bool = Field(..., description="Внешняя ссылка")
+    # url: str = Field(..., description="URL новости")
+    # is_external_url: bool = Field(..., description="Внешняя ссылка")
     author: str = Field(..., description="Автор новости")
     contents: str = Field(..., description="Содержание новости (HTML)")
     feedlabel: str = Field(..., description="Метка фида")
