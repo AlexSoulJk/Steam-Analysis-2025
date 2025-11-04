@@ -32,37 +32,14 @@ class AppMediator:
     def create_game(self,
                     chunk_size: int = 10):
         # Получаем последний загруженный app_id
-        # chunk_for_create = self.analysis_service.get_next_pending_chunk_by_service(self.processor_name)
-        #
-        # # Получаем данные через Steam API
-        # fill_butch = self.steam_facade.get_game_analysis_list(chunk_for_create)
-        # #
-        # default_saver.save_fill_game_batch(fill_butch)
-
-        # Сохраняем в аналитической базе и фильтруем успешные игры для основной базы
-        # successful_games = []
-        # for game_data in fill_butch.data_chunk:
-        #     if game_data is None:
-        #         continue
-        #     try:
-        #         self.analysis_service.add_game_data(chunk.id, game_data)
-        #         successful_games.append(game_data)  # только успешные
-        #     except Exception as e:
-        #         # Записываем ошибку в аналитическую базу
-        #         self.analysis_service.add_game_data(
-        #             chunk.id, game_data, status="failed", error_log=str(e)
-        #         )
-        #
-        # # Сохраняем только успешные игры в основной базе
-        # if successful_games:
-        #     fill_chunk_successful = FillGameAnalysisChunk(
-        #         start_app_id=start_app_id,
-        #         end_app_id=start_app_id + chunk_size - 1,
-        #         response_time=fill_butch.response_time,
-        #         data_chunk=successful_games
-        #     )
-        fill_butch = default_loader.load_fill_game_batch(filename="games_chunk_2025103050.json")
-        self.database_facade.create_games(fill_butch.data_chunk)
+        chunk_for_create = self.analysis_service.get_next_pending_chunk_by_service(self.processor_name)
+        # Получаем данные через Steam API
+        fill_butch = self.steam_facade.get_game_analysis_list(chunk_for_create)
+        # Сохранение chunk игр в JSON
+        default_saver.save_fill_game_batch(fill_butch)
+        # Load chunk from JSON
+        # fill_butch = default_loader.load_fill_game_batch(filename="games_chunk_2025110306.json")
+        # self.database_facade.create_games(fill_butch.data_chunk)
         # Завершаем чанк
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 

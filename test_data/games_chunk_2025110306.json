@@ -1,0 +1,537 @@
+{
+  "data_for_analysis_db": {
+    "chunk_games": [
+      {
+        "id": 351,
+        "status": "null_state",
+        "error_log": "Game app_id: 3380 not found or failed to load"
+      },
+      {
+        "id": 352,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 353,
+        "status": "null_state",
+        "error_log": "Game app_id: 3390 not found or failed to load"
+      },
+      {
+        "id": 354,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 355,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 356,
+        "status": "null_state",
+        "error_log": "Game app_id: 3402 not found or failed to load"
+      },
+      {
+        "id": 357,
+        "status": "null_state",
+        "error_log": "Game app_id: 3410 not found or failed to load"
+      },
+      {
+        "id": 358,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 359,
+        "status": "null_state",
+        "error_log": "Game app_id: 3420 not found or failed to load"
+      },
+      {
+        "id": 360,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 361,
+        "status": "null_state",
+        "error_log": "Game app_id: 3430 not found or failed to load"
+      },
+      {
+        "id": 362,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 363,
+        "status": "null_state",
+        "error_log": "Game app_id: 3442 not found or failed to load"
+      },
+      {
+        "id": 364,
+        "status": "null_state",
+        "error_log": "Game app_id: 3450 not found or failed to load"
+      },
+      {
+        "id": 365,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 366,
+        "status": "null_state",
+        "error_log": "Game app_id: 3460 not found or failed to load"
+      },
+      {
+        "id": 367,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 368,
+        "status": "null_state",
+        "error_log": "Game app_id: 3470 not found or failed to load"
+      },
+      {
+        "id": 369,
+        "status": "null_state",
+        "error_log": "Game app_id: 3472 not found or failed to load"
+      },
+      {
+        "id": 370,
+        "status": "null_state",
+        "error_log": "Game app_id: 3480 not found or failed to load"
+      },
+      {
+        "id": 371,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 372,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 373,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 374,
+        "status": "null_state",
+        "error_log": "Game app_id: 3492 not found or failed to load"
+      },
+      {
+        "id": 375,
+        "status": "null_state",
+        "error_log": "Game app_id: 3500 not found or failed to load"
+      }
+    ],
+    "chunk": {
+      "id": 15,
+      "status": "particle_success",
+      "response_time": 12.336401,
+      "error_log": "Game app_id: 3380 not found or failed to load\n\nGame app_id: 3390 not found or failed to load\n\n\nGame app_id: 3402 not found or failed to load\nGame app_id: 3410 not found or failed to load\n\nGame app_id: 3420 not found or failed to load\n\nGame app_id: 3430 not found or failed to load\n\nGame app_id: 3442 not found or failed to load\nGame app_id: 3450 not found or failed to load\n\nGame app_id: 3460 not found or failed to load\n\nGame app_id: 3470 not found or failed to load\nGame app_id: 3472 not found or failed to load\nGame app_id: 3480 not found or failed to load\n\n\n\nGame app_id: 3492 not found or failed to load\nGame app_id: 3500 not found or failed to load",
+      "started_at": "2025-11-03 12:06:29.588076",
+      "finished_at": "2025-11-03 12:06:41.924477"
+    }
+  },
+  "data_chunk": [
+    null,
+    {
+      "game": {
+        "app_id": 3382,
+        "name": "Dynomite Deluxe Free Demo",
+        "is_free": true,
+        "release_date": null,
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    {
+      "game": {
+        "app_id": 3392,
+        "name": "Feeding Frenzy 2 Deluxe Free Demo",
+        "is_free": true,
+        "release_date": null,
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 3400,
+        "name": "Hammer Heads Deluxe",
+        "is_free": false,
+        "release_date": "2006-08-30 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 3412,
+        "name": "Heavy Weapon Deluxe Free Demo",
+        "is_free": true,
+        "release_date": null,
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    {
+      "game": {
+        "app_id": 3422,
+        "name": "Iggle Pop Deluxe Free Demo",
+        "is_free": true,
+        "release_date": null,
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    {
+      "game": {
+        "app_id": 3432,
+        "name": "Pizza Frenzy Deluxe Free Demo",
+        "is_free": true,
+        "release_date": null,
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 3452,
+        "name": "Typer Shark! Deluxe Free Demo",
+        "is_free": true,
+        "release_date": null,
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    {
+      "game": {
+        "app_id": 3462,
+        "name": "Talismania Deluxe Free Demo",
+        "is_free": true,
+        "release_date": null,
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 3482,
+        "name": "Peggle Deluxe Free Demo",
+        "is_free": true,
+        "release_date": null,
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 3483,
+        "name": "Peggle Extreme",
+        "is_free": true,
+        "release_date": "2007-09-11 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        },
+        {
+          "steam_id": 37,
+          "description": "Free To Play"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 41,
+          "description": "Remote Play on Phone"
+        },
+        {
+          "steam_id": 42,
+          "description": "Remote Play on Tablet"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 3490,
+        "name": "Venice Deluxe",
+        "is_free": false,
+        "release_date": "2007-06-25 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 4,
+          "description": "Casual"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    null
+  ]
+}
