@@ -23,6 +23,8 @@ class AppMediator:
         self.user_analysis_creator = UserAnalysisCreator()
 
 
+    # region Fill analysis-db.db
+
     def fill_analysis_game(self):
         last_game = self.analysis_service.get_last_upploaded_game()
         start_app_id = self.steam_facade.get_first_app_id() if last_game is None else last_game.app_id
@@ -33,9 +35,12 @@ class AppMediator:
 
     def fill_analysis_user(self):
         last_user = self.analysis_service.get_last_upploaded_user()
-        start_steam_id = self.steam_facade.get_first_app_id() if last_user is None else last_user.steam_id
-        data_for_create = self.game_analysis_creator.get_user_analysis_data_for_create_from_resource(start_steam_id)
-        self.analysis_service.create_userchunk_by_service(*data_for_create)
+        # start_steam_id = self.steam_facade.get_first_steam_id() if last_user is None else last_user.steam_id
+        data_for_create = self.user_analysis_creator.get_user_analysis_data_for_create_from_resource(None)
+        self.analysis_service.create_user_chunk_by_service(*data_for_create)
+
+    # endregion
+
 
     # region Fill steam-analysis.db
     def create_game(self,

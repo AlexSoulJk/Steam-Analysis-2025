@@ -43,7 +43,7 @@ class UserAnalysisCreator:
         List[UserAnalysisChunkCreate],
         List[List[UserAnalysisFromJson]]]:
         resource: UserList = self.resource_manager.get_resource(ResourceCodes.USER_LIST) # aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-        last_steam_id = resource.get_first_app_id() if last_steam_id is None else last_steam_id
+        last_steam_id = resource.get_first_steam_id() if last_steam_id is None else last_steam_id
         start_creation = datetime.datetime.now()
         created_chuncks = self._prepare_chunck_for_create(processor_name_strategy)
         user_list = list(map(lambda x: UserAnalysisFromJson.from_json_resource(x, start_creation),

@@ -15,7 +15,7 @@ from steam_analysis.core.services.app_id_provider import AppIdProviderService
 from steam_analysis.database.models.servicemodels import AnalysisChunk, GameDataAnalysis
 from steam_analysis.database.models.serviceplayermodels import AnalysisUserChunk, UserDataAnalysis
 
-from steam_analysis.core.schemas.game.service import GameDataAnalysisCreate, FillGameAnalysisChunk
+from steam_analysis.core.schemas.game.service import UserDataAnalysisCreate, FillGameAnalysisChunk
 from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate, FillPlayerAnalysisChunk
 
 from steam_analysis.database.services.game_analysis_preparer import GamePreparer
@@ -79,11 +79,11 @@ class AnalysisDbFacade:
         with get_analysis_db() as session:
             self.data_game_preparer.create_chuncks(chunks, games, session)
 
-    def create_userchunk_by_service(self, chunks: list[UserAnalysisChunkCreate],
-                                users: list[list[UserAnalysisFromJson]]):
+    def create_user_chunk_by_service(self, chunks: list[UserAnalysisChunkCreate],
+                                     users: list[list[UserAnalysisFromJson]]):
 
         with get_analysis_db() as session:
-            self.data_game_preparer.create_chuncks(chunks, users, session)
+            self.data_user_preparer.create_chuncks(chunks, users, session)
 
     def get_next_pending_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]:
         """Получаем следующий чанк для обработки"""

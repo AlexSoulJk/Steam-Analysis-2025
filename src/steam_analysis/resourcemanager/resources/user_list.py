@@ -5,39 +5,39 @@ from typing import Optional, List
 
 from .base import Resource, logger
 from .codes import ResourceCodes
-from ...core.schemas import GameShortInfo
+from ...core.schemas import PlayerShortInfo
 
 #  переписать под юзера
 class UserList(Resource):
     """Ресурс для хранения списка приложений Steam"""
 
     def __init__(self, resource_base_path: Path):
-        super().__init__(ResourceCodes.GAME_LIST,
+        super().__init__(ResourceCodes.USER_LIST,
                          resource_base_path=resource_base_path,
                          ttl_hours=72)
 
-    def get_steam_id_list(self, steam_id_start: int, size: int) -> Optional[List[GameShortInfo]]:
+    def get_steam_id_list(self, steam_id_start: int, size: int) -> Optional[List[PlayerShortInfo]]:
         if not self.data:
             return None
         # count = 0
         # start_index = list(filter(lambda x, count: x['appid'] == app_id_start, count += 1, self.data))[0]['appid']
-        start_index = next(i for i, item in enumerate(self.data) if item['appid'] == steam_id_start)
+        start_index = next(i for i, item in enumerate(self.data) if item['steam_id'] == steam_id_start)
         end_index = min(len(self.data), start_index + size)
-        return list(map(lambda x: x['appid'], self.data[start_index:end_index]))
+        return list(map(lambda x: x['steam_id'], self.data[start_index:end_index]))
 
-    def get_app_list(self, app_id_start: int, size: int) -> Optional[List[GameShortInfo]]:
+    def get_app_list(self, steam_id_start: int, size: int) -> Optional[List[PlayerShortInfo]]:
         if not self.data:
             return None
         # count = 0
         # start_index = list(filter(lambda x, count: x['appid'] == app_id_start, count += 1, self.data))[0]['appid']
-        start_index = next(i for i, item in enumerate(self.data) if item['appid'] == app_id_start)
+        start_index = next(i for i, item in enumerate(self.data) if item['steam_id'] == steam_id_start)
         end_index = min(len(self.data), start_index + size)
-        return list(map(lambda x: GameShortInfo(app_id=x["appid"], name=x["name"]), self.data[start_index:end_index]))
+        return list(map(lambda x: PlayerShortInfo(steam_id=x["steam_id"], persona_name=x["persona_name"]), self.data[start_index:end_index]))
 
-    def get_first_app_id(self):
+    def get_first_steam_id(self):
         if not self.data:
             return None
-        return self.data[0]['appid']
+        return self.data[0]['steam_id']
 
     def load(self) -> bool:
         """Загрузить данные из файла"""

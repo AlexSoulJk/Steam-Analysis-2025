@@ -6,40 +6,40 @@ from sqlalchemy.orm import joinedload, Session, selectinload
 from steam_analysis.core.schemas.analysis.user import UserAnalysisChunkCreate, UserAnalysisChunkUpdate, \
     UserAnalysisCreate
 from ..base.baseanalisis import BaseAnalysisRepository
-from ...models.servicemodels import AnalysisChunk
+from ...models.serviceplayermodels import AnalysisUserChunk
 
 
-class UserChunkRepository(BaseAnalysisRepository[AnalysisChunk, UserAnalysisChunkCreate, UserAnalysisChunkUpdate]):
+class UserChunkRepository(BaseAnalysisRepository[AnalysisUserChunk, UserAnalysisChunkCreate, UserAnalysisChunkUpdate]):
     """Репозиторий для работы с юзерами"""
 
     def __init__(self):
-        super().__init__(model=AnalysisChunk)
+        super().__init__(model=AnalysisUserChunk)
 
     def _get_next_chunk_by_status_and_name(self, status: str, processor_name: str, session: Session) -> Optional[
-        AnalysisChunk]:
-        obj = session.query(AnalysisChunk) \
+        AnalysisUserChunk]:
+        obj = session.query(AnalysisUserChunk) \
             .filter(
             and_(
-                AnalysisChunk.status == status,
-                AnalysisChunk.processed_by == processor_name
+                AnalysisUserChunk.status == status,
+                AnalysisUserChunk.processed_by == processor_name
             )
         ) \
-            .order_by(AnalysisChunk.id) \
-            .with_for_update().options(selectinload(AnalysisChunk.users)).first()
+            .order_by(AnalysisUserChunk.id) \
+            .with_for_update().options(selectinload(AnalysisUserChunk.users)).first()
         return obj
 
-    def mark_as_in_progress(self, chunk: AnalysisChunk,
-                            session: Session) -> AnalysisChunk:
+    def mark_as_in_progress(self, chunk: AnalysisUserChunk,
+                            session: Session) -> AnalysisUserChunk:
         chunk.status = "in_progress"
         session.refresh(chunk)
         return chunk
 
     def update_status_after_processing(self, chunk: UserAnalysisChunkUpdate,
-                                       session: Session) -> AnalysisChunk:
+                                       session: Session) -> AnalysisUserChunk:
         chunk_model = self.update_by_id(chunk.id, chunk, session=session)
         return chunk_model
 
-    def get_next_pending_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
+    def get_next_pending_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisUserChunk]:
         obj = self._get_next_chunk_by_status_and_name(status="pending",
                                                       processor_name=processor_name,
                                                       session=session)
@@ -48,7 +48,7 @@ class UserChunkRepository(BaseAnalysisRepository[AnalysisChunk, UserAnalysisChun
 
         return obj
 
-    def get_next_faild_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
+    def get_next_faild_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisUserChunk]:
         obj = self._get_next_chunk_by_status_and_name(status="failed",
                                                       processor_name=processor_name,
                                                       session=session)
@@ -57,7 +57,7 @@ class UserChunkRepository(BaseAnalysisRepository[AnalysisChunk, UserAnalysisChun
 
         return obj
 
-    def get_next_particle_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisChunk]:
+    def get_next_particle_chunk_by_name(self, processor_name: str, session: Session) -> Optional[AnalysisUserChunk]:
         obj = self._get_next_chunk_by_status_and_name(status="particle_success",
                                                       processor_name=processor_name,
                                                       session=session)

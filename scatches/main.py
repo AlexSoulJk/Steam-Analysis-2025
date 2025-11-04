@@ -113,7 +113,7 @@ def main():
     # print(f"{game=}")
     mediator = AppMediator(api_key)
     # mediator.create_game()
-    mediator.create_user()
+    # mediator.create_user()
     # mediator.create_time_game_butch()
 
 
