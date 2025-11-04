@@ -116,7 +116,8 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         return db_obj
 
-    def create_bulk(self, objects_in: List[CreateSchemaType], session: Session) -> List[ModelType]:
+    def create_bulk(self, objects_in: List[CreateSchemaType],
+                    session: Session, no_commit=False) -> List[ModelType]:
         """
         Массовое создание объектов
 
@@ -135,10 +136,14 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         session.add_all(db_objects)
 
+        if not no_commit:
         # Обновляем объекты, чтобы получить их ID
-        session.commit()
-        for db_obj in db_objects:
-            session.refresh(db_obj)
+            session.commit()
+            for db_obj in db_objects:
+                session.refresh(db_obj)
+        else:
+            session.flush()
+
         return db_objects
 
     def update(
