@@ -4,6 +4,7 @@ from typing import List
 from steam_analysis.core.client.steamclient import SteamAnalysisFacade
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk
 from steam_analysis.core.services.game_analysis_creator import GameAnalysisCreator
+from steam_analysis.core.services.user_analysis_creator import UserAnalysisCreator
 from steam_analysis.database.analysis_facade import AnalysisDbFacade
 from steam_analysis.database.facade import DbFacade
 from steam_analysis.loader_test_data import default_loader
@@ -19,6 +20,7 @@ class AppMediator:
         self.database_facade = DbFacade()
         self.analysis_service = AnalysisDbFacade()
         self.game_analysis_creator = GameAnalysisCreator()
+        self.user_analysis_creator = UserAnalysisCreator()
 
 
     def fill_analysis_game(self):
@@ -27,6 +29,13 @@ class AppMediator:
         data_for_create = self.game_analysis_creator.get_game_analysis_data_for_create_from_resource(start_app_id)
         # default_saver.save_fill_game_analysis_butch_chunck(data_for_create)
         self.analysis_service.create_chunk_by_service(*data_for_create)
+
+
+    def fill_analysis_user(self):
+        last_user = self.analysis_service.get_last_upploaded_user()
+        start_steam_id = self.steam_facade.get_first_app_id() if last_user is None else last_user.steam_id
+        data_for_create = self.game_analysis_creator.get_game_analysis_data_for_create_from_resource(start_steam_id)
+        self.analysis_service.create_userchunk_by_service(*data_for_create)
 
     # region Fill steam-analysis.db
     def create_game(self,
@@ -65,6 +74,13 @@ class AppMediator:
         self.database_facade.create_games(fill_butch.data_chunk)
         # Завершаем чанк
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+
+    def create_user(self,
+                    chunk_size: int = 10):
+        fill_butch = default_loader.load_fill_user_batch(filename="players_20251020_100.json")
+        # self.database_facade.create_users(fill_butch.data_chunk)
+        # Завершаем чанк
+        self.analysis_service.mark_user_chunk_complete(fill_butch.data_for_analysis_db)
 
     def create_time_game_butch(self):
         with open('test_data/games_30_130_20251006.json', 'r', encoding='utf-8') as f:

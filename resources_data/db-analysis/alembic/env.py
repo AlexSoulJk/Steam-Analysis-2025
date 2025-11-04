@@ -8,6 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from steam_analysis.database.models.analysisbase import AnalysisBaseModel
 from steam_analysis.database.models.servicemodels import AnalysisChunk, GameDataAnalysis
+from steam_analysis.database.models.serviceplayermodels import AnalysisUserChunk, UserDataAnalysis
 
 config = context.config
 if config.config_file_name is not None:

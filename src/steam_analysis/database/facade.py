@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 from steam_analysis.config import db_path
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, GameDataAnalysisCreate
+from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.models import Game, GameGenre, GameCategory, GamePlatform
 from steam_analysis.database.repositories import GameRepository
@@ -16,6 +17,7 @@ from steam_analysis.database.repositories.game.genre import GenreRepository
 from steam_analysis.database.repositories.game.platform import PlatformRepository
 from steam_analysis.database.repositories.game.type import TypeRepository
 from steam_analysis.database.support_models.game_creation import PreparedForGameCreation
+# from steam_analysis.database.support_models.user_creation import PreparedForUserCreation # ??????????????????/
 
 # Для Windows абсолютного пути:
 engine = create_engine(f"sqlite:///{db_path}")
@@ -64,6 +66,7 @@ class DbFacade:
                                        types=types,
                                        platforms=platforms)
 
+
     def _prepare_relations(self, games, dict_without_none, prep_info):
         """Подготавливает все связи для создания"""
         game_genres = []
@@ -109,6 +112,32 @@ class DbFacade:
         # 3. Создаем только уникальные связи
         session.add_all(unique_game_genres + unique_game_categories + unique_game_platforms)
         session.commit()
+
+
+    def _create_user_connections(self, prep_info: PreparedForPlayerCreation,
+                            games: List[Game], dict_without_none: Dict[int, GameDataAnalysisCreate],
+                            session: Session):
+        # 1. Подготавливаем все связи
+        game_genres, game_categories, game_platforms = self._prepare_relations(
+            games, dict_without_none, prep_info
+        )
+
+        # 2. Проверяем существующие связи одним запросом для каждого типа
+        unique_game_genres = self._filter_existing_relations(
+            session, GameGenre, game_genres, ['game_id', 'genre_id']
+        )
+        unique_game_categories = self._filter_existing_relations(
+            session, GameCategory, game_categories, ['game_id', 'category_id']
+        )
+        unique_game_platforms = self._filter_existing_relations(
+            session, GamePlatform, game_platforms, ['game_id', 'platform_id']
+        )
+
+        # 3. Создаем только уникальные связи
+        session.add_all(unique_game_genres + unique_game_categories + unique_game_platforms)
+        session.commit()
+
+
 
     def _filter_existing_relations(self, session, model, relations, unique_fields):
         """Фильтрует существующие связи массово - улучшенная версия"""
@@ -161,6 +190,18 @@ class DbFacade:
             dict_without_nons = {data_analys_schema.game.app_id: data_analys_schema for data_analys_schema in data_without_none}
             self._create_connections(prep_info=prep_info, dict_without_none=dict_without_nons,
                                      games=games, session=session)
+
+    def create_users(self, users_info_chunk: List[Optional[PlayerDataAnalysisCreate]]):
+        data_without_none = list(filter(lambda x: x is not None, users_info_chunk))
+
+        users_to_create = SchemaMorpher.game_create_from_http_to_database(
+            users=list(map(lambda x: x.user, data_without_none)))
+
+        with get_db() as session:
+            users = self.game_repos.create_bulk(users_to_create, session=session)
+            dict_without_nons = {data_analys_schema.game.app_id: data_analys_schema for data_analys_schema in data_without_none}
+            self._create_connections(dict_without_none=dict_without_nons,
+                                     users=users, session=session)
 
     def get_last_upploaded_game(self):
         with get_db() as session:
