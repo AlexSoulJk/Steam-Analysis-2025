@@ -116,7 +116,8 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         return db_obj
 
-    def create_bulk(self, objects_in: List[CreateSchemaType], session: Session) -> List[ModelType]:
+    def create_bulk(self, objects_in: List[CreateSchemaType],
+                    session: Session, no_commit=False) -> List[ModelType]:
         """
         Массовое создание объектов
 
@@ -135,47 +136,41 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         session.add_all(db_objects)
 
+        if not no_commit:
         # Обновляем объекты, чтобы получить их ID
-        for db_obj in db_objects:
-            session.refresh(db_obj)
-
-        session.commit()
-
-
+            session.commit()
+            for db_obj in db_objects:
+                session.refresh(db_obj)
+        else:
+            session.flush()
 
         return db_objects
 
     def update(
             self,
             *,
+            no_commit: bool = False,
             db_obj: ModelType,
             obj_in: Union[UpdateSchemaType, Dict[str, Any]],
             session: Session
     ) -> ModelType:
-        """
-        Обновить существующий объект
 
-        Args:
-            db_obj: Объект из базы данных
-            obj_in: Pydantic схема или словарь с данными для обновления
-
-        Returns:
-            Обновленный объект
-        """
-        # Преобразуем входные данные в словарь
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
-            update_data = obj_in.model_dump(exclude_unset=True) if hasattr(obj_in, 'model_dump') else obj_in.dict(
-                exclude_unset=True)
+            update_data = obj_in.model_dump(exclude_unset=True)
 
-        # Обновляем поля объекта
         for field, value in update_data.items():
             if hasattr(db_obj, field):
-                setattr(db_obj, field, value)
+                current_value = getattr(db_obj, field)
+                if current_value != value:
+                    setattr(db_obj, field, value)
 
-        session.commit()
-        session.refresh(db_obj)
+        session.add(db_obj)
+
+        if not no_commit:
+            session.commit()
+            session.refresh(db_obj)
 
         return db_obj
 
@@ -183,7 +178,8 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             self,
             id: Any,
             obj_in: Union[UpdateSchemaType, Dict[str, Any]],
-            session: Session
+            session: Session,
+            no_commit: bool = False,
     ) -> Optional[ModelType]:
         """
         Обновить объект по ID
@@ -199,7 +195,7 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if not db_obj:
             return None
 
-        return self.update(db_obj=db_obj, obj_in=obj_in, session=session)
+        return self.update(db_obj=db_obj, obj_in=obj_in, session=session, no_commit=no_commit)
 
     def delete(self, id: Any, session: Session) -> bool:
         """
@@ -258,7 +254,7 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = session.execute(query)
         return result.scalar_one_or_none() is not None
 
-    def count(self, session: Session,filters: Optional[Dict] = None) -> int:
+    def count(self, session: Session, filters: Optional[Dict] = None) -> int:
         """
         Получить количество объектов по фильтрам
 

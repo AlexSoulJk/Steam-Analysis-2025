@@ -24,4 +24,5 @@ class LoaderTestData:
             return None
 
 default_loader = LoaderTestData(dir_to_load=test_data_path)
-# print(default_loader.load_fill_game_batch(filename="games_30_130_20251006.json"))
+
+# print(default_loader.load_fill_game_batch(filename="games_chunk_20251028.json").data_for_analysis_db)

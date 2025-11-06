@@ -2,12 +2,14 @@ import time
 from datetime import datetime
 
 from .base import BaseRepository
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 
 from ..codes.steamservices import SteamServices
 from ..parsers.json.steamapi.game import GameParser
 from ..schemas import GameShortInfo, GameCategory
-from ..schemas.game.service import GameDataAnalysisCreate, SchemaDataAnalysisCreate, AchievDataAnalysisCreate, PlayersDataAnalysisCreate, ReviewsDataAnalysisCreate, NewsDataAnalysisCreate
+from ..schemas.analysis.game import GameAnalysisUpdate, GameAnalysisResponse
+from ..schemas.game.service import GameDataAnalysisCreate, SchemaDataAnalysisCreate, AchievDataAnalysisCreate, \
+    PlayersDataAnalysisCreate, ReviewsDataAnalysisCreate, NewsDataAnalysisCreate
 from ...core.dependencies.basehttp import HTTPClient
 
 import logging
@@ -27,7 +29,42 @@ class GameRepository(BaseRepository):
         self.api_key = api_key
         self._full_app_list_cache: Optional[Any] = None
 
-    def get_by_id(self, app_id: int, lang = None, **kwargs) -> Optional[GameDataAnalysisCreate]:
+    def get_by_schema(self, game_for_response: GameAnalysisResponse, lang=None) -> Tuple[
+        Optional[GameDataAnalysisCreate], GameAnalysisUpdate]:
+        url = f"{GameRepository.STORE_URL}/api/appdetails"
+        params = {'appids': game_for_response.app_id}
+
+        error_log_message = ""
+        status = ""  # TODO: REFACTOR DEFAULT STATUS
+        request_model = None
+
+        if lang:
+            params['l'] = lang
+
+        try:
+            data = self.http_client.get(url, params=params)
+            game_data = data.get(str(game_for_response.app_id), {'success': False})
+            # TODO: Handle error !!
+
+            if not game_data.get('success'):
+                error_log_message = f"Game app_id: {game_for_response.app_id} not found or failed to load"
+                status = "null_state"
+                logger.warning(f"\n ❗️ {error_log_message}")
+            else:
+                status = "particle"
+                request_model = self._parse_game_data(game_for_response.app_id,
+                                                      game_data['data'])
+
+        except Exception as e:
+            status = "failed"
+            error_log_message = f"Error getting game: {e}"
+            logger.error(f"\n ❗❗️ {error_log_message}")
+
+        return request_model, GameAnalysisUpdate.from_response_schema(response=game_for_response,
+                                                                      error_log=error_log_message,
+                                                                      status=status)
+
+    def get_by_id(self, app_id: int, lang=None, **kwargs) -> Optional[GameDataAnalysisCreate]:
         """Получить игру по AppID"""
         url = f"{GameRepository.STORE_URL}/api/appdetails"
         params = {'appids': app_id}
@@ -46,7 +83,7 @@ class GameRepository(BaseRepository):
             logger.error(f"\n ❗️ Error getting game app_id:{app_id}: {e}")
             return None
 
-    def get_by_ids(self, ids: list[int], lang = None, **kwargs) -> Optional[List[GameDataAnalysisCreate]]:
+    def get_by_ids(self, ids: list[int], lang=None, **kwargs) -> Optional[List[GameDataAnalysisCreate]]:
         # url = f"{GameRepository.STORE_URL}/api/appdetails"
         # params = {'appids': ids}
 
@@ -59,7 +96,6 @@ class GameRepository(BaseRepository):
                 logger.warning(f"\n ❗️ Game with AppID {app_id} could not be retrieved.")
 
         return results if results else None
-
 
     def get_game_list(self,
                       offset: int = 0,
@@ -124,7 +160,7 @@ class GameRepository(BaseRepository):
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetSchemaForGame/v2/"
         params = {'key': self.api_key,
                   'appid': app_id}
-        
+
         try:
             data = self.http_client.get(url, params=params)
             schema_data = data.get('game', [])
@@ -132,7 +168,7 @@ class GameRepository(BaseRepository):
                 logger.warning(f"\n ❗️ Schema for dame {app_id} not found or failed to load")
                 return None
             return self._parse_schema_data(app_id, schema_data)
-        
+
         except Exception as e:
             logger.error(f"\n ❗️ Error getting schema for game {app_id}: {e}")
             return None
@@ -150,11 +186,11 @@ class GameRepository(BaseRepository):
                 logger.warning(f"\n ❗️ News for dame {app_id} not found or failed to load")
                 return None
             return self._parse_news_data(app_id, news_data)
-        
+
         except Exception as e:
             logger.error(f"\n ❗️ Error getting news for game {app_id}: {e}")
             return None
-        
+
     def get_achiev_persentage(self, app_id: int) -> Optional[AchievDataAnalysisCreate]:
         """Получить глобальные проценты выполнения достижений для определённой игры"""
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetGlobalAchievementPercentagesForApp/v2"
@@ -168,11 +204,11 @@ class GameRepository(BaseRepository):
                 logger.warning(f"\n ❗️ Global achievement percentages for dame {app_id} not found or failed to load")
                 return None
             return self._parse_achiev_data(app_id, achiev_data)
-        
+
         except Exception as e:
             logger.error(f"\n ❗️ Error getting global achievement percentages for game {app_id}: {e}")
             return None
-        
+
     # TODO: дописать схему
     # 1) я так и не поняла, как тут отправить в запросе больше одной статистики :(
     # 2) у меня не получилось получить норм ответ без ошибки
@@ -181,11 +217,11 @@ class GameRepository(BaseRepository):
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetGlobalStatsForGame/v1"
         params = {'appid': app_id,
                   'count': count}
-        
+
         if len(names) != count:
             logger.warning(f"\n ❗️ Ожидалось {count} элементов в names, но получено {len(names)}.")
             return None
-        
+
         for i in range(count):
             params[f'name[{i}]'] = names[i]
 
@@ -199,11 +235,11 @@ class GameRepository(BaseRepository):
             # TODO: дописать парсер для global_stats
             # return self._parse_news_data(app_id, news_data['newsitems'], news_data['count'])
             return stats_data
-        
+
         except Exception as e:
             logger.error(f"\n ❗️ Error getting global stats for game {app_id}: {e}")
             return None
-        
+
     def get_number_of_players(self, app_id: int) -> Optional[PlayersDataAnalysisCreate]:
         """Получить общее число игроков, активных в данный момент в указанной игре"""
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetNumberOfCurrentPlayers/v1"
@@ -217,11 +253,12 @@ class GameRepository(BaseRepository):
                 logger.warning(f"\n ❗️ Number of players for game {app_id} not found or failed to load")
                 return None
             return self._parse_players_data(app_id, player_data)
-        
+
         except Exception as e:
             logger.error(f"\n ❗️ Error getting global stats for game {app_id}: {e}")
             return None
-        
+
+    # TODO: вот тут проверить схемки надо!
     def get_reviews(self, app_id: int, limit: int = 100) -> Optional[ReviewsDataAnalysisCreate]:
         """Получить отзывы об игре"""
         url = f"{self.STORE_URL}/appreviews/{app_id}"
@@ -239,11 +276,10 @@ class GameRepository(BaseRepository):
                 logger.warning(f"\n ❗️ Reviews for dame {app_id} not found or failed to load")
                 return None
             return self._parse_reviews_data(app_id, data)
-        
+
         except Exception as e:
             logger.error(f"\n ❗️ Error getting reviews for game {app_id}: {e}")
             return None
-
 
     def get_category_list(self) -> List[GameCategory]:
         # TODO: WRITE LOGIC
@@ -259,58 +295,58 @@ class GameRepository(BaseRepository):
 
         return GameDataAnalysisCreate(
             # Базовые идентификаторы
-            game = game_create_info,
-            genres = genres,
-            categories = categories,
-            platforms = platforms,
+            game=game_create_info,
+            genres=genres,
+            categories=categories,
+            platforms=platforms,
         )
-    
+
     def _parse_schema_data(self, app_id: int, raw_data: Dict[str, Any]) -> SchemaDataAnalysisCreate:
         stats = GameParser.extract_stats(raw_data['availableGameStats'])
         achievs = GameParser.extract_achievs(raw_data['availableGameStats'])
 
         return SchemaDataAnalysisCreate(
-            game_id = app_id,
-            game_version = raw_data['gameVersion'],
-            stats = stats,
-            achievs = achievs
+            game_id=app_id,
+            game_version=raw_data['gameVersion'],
+            stats=stats,
+            achievs=achievs
         )
-    
+
     def _parse_achiev_data(self, app_id: int, raw_data: Dict[str, Any]) -> AchievDataAnalysisCreate:
         achievs = GameParser.extract_achievs_percent(raw_data)
-        
+
         return AchievDataAnalysisCreate(
-            game_id = app_id,
-            achievs = achievs
+            game_id=app_id,
+            achievs=achievs
         )
-    
-    def _parse_players_data(self, app_id: int, raw_data: Dict[str, Any]) -> PlayersDataAnalysisCreate:        
+
+    def _parse_players_data(self, app_id: int, raw_data: Dict[str, Any]) -> PlayersDataAnalysisCreate:
         return PlayersDataAnalysisCreate(
-            game_id = app_id,
-            number_of_players = raw_data['player_count']
+            game_id=app_id,
+            number_of_players=raw_data['player_count']
         )
-    
+
     def _parse_reviews_data(self, app_id: int, raw_data: Dict[str, Any]) -> ReviewsDataAnalysisCreate:
         query_summary = raw_data['query_summary']
         reviews = GameParser.extract_reviews(raw_data)
-        
+
         return ReviewsDataAnalysisCreate(
-            game_id = app_id,
-            num_reviews = query_summary['num_reviews'],
-            review_score = query_summary['review_score'],
-            review_score_desc = query_summary['review_score_desc'],
-            total_positive = query_summary['total_positive'],
-            total_negative = query_summary['total_negative'],
-            total_reviews = query_summary['total_reviews'],
-            reviews = reviews
+            game_id=app_id,
+            num_reviews=query_summary['num_reviews'],
+            review_score=query_summary['review_score'],
+            review_score_desc=query_summary['review_score_desc'],
+            total_positive=query_summary['total_positive'],
+            total_negative=query_summary['total_negative'],
+            total_reviews=query_summary['total_reviews'],
+            reviews=reviews
         )
 
     def _parse_news_data(self, app_id: int, raw_data: Dict[str, Any]) -> NewsDataAnalysisCreate:
         news = GameParser.extract_news(raw_data)
-        
+
         return NewsDataAnalysisCreate(
-            game_id = app_id,
-            news = news
+            game_id=app_id,
+            news=news
         )
 
     @staticmethod

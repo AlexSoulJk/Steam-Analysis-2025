@@ -1,0 +1,762 @@
+{
+  "data_for_analysis_db": {
+    "chunk_games": [
+      {
+        "id": 201,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 202,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 203,
+        "status": "null_state",
+        "error_log": "Game app_id: 1259 not found or failed to load"
+      },
+      {
+        "id": 204,
+        "status": "null_state",
+        "error_log": "Game app_id: 1260 not found or failed to load"
+      },
+      {
+        "id": 205,
+        "status": "null_state",
+        "error_log": "Game app_id: 1270 not found or failed to load"
+      },
+      {
+        "id": 206,
+        "status": "null_state",
+        "error_log": "Game app_id: 1273 not found or failed to load"
+      },
+      {
+        "id": 207,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 208,
+        "status": "null_state",
+        "error_log": "Game app_id: 1290 not found or failed to load"
+      },
+      {
+        "id": 209,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 210,
+        "status": "null_state",
+        "error_log": "Game app_id: 1306 not found or failed to load"
+      },
+      {
+        "id": 211,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 212,
+        "status": "null_state",
+        "error_log": "Game app_id: 1317 not found or failed to load"
+      },
+      {
+        "id": 213,
+        "status": "null_state",
+        "error_log": "Game app_id: 1320 not found or failed to load"
+      },
+      {
+        "id": 214,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 215,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 216,
+        "status": "null_state",
+        "error_log": "Game app_id: 1504 not found or failed to load"
+      },
+      {
+        "id": 217,
+        "status": "null_state",
+        "error_log": "Game app_id: 1507 not found or failed to load"
+      },
+      {
+        "id": 218,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 219,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 220,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 221,
+        "status": "null_state",
+        "error_log": "Game app_id: 1523 not found or failed to load"
+      },
+      {
+        "id": 222,
+        "status": "null_state",
+        "error_log": "Game app_id: 1525 not found or failed to load"
+      },
+      {
+        "id": 223,
+        "status": "null_state",
+        "error_log": "Game app_id: 1528 not found or failed to load"
+      },
+      {
+        "id": 224,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 225,
+        "status": "null_state",
+        "error_log": "Game app_id: 1532 not found or failed to load"
+      }
+    ],
+    "chunk": {
+      "id": 9,
+      "status": "particle_success",
+      "response_time": 12.402375,
+      "error_log": "Game app_id: 1259 not found or failed to load\nGame app_id: 1260 not found or failed to load\nGame app_id: 1270 not found or failed to load\nGame app_id: 1273 not found or failed to load\n\nGame app_id: 1290 not found or failed to load\n\nGame app_id: 1306 not found or failed to load\n\nGame app_id: 1317 not found or failed to load\nGame app_id: 1320 not found or failed to load\n\n\nGame app_id: 1504 not found or failed to load\nGame app_id: 1507 not found or failed to load\n\n\n\nGame app_id: 1523 not found or failed to load\nGame app_id: 1525 not found or failed to load\nGame app_id: 1528 not found or failed to load\n\nGame app_id: 1532 not found or failed to load",
+      "started_at": "2025-10-30 00:45:11.861847",
+      "finished_at": "2025-10-30 00:45:24.264222"
+    }
+  },
+  "data_chunk": [
+    {
+      "game": {
+        "app_id": 1256,
+        "name": "Killing Floor Outbreak Character Pack",
+        "is_free": false,
+        "release_date": "2009-07-24 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "dlc"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 9,
+          "description": "Co-op"
+        },
+        {
+          "steam_id": 21,
+          "description": "Downloadable Content"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        },
+        {
+          "description": "mac"
+        },
+        {
+          "description": "linux"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 1257,
+        "name": "Killing Floor: Nightfall Character Pack",
+        "is_free": false,
+        "release_date": "2010-05-19 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "dlc"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 9,
+          "description": "Co-op"
+        },
+        {
+          "steam_id": 21,
+          "description": "Downloadable Content"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        },
+        {
+          "description": "mac"
+        },
+        {
+          "description": "linux"
+        }
+      ]
+    },
+    null,
+    null,
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 1280,
+        "name": "Darkest Hour: Europe '44-'45",
+        "is_free": true,
+        "release_date": "2009-06-09 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "mod"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        },
+        {
+          "steam_id": 28,
+          "description": "Simulation"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 49,
+          "description": "PvP"
+        },
+        {
+          "steam_id": 36,
+          "description": "Online PvP"
+        },
+        {
+          "steam_id": 19,
+          "description": "Mods"
+        },
+        {
+          "steam_id": 17,
+          "description": "Includes level editor"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        },
+        {
+          "description": "mac"
+        },
+        {
+          "description": "linux"
+        }
+      ]
+    },
+    null,
+    {
+      "game": {
+        "app_id": 1300,
+        "name": "SiN Episodes: Emergence",
+        "is_free": false,
+        "release_date": "2006-05-10 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 15,
+          "description": "Stats"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    {
+      "game": {
+        "app_id": 1313,
+        "name": "SiN: Gold",
+        "is_free": false,
+        "release_date": "2020-03-18 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 1,
+          "description": "Action"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 49,
+          "description": "PvP"
+        },
+        {
+          "steam_id": 36,
+          "description": "Online PvP"
+        },
+        {
+          "steam_id": 47,
+          "description": "LAN PvP"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 1500,
+        "name": "Darwinia",
+        "is_free": false,
+        "release_date": "2005-12-01 00:00:00",
+        "coming_soon": false,
+        "controller_support": "full",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        },
+        {
+          "steam_id": 2,
+          "description": "Strategy"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 28,
+          "description": "Full controller support"
+        },
+        {
+          "steam_id": 23,
+          "description": "Steam Cloud"
+        },
+        {
+          "steam_id": 17,
+          "description": "Includes level editor"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        },
+        {
+          "description": "mac"
+        },
+        {
+          "description": "linux"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 1502,
+        "name": "Darwinia Demo",
+        "is_free": true,
+        "release_date": "2005-07-14 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 2,
+          "description": "Strategy"
+        },
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        },
+        {
+          "description": "mac"
+        },
+        {
+          "description": "linux"
+        }
+      ]
+    },
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 1510,
+        "name": "Uplink",
+        "is_free": false,
+        "release_date": "2006-08-23 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        },
+        {
+          "steam_id": 2,
+          "description": "Strategy"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        },
+        {
+          "description": "mac"
+        },
+        {
+          "description": "linux"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 1520,
+        "name": "DEFCON",
+        "is_free": false,
+        "release_date": "2006-09-29 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        },
+        {
+          "steam_id": 2,
+          "description": "Strategy"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 49,
+          "description": "PvP"
+        },
+        {
+          "steam_id": 36,
+          "description": "Online PvP"
+        },
+        {
+          "steam_id": 47,
+          "description": "LAN PvP"
+        },
+        {
+          "steam_id": 9,
+          "description": "Co-op"
+        },
+        {
+          "steam_id": 38,
+          "description": "Online Co-op"
+        },
+        {
+          "steam_id": 48,
+          "description": "LAN Co-op"
+        },
+        {
+          "steam_id": 27,
+          "description": "Cross-Platform Multiplayer"
+        },
+        {
+          "steam_id": 22,
+          "description": "Steam Achievements"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        },
+        {
+          "description": "mac"
+        },
+        {
+          "description": "linux"
+        }
+      ]
+    },
+    {
+      "game": {
+        "app_id": 1522,
+        "name": "DEFCON Demo",
+        "is_free": true,
+        "release_date": "2006-09-29 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "demo"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 2,
+          "description": "Strategy"
+        },
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 49,
+          "description": "PvP"
+        },
+        {
+          "steam_id": 36,
+          "description": "Online PvP"
+        },
+        {
+          "steam_id": 47,
+          "description": "LAN PvP"
+        },
+        {
+          "steam_id": 37,
+          "description": "Shared/Split Screen PvP"
+        },
+        {
+          "steam_id": 24,
+          "description": "Shared/Split Screen"
+        },
+        {
+          "steam_id": 27,
+          "description": "Cross-Platform Multiplayer"
+        },
+        {
+          "steam_id": 10,
+          "description": "Game demo"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        }
+      ]
+    },
+    null,
+    null,
+    null,
+    {
+      "game": {
+        "app_id": 1530,
+        "name": "Multiwinia",
+        "is_free": false,
+        "release_date": "2008-09-19 00:00:00",
+        "coming_soon": false,
+        "controller_support": "none",
+        "type": {
+          "description": "game"
+        }
+      },
+      "genres": [
+        {
+          "steam_id": 23,
+          "description": "Indie"
+        }
+      ],
+      "categories": [
+        {
+          "steam_id": 2,
+          "description": "Single-player"
+        },
+        {
+          "steam_id": 1,
+          "description": "Multi-player"
+        },
+        {
+          "steam_id": 49,
+          "description": "PvP"
+        },
+        {
+          "steam_id": 36,
+          "description": "Online PvP"
+        },
+        {
+          "steam_id": 47,
+          "description": "LAN PvP"
+        },
+        {
+          "steam_id": 9,
+          "description": "Co-op"
+        },
+        {
+          "steam_id": 38,
+          "description": "Online Co-op"
+        },
+        {
+          "steam_id": 48,
+          "description": "LAN Co-op"
+        },
+        {
+          "steam_id": 22,
+          "description": "Steam Achievements"
+        },
+        {
+          "steam_id": 62,
+          "description": "Family Sharing"
+        }
+      ],
+      "platforms": [
+        {
+          "description": "windows"
+        },
+        {
+          "description": "mac"
+        }
+      ]
+    },
+    null
+  ]
+}

@@ -13,18 +13,22 @@ class User(BaseModel):
     steam_id = Column(String(17), unique=True, nullable=False, index=True)
     persona_name = Column(String(255))
     profile_url = Column(String(500))
-    avatar_url = Column(String(500))
-    avatar_medium_url = Column(String(500))
-    avatar_full_url = Column(String(500))
     time_created = Column(DateTime)
     last_logoff = Column(DateTime)
-    profile_state = Column(Integer)  # 1 - public, etc.
     community_visibility_state = Column(Integer)
+    steam_level = Column(Integer, default=0)
 
     game_ownership = relationship("UserGameOwnership", back_populates="user", cascade="all, delete-orphan")
     playtime = relationship("UserPlaytime", back_populates="user", cascade="all, delete-orphan")
     achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
+    logoff_history = relationship("UserLogoffHistory", back_populates="user", cascade="all, delete-orphan")
+    friends = relationship(
+        "Friend",
+        foreign_keys="Friend.user_id",  # ⬅️ ЯВНО указываем какой foreign key использовать
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index('idx_user_steam_id', 'steam_id'),
@@ -49,4 +53,22 @@ class UserPlaytime(BaseModel):
         Index('idx_playtime_user', 'user_id'),
         Index('idx_playtime_game', 'game_id'),
         Index('idx_playtime_last_played', 'last_played'),
+    )
+
+
+class Friend(BaseModel):
+    """Друзья пользователя"""
+    __tablename__ = "friends"
+
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    friend_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    status = Column(String(20), default='valid')
+
+    user = relationship("User", foreign_keys=[user_id], back_populates="friends")
+    friend = relationship("User", foreign_keys=[friend_id])
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'friend_id', name='uq_friends_pair'),
+        Index('idx_friends_user', 'user_id'),
+        Index('idx_friends_friend', 'friend_id'),
     )
