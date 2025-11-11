@@ -7,6 +7,16 @@ from steam_analysis.core.schemas.player.player import PlayerFromHttp, PlayerFull
 from .playergame import AchievementBase, OwnershipBase, ReviewBase, PlaytimeBase
 
 
+class PlayerAnalysisForJson(BaseSchema):
+    steam_id: str
+    persona_name: str = "NEEDADD"
+    status: str = "unfilled"
+
+    @staticmethod
+    def create_without_friends(steam_id: str):
+        return PlayerAnalysisForJson(steam_id=steam_id)
+
+
 class PlayerCreateReportInfo(BaseSchema):
     """Информация о создании отчета по игрокам"""
     start_steam_id: str
@@ -59,6 +69,5 @@ class FillPlayerSchemaChunk(BaseSchema):
     data_chunk: Dict[str, PlayerAnalysesSchema]
     response_time: datetime.timedelta
     success_count: int
-
 
 # endregion
