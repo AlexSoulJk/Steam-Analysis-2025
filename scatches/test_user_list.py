@@ -1,3 +1,5 @@
+from time import sleep
+
 from examples.steamapi.utils import load_api_key
 from steam_analysis import PlayerRepository
 from steam_analysis.core.dependencies.basehttp import RequestsWithDelayClient
@@ -27,7 +29,10 @@ def check_fill_user_list():
 def check_player_list_creator():
     api_key = load_api_key()
     plc = PlayerListCreator(api_key)
-    plc.fill_current_list()
+
+    for _ in range(30):
+        plc.fill_current_list()
+        sleep(30)
 
 
 def main():

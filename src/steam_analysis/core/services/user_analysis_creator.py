@@ -42,12 +42,18 @@ class UserAnalysisCreator:
                                                         processor_name_strategy=default_name_strategy) -> Tuple[
         List[UserAnalysisChunkCreate],
         List[List[UserAnalysisFromJson]]]:
+
         resource: UserList = self.resource_manager.get_resource(ResourceCodes.USER_LIST) # aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         last_steam_id = resource.get_first_steam_id() if last_steam_id is None else last_steam_id
         start_creation = datetime.datetime.now()
-        created_chuncks = self._prepare_chunck_for_create(processor_name_strategy)
+
         user_list = list(map(lambda x: UserAnalysisFromJson.from_json_resource(x, start_creation),
-                             resource.get_app_list(last_steam_id,
-                                                   self.chunk_size * self.butch_chunck_size)))
+                             resource.get_user_list_for_analysis_creation(last_steam_id,
+                                                                          self.chunk_size * self.butch_chunck_size)))
+        if len(user_list) != self.chunk_size * self.butch_chunck_size:
+            print(f"Need to fill user list current {len(user_list)}. Need add {self.chunk_size * self.butch_chunck_size}")
+            return (None, None)
+
+        created_chuncks = self._prepare_chunck_for_create(processor_name_strategy)
         user_res = self._split_for_user_chunck(user_list)
         return (created_chuncks, user_res)

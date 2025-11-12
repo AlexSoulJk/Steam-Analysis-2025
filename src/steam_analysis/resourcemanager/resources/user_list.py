@@ -41,15 +41,14 @@ class UserList(Resource):
         element = next(filter(lambda x: x['status'] == "unfilled", self.data), None)
         return element
 
-    def get_app_list(self, steam_id_start: int, size: int) -> Optional[List[PlayerShortInfo]]:
+    def get_user_list_for_analysis_creation(self, steam_id_start: int, size: int) -> Optional[List[PlayerShortInfo]]:
         if not self.data:
             return None
-        # count = 0
-        # start_index = list(filter(lambda x, count: x['appid'] == app_id_start, count += 1, self.data))[0]['appid']
-        start_index = next(i for i, item in enumerate(self.data) if item['steam_id'] == steam_id_start)
-        end_index = min(len(self.data), start_index + size)
+        prepared_users =  self.data
+        start_index = next(i for i, item in enumerate(prepared_users) if item['steam_id'] == steam_id_start)
+        end_index = min(len(prepared_users), start_index + size)
         return list(map(lambda x: PlayerShortInfo(steam_id=x["steam_id"], persona_name=x["persona_name"]),
-                        self.data[start_index:end_index]))
+                        prepared_users[start_index:end_index]))
 
     def get_first_steam_id(self):
         if not self.data:
@@ -93,7 +92,7 @@ class UserList(Resource):
                 player_data["last_upd"] = current_time
                 self.data.append(player_data)
                 has_changes = True
-                print(f"Добавлен новый игрок: {new_player.steam_id}")
+                # print(f"Добавлен новый игрок: {new_player.steam_id}")
 
             else:
                 # Существующий игрок - проверяем можно ли обновлять
