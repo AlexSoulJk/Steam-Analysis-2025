@@ -124,7 +124,7 @@ class UserDataAnalysis(AnalysisBaseModel):
 
     chunk_id = Column(Integer, ForeignKey("analysis_user_chunks.id", ondelete="CASCADE"))
 
-    steam_id = Column(Integer, nullable=False, index=True)
+    steam_id = Column(Integer, nullable=False, index=True, unique=True)
 
     status = Column(String(50), default="pending")  # success / failed / partial
     error_log = Column(Text, nullable=True)

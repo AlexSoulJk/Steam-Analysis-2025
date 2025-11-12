@@ -1,0 +1,13 @@
+-- Сначала посмотрим что будем удалять (рекомендуется для проверки)
+SELECT app_id, COUNT(*) as duplicate_count
+FROM game_data_analysis
+GROUP BY app_id
+HAVING COUNT(*) > 1;
+
+-- Удаляем дубликаты, оставляя запись с наибольшим id
+DELETE FROM game_data_analysis
+WHERE id NOT IN (
+    SELECT MAX(id)
+    FROM game_data_analysis
+    GROUP BY app_id
+);
