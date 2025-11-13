@@ -8,7 +8,7 @@ from .playergame import AchievementBase, OwnershipBase, ReviewBase, PlaytimeBase
 
 
 class PlayerAnalysisForJson(BaseSchema):
-    steam_id: str
+    steam_id: int
     persona_name: str = "NEEDADD"
     status: str = "unfilled"
 

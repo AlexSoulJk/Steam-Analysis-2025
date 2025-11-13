@@ -41,10 +41,10 @@ class UserList(Resource):
         element = next(filter(lambda x: x['status'] == "unfilled", self.data), None)
         return element
 
-    def get_user_list_for_analysis_creation(self, steam_id_start: int, size: int) -> Optional[List[PlayerShortInfo]]:
+    def get_user_list_for_analysis_creation(self, steam_id_start: str, size: int) -> Optional[List[PlayerShortInfo]]:
         if not self.data:
             return None
-        prepared_users =  self.data
+        prepared_users = self.data
         start_index = next(i for i, item in enumerate(prepared_users) if item['steam_id'] == steam_id_start)
         end_index = min(len(prepared_users), start_index + size)
         return list(map(lambda x: PlayerShortInfo(steam_id=x["steam_id"], persona_name=x["persona_name"]),

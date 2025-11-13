@@ -14,6 +14,15 @@ class UserAnalysisRepository(BaseAnalysisRepository[UserDataAnalysis, UserAnalys
     def __init__(self):
         super().__init__(model=UserDataAnalysis)
 
+    def create_bulk(self, objects_in: List[UserAnalysisCreate],
+                    session: Session,
+                    no_commit=False) -> List[UserDataAnalysis]:
+
+        app_ids = [obj.app_id for obj in objects_in]
+        exists_flags = self.exists_bulk(session, "app_id", app_ids)
+        creating_objects = [obj for obj, exists in zip(objects_in, exists_flags) if not exists]
+        return super().create_bulk(creating_objects, session, no_commit)
+
     def get_by_steam_id(self, steam_id: int, session: Session) -> Optional[UserDataAnalysis]:
         return self.get_by_field("steam_id",
                                  steam_id,

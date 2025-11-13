@@ -42,6 +42,22 @@ class UserPreparer:
 
         pass
 
+    def create_users(self, users: List[UserAnalysisFromJson], session: Session):
+        # Тут не оч пока работает. Нужно подумать над тем как будешь передавать схемку на создание пользователя.
+        # Возможно стоит написать отдельный балковый метод под CreateFromJson
+        user_created = self.user_model_repo.create_bulk(objects_in=users,
+                                                        session=session)
+
+        # Добавить бесхозных пользователей, у которых еще нет своих чанков
+
+        # Creating Chunk
+
+        chunk_without_users = self.chunk_repo.create_bulk(objects_in=chuncks,
+                                                          session=session)
+
+        prepared_users = self._prepare_user_list_for_create(chunk_without_users,
+                                                            users)
+
     def get_last_uploaded_user(self, session: Session) -> Optional[UserDataAnalysis]:
         return self.user_model_repo.get_last_uploaded_user(session)
 

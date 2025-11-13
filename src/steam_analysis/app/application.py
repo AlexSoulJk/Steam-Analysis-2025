@@ -8,6 +8,8 @@ from steam_analysis.core.services.user_analysis_creator import UserAnalysisCreat
 from steam_analysis.database.analysis_facade import AnalysisDbFacade
 from steam_analysis.database.facade import DbFacade
 from steam_analysis.loader_test_data import default_loader
+from steam_analysis.resourcemanager.manager import ResourceManager
+from steam_analysis.resourcemanager.resources.codes import ResourceCodes
 from steam_analysis.saver_test_data import default_saver
 
 
@@ -21,7 +23,7 @@ class AppMediator:
         self.analysis_service = AnalysisDbFacade()
         self.game_analysis_creator = GameAnalysisCreator()
         self.user_analysis_creator = UserAnalysisCreator()
-
+        self.resource_manager = ResourceManager()
 
     # region Fill analysis-db.db
 
@@ -32,15 +34,13 @@ class AppMediator:
         # default_saver.save_fill_game_analysis_butch_chunck(data_for_create)
         self.analysis_service.create_chunk_by_service(*data_for_create)
 
-
     def fill_analysis_user(self):
-        last_user = self.analysis_service.get_last_upploaded_user()
-        # start_steam_id = self.steam_facade.get_first_steam_id() if last_user is None else last_user.steam_id
-        data_for_create = self.user_analysis_creator.get_user_analysis_data_for_create_from_resource(None)
-        self.analysis_service.create_user_chunk_by_service(*data_for_create)
+        last_steam_id = self.analysis_service.get_last_upploaded_user()
+        data_for_create = self.user_analysis_creator.get_user_analysis_data_for_create_from_resource(last_steam_id=last_steam_id,
+                                                                                                     user_resource=self.resource_manager.get_resource(ResourceCodes.USER_LIST))
+        # self.analysis_service.create_user_chunk_by_service(data_for_create)
 
     # endregion
-
 
     # region Fill steam-analysis.db
     def create_game(self,
