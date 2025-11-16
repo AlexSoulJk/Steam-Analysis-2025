@@ -60,7 +60,8 @@ class AppMediator:
     def create_user(self,
                     chunk_size: int = 10):
         fill_butch = default_loader.load_fill_user_batch(filename="players_20251020_100.json")
-        # self.database_facade.create_users(fill_butch.data_chunk)
+        users_ids = self.database_facade.create_users(fill_butch.data_chunk)
+        self.analysis_service.create_user_chunk_by_service(fill_butch.data_chunk, users_ids)
         # Завершаем чанк
         self.analysis_service.mark_user_chunk_complete(fill_butch.data_for_analysis_db)
 

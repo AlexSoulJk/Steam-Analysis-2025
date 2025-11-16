@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Tuple
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload, Session
 
-from steam_analysis.core.schemas.analysis.user import UserAnalysisCreate, UserAnalysisUpdate
+from steam_analysis.core.schemas.analysis.user import UserAnalysisCreate, UserAnalysisUpdate, UserAnalysisFromJson
 from ..base.baseanalisis import BaseAnalysisRepository
 from ...models.serviceplayermodels import UserDataAnalysis
 
@@ -22,6 +22,22 @@ class UserAnalysisRepository(BaseAnalysisRepository[UserDataAnalysis, UserAnalys
         exists_flags = self.exists_bulk(session, "app_id", app_ids)
         creating_objects = [obj for obj, exists in zip(objects_in, exists_flags) if not exists]
         return super().create_bulk(creating_objects, session, no_commit)
+
+    def create_bulk_from_json(self, objects_in: List[UserAnalysisFromJson],
+                              session: Session,
+                              no_commit=False) -> List[UserDataAnalysis]:
+        """Создание пользователей из JSON схем"""
+        create_objects = []
+        for obj in objects_in:
+            create_obj = UserAnalysisCreate(
+                steam_id=obj.steam_id,
+                name=obj.name,
+                created_at=obj.created_at,
+                chunk_id=0
+            )
+            create_objects.append(create_obj)
+
+        return self.create_bulk(create_objects, session, no_commit)
 
     def get_by_steam_id(self, steam_id: int, session: Session) -> Optional[UserDataAnalysis]:
         return self.get_by_field("steam_id",

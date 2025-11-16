@@ -79,7 +79,7 @@ class AnalysisDbFacade:
         with get_analysis_db() as session:
             self.data_game_preparer.create_chuncks(chunks, games, session)
 
-    def create_user_chunk_by_service(self, chunks: list[UserAnalysisChunkCreate],
+    def create_user_chunk_by_service(self, chunks: list[UserAnalysisChunkCreate], # cуда пользователей и создаем чанкееее
                                      users: list[list[UserAnalysisFromJson]]):
 
         with get_analysis_db() as session:
@@ -89,6 +89,13 @@ class AnalysisDbFacade:
             session.commit()
 
     def get_next_pending_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]:
+        """Получаем следующий чанк для обработки"""
+        with get_analysis_db() as session:
+            return GameAnalysisChunkForResponse.from_orm(
+                self.provider_game_service.get_next_pending_chunk_by_processor_name(processor_name=processor_name,
+                                                                                    session=session))
+
+    def get_next_pending_user_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]: # aaaaaaaaaaaaaaaaaaaaaaaaaaa
         """Получаем следующий чанк для обработки"""
         with get_analysis_db() as session:
             return GameAnalysisChunkForResponse.from_orm(

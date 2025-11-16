@@ -20,6 +20,19 @@ class UserAnalysisCreator:
         self.butch_chunck_size = butch_chunck_size
         self.user_list_size = 250
 
+    def _split_for_game_chunck(self, game_list: List[UserAnalysisFromJson]) -> List[List[UserAnalysisFromJson]]:
+        res = []
+        start_idx = 0
+        for i in range(self.butch_chunck_size):
+            res.append(game_list[start_idx + i * self.chunk_size:start_idx + self.chunk_size * (i + 1)])
+        return res
+
+    def _prepare_chunck_for_create(self, processor_name_strategy) -> List[UserAnalysisChunkCreate]:
+        res = []
+        for i in range(self.butch_chunck_size):
+            res.append(UserAnalysisChunkCreate(processed_by=processor_name_strategy(i)))
+        return res
+
     def get_user_analysis_data_for_create_from_resource(self,
                                                         last_steam_id: Optional[int],
                                                         user_resource: UserList) -> List[UserAnalysisFromJson]:

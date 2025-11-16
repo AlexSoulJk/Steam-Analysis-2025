@@ -16,12 +16,16 @@ class UserPreparer:
         self.chunk_repo = UserChunkRepository()
 
     def _prepare_user_list_for_create(self, created_chunks: List[AnalysisUserChunk],
-                                      users: List[List[UserAnalysisFromJson]]) -> List[UserAnalysisCreate]:
+                                      users: List[UserAnalysisFromJson]) -> List[UserAnalysisCreate]:
         res = []
-        for created_chunk, user_in_chunk in zip(created_chunks, users):
+        for created_chunk in created_chunks:
+            # Туть фильтр для пользователей
+            chunk_user_ids = created_chunk.user_ids or []
+            chunk_users = [user for user in users if user.id in chunk_user_ids]
+
             res.extend(list(map(lambda x: UserAnalysisCreate.from_json_model(json_data=x,
                                                                              chunk_id=created_chunk.id),
-                                user_in_chunk)))
+                                chunk_users)))
         return res
 
     def create_chuncks(self, chuncks: List[UserAnalysisChunkCreate],
@@ -43,20 +47,36 @@ class UserPreparer:
         pass
 
     def create_users(self, users: List[UserAnalysisFromJson], session: Session):
-        # Тут не оч пока работает. Нужно подумать над тем как будешь передавать схемку на создание пользователя.
-        # Возможно стоит написать отдельный балковый метод под CreateFromJson
-        user_created = self.user_model_repo.create_bulk(objects_in=users,
-                                                        session=session)
+        valid_users = [user for user in users if user.steam_id]
 
-        # Добавить бесхозных пользователей, у которых еще нет своих чанков
+        if not valid_users:
+            print("Пользователи не найдены, чанк не создан")
+            return None
 
-        # Creating Chunk
+        user_created = self.user_model_repo.create_bulk_from_json(objects_in=valid_users, session=session)
 
-        chunk_without_users = self.chunk_repo.create_bulk(objects_in=chuncks,
-                                                          session=session)
+        chunk_data = UserAnalysisChunkCreate(
+            processed_by=None,
+            user_ids= [user.id for user in user_created]
+        )
 
-        prepared_users = self._prepare_user_list_for_create(chunk_without_users,
-                                                            users)
+        chunk_created = self.chunk_repo.create_bulk(objects_in=[chunk_data], session=session)
+
+        if not chunk_created:
+            raise Exception("Failed to create chunk")
+
+        for user in user_created:
+            user.chunk_id = chunk_created[0].id
+            session.merge(user)
+
+        session.commit()
+
+        return {
+            "chunk": chunk_created[0],
+            "users": user_created,
+            "users_count": len(user_created)
+        }
+
 
     def get_last_uploaded_user(self, session: Session) -> Optional[UserDataAnalysis]:
         return self.user_model_repo.get_last_uploaded_user(session)
