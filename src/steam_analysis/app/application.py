@@ -29,8 +29,7 @@ class AppMediator:
         self.analysis_service.create_chunk_by_service(*data_for_create)
 
     # region Fill steam-analysis.db
-    def create_game(self,
-                    chunk_size: int = 10):
+    def create_game(self, chunk_size: int = 10):
         # Получаем последний загруженный app_id
         chunk_for_create = self.analysis_service.get_next_pending_chunk_by_service(self.processor_name)
         # Получаем данные через Steam API
@@ -42,6 +41,19 @@ class AppMediator:
         # self.database_facade.create_games(fill_butch.data_chunk)
         # Завершаем чанк
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+
+    def add_schema(self, chunk_size: int = 10):
+        # Получаем последний загруженный app_id
+        chunk_for_create = self.analysis_service.get_next_part_chunk_by_service(self.processor_name)
+        # Получаем данные через Steam API
+        fill_butch = self.steam_facade.get_schema_list(chunk_for_create)
+        # Сохранение chunk игр в JSON
+        default_saver.save_fill_game_batch(fill_butch)
+        # Load chunk from JSON
+        # fill_butch = default_loader.load_fill_schema_batch(filename="games_chunk_2025110306.json")
+        self.database_facade.create_schemas(fill_butch.data_chunk)
+        # Завершаем чанк
+        # self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
     def create_time_game_butch(self):
         with open('test_data/games_30_130_20251006.json', 'r', encoding='utf-8') as f:
