@@ -8,7 +8,7 @@ from ..codes.steamservices import SteamServices
 from ..parsers.json.steamapi.game import GameParser
 from ..schemas import GameShortInfo, GameCategory
 from ..schemas.analysis.game import GameAnalysisUpdate, GameAnalysisResponse
-from ..schemas.game.service import GameDataAnalysisCreate, SchemaDataAnalysisCreate, AchievDataAnalysisCreate, \
+from ..schemas.game.service import UserDataAnalysisCreate, SchemaDataAnalysisCreate, AchievDataAnalysisCreate, \
     PlayersDataAnalysisCreate, ReviewsDataAnalysisCreate, NewsDataAnalysisCreate
 from ...core.dependencies.basehttp import HTTPClient
 
@@ -30,7 +30,7 @@ class GameRepository(BaseRepository):
         self._full_app_list_cache: Optional[Any] = None
 
     def get_by_schema(self, game_for_response: GameAnalysisResponse, lang=None) -> Tuple[
-        Optional[GameDataAnalysisCreate], GameAnalysisUpdate]:
+        Optional[UserDataAnalysisCreate], GameAnalysisUpdate]:
         url = f"{GameRepository.STORE_URL}/api/appdetails"
         params = {'appids': game_for_response.app_id}
 
@@ -64,7 +64,7 @@ class GameRepository(BaseRepository):
                                                                       error_log=error_log_message,
                                                                       status=status)
 
-    def get_by_id(self, app_id: int, lang=None, **kwargs) -> Optional[GameDataAnalysisCreate]:
+    def get_by_id(self, app_id: int, lang=None, **kwargs) -> Optional[UserDataAnalysisCreate]:
         """Получить игру по AppID"""
         url = f"{GameRepository.STORE_URL}/api/appdetails"
         params = {'appids': app_id}
@@ -83,7 +83,7 @@ class GameRepository(BaseRepository):
             logger.error(f"\n ❗️ Error getting game app_id:{app_id}: {e}")
             return None
 
-    def get_by_ids(self, ids: list[int], lang=None, **kwargs) -> Optional[List[GameDataAnalysisCreate]]:
+    def get_by_ids(self, ids: list[int], lang=None, **kwargs) -> Optional[List[UserDataAnalysisCreate]]:
         # url = f"{GameRepository.STORE_URL}/api/appdetails"
         # params = {'appids': ids}
 
@@ -285,7 +285,7 @@ class GameRepository(BaseRepository):
         # TODO: WRITE LOGIC
         pass
 
-    def _parse_game_data(self, app_id: int, raw_data: Dict[str, Any]) -> GameDataAnalysisCreate:
+    def _parse_game_data(self, app_id: int, raw_data: Dict[str, Any]) -> UserDataAnalysisCreate:
         """Парсинг сырых данных в структурированный формат для анализа"""
 
         game_create_info = GameParser.extract_game_create_info(app_id, raw_data)
@@ -293,7 +293,7 @@ class GameRepository(BaseRepository):
         categories = GameParser.extract_categories(raw_data)
         platforms = GameParser.extract_platforms(raw_data)
 
-        return GameDataAnalysisCreate(
+        return UserDataAnalysisCreate(
             # Базовые идентификаторы
             game=game_create_info,
             genres=genres,

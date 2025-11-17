@@ -117,7 +117,8 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def create_bulk(self, objects_in: List[CreateSchemaType],
-                    session: Session, no_commit=False) -> List[ModelType]:
+                    session: Session,
+                    no_commit=False) -> List[ModelType]:
         """
         Массовое создание объектов
 
@@ -145,6 +146,25 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             session.flush()
 
         return db_objects
+
+    def exists_bulk(self, session: Session, field_name: str, values: List[Any]) -> List[bool]:
+        """
+        Проверить существование объектов по значениям поля (пакетно)
+        Возвращает список [True/False] для каждого значения
+        """
+        if not values:
+            return []
+
+        if not hasattr(self.model, field_name):
+            raise AttributeError(f"Model {self.model.__name__} has no field {field_name}")
+
+        # Один запрос к базе
+        existing = session.query(getattr(self.model, field_name)).filter(
+            getattr(self.model, field_name).in_(values)
+        ).all()
+
+        existing_set = {row[0] for row in existing}
+        return [value in existing_set for value in values]
 
     def update(
             self,

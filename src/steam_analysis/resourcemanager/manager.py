@@ -6,6 +6,7 @@ from .resources.base import Resource
 from .resources.categories import GameCategory
 from .resources.codes import ResourceCodes
 from .resources.game_list import GameList
+from .resources.user_list import UserList
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,7 @@ class ResourceManager:
         logger.info(f"Initializing resources in: {resource_path}")
 
         self._register_resource(GameList(resource_path))
+        self._register_resource(UserList(resource_path))
         self._register_resource(GameCategory(resource_path))
 
     def _register_resource(self, resource: Resource):

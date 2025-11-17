@@ -3,7 +3,7 @@ from typing import List, Dict
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
-from steam_analysis.core.schemas.game.service import GameDataAnalysisCreate
+from steam_analysis.core.schemas.game.service import UserDataAnalysisCreate
 from steam_analysis.database.models import GameGenre, GamePlatform, GameCategory, Game
 from steam_analysis.database.support_models.game_creation import PreparedForGameCreation
 
@@ -43,7 +43,7 @@ class GameRelationsCreationService:
 
     def create_connections(self, prep_info: PreparedForGameCreation,
                            games: List[Game],
-                           dict_without_none: Dict[int, GameDataAnalysisCreate],
+                           dict_without_none: Dict[int, UserDataAnalysisCreate],
                            session: Session):
 
         # 1. Подготавливаем все связи

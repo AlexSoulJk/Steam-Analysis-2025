@@ -2,7 +2,7 @@ from typing import Optional, List, Tuple, Dict
 
 from sqlalchemy.orm import Session
 
-from steam_analysis.core.schemas.game.service import GameDataAnalysisCreate
+from steam_analysis.core.schemas.game.service import UserDataAnalysisCreate
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.models import Game
 from steam_analysis.database.repositories.game.category import CategoryRepository
@@ -23,7 +23,7 @@ class GameCreationService:
         self.genres = GenreRepository()
 
     def _prepare_data_for_game_creation(self,
-                                        data_without_none: list[GameDataAnalysisCreate],
+                                        data_without_none: list[UserDataAnalysisCreate],
                                         session: Session) -> PreparedForGameCreation:
         types = list(map(lambda x: x.game.type, data_without_none))
         platforms = list(map(lambda x: x.platforms, data_without_none))
@@ -47,9 +47,9 @@ class GameCreationService:
                                        types=types,
                                        platforms=platforms)
 
-    def create_chunk_games(self, games_info_chunk: List[Optional[GameDataAnalysisCreate]],
+    def create_chunk_games(self, games_info_chunk: List[Optional[UserDataAnalysisCreate]],
                            session: Session) -> Tuple[list[Game], PreparedForGameCreation,
-    Dict[int, GameDataAnalysisCreate]]:
+    Dict[int, UserDataAnalysisCreate]]:
         data_without_none = list(filter(lambda x: x is not None, games_info_chunk))
         dict_without_nons = {data_analys_schema.game.app_id: data_analys_schema for data_analys_schema in
                              data_without_none}
