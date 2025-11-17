@@ -18,8 +18,8 @@ class UserAnalysisRepository(BaseAnalysisRepository[UserDataAnalysis, UserAnalys
                     session: Session,
                     no_commit=False) -> List[UserDataAnalysis]:
 
-        app_ids = [obj.app_id for obj in objects_in]
-        exists_flags = self.exists_bulk(session, "app_id", app_ids)
+        app_ids = [obj.steam_id for obj in objects_in]
+        exists_flags = self.exists_bulk(session, "steam_id", app_ids)
         creating_objects = [obj for obj, exists in zip(objects_in, exists_flags) if not exists]
         return super().create_bulk(creating_objects, session, no_commit)
 
@@ -27,13 +27,14 @@ class UserAnalysisRepository(BaseAnalysisRepository[UserDataAnalysis, UserAnalys
                               session: Session,
                               no_commit=False) -> List[UserDataAnalysis]:
         """Создание пользователей из JSON схем"""
+        # TODO: Нужно добавить проверку на существование в базе self.exists_bulk(session, "steam_id", app_ids)
         create_objects = []
         for obj in objects_in:
             create_obj = UserAnalysisCreate(
                 steam_id=obj.steam_id,
                 name=obj.name,
                 created_at=obj.created_at,
-                chunk_id=0
+                chunk_id=0 # Кажется что это не оч правильно лучше писать Null и сделать optional
             )
             create_objects.append(create_obj)
 

@@ -14,6 +14,7 @@ class UserPreparer:
     def __init__(self):
         self.user_model_repo = UserAnalysisRepository()
         self.chunk_repo = UserChunkRepository()
+        # Chunk Creator(chunk_size, strategy_processor)
 
     def _prepare_user_list_for_create(self, created_chunks: List[AnalysisUserChunk],
                                       users: List[UserAnalysisFromJson]) -> List[UserAnalysisCreate]:
@@ -47,18 +48,15 @@ class UserPreparer:
         pass
 
     def create_users(self, users: List[UserAnalysisFromJson], session: Session):
-        valid_users = [user for user in users if user.steam_id]
 
-        if not valid_users:
-            print("Пользователи не найдены, чанк не создан")
-            return None
-
-        user_created = self.user_model_repo.create_bulk_from_json(objects_in=valid_users, session=session)
-
+        user_created = self.user_model_repo.create_bulk_from_json(objects_in=users, session=session)
+        # ADD WITHOUT CHUNK
         chunk_data = UserAnalysisChunkCreate(
             processed_by=None,
-            user_ids= [user.id for user in user_created]
+            user_ids=[user.id for user in user_created]
         )
+        # users_for_new_chunk = get_emty_users
+        # ChunkCreator ().create_chunk(users_for_new_chunk: ?Schema/Model) -> Chunk Created(model/schemas)
 
         chunk_created = self.chunk_repo.create_bulk(objects_in=[chunk_data], session=session)
 
