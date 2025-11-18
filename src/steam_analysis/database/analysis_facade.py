@@ -24,7 +24,6 @@ from steam_analysis.database.services.user_analysis_preparer import UserPreparer
 from steam_analysis.database.services.game_data_provider import GameAnalysisProvider
 from steam_analysis.database.services.user_data_provider import UserAnalysisProvider
 
-
 analysis_engine = create_engine(f"sqlite:///{analysis_db_path}")
 AnalysisSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=analysis_engine)
 
@@ -75,19 +74,19 @@ class AnalysisDbFacade:
 
     def create_chunk_by_service(self, chunks: list[GameAnalysisChunkCreate],
                                 games: list[list[GameAnalysisFromJson]]):
-
         with get_analysis_db() as session:
             self.data_game_preparer.create_chuncks(chunks, games, session)
 
-    def create_user_chunk_by_service(self, chunks: list[UserAnalysisChunkCreate], # cуда пользователей и создаем чанкееее
+    def create_user_chunk_by_service(self, chunks: list[UserAnalysisChunkCreate],
+                                     # cуда пользователей и создаем чанкееее
                                      users: list[list[UserAnalysisFromJson]]):
-
         with get_analysis_db() as session:
             self.data_user_preparer.create_chuncks(chunks, users, session)
             # Коммит на уровне фасада выноси под самый конец работы.
             # За сессию должен быть один коммит.
             session.commit()
 
+    # region Next Pending Chunk
     def get_next_pending_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]:
         """Получаем следующий чанк для обработки"""
         with get_analysis_db() as session:
@@ -95,13 +94,25 @@ class AnalysisDbFacade:
                 self.provider_game_service.get_next_pending_chunk_by_processor_name(processor_name=processor_name,
                                                                                     session=session))
 
-    def get_next_pending_user_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]: # aaaaaaaaaaaaaaaaaaaaaaaaaaa
+    def get_next_pending_user_chunk_by_service(self, processor_name: str) -> Optional[
+        GameAnalysisChunkForResponse]:  # aaaaaaaaaaaaaaaaaaaaaaaaaaa
         """Получаем следующий чанк для обработки"""
         with get_analysis_db() as session:
             return GameAnalysisChunkForResponse.from_orm(
                 self.provider_game_service.get_next_pending_chunk_by_processor_name(processor_name=processor_name,
                                                                                     session=session))
 
+    # endregion
+    def get_next_part_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]:
+        """Получаем следующий чанк для обработки"""
+        with get_analysis_db() as session:
+            return GameAnalysisChunkForResponse.from_orm(
+                self.provider_game_service.get_next_part_chunk_by_processor_name(processor_name=processor_name,
+                                                                                 session=session))
+
+    # region Next Partial Success
+
+    # endregion
     def mark_game_chunk_complete(self, chunk: GameAnalysisChunkForRequest):
         with get_analysis_db() as session:
             return self.data_game_preparer.mark_game_chunk_complete(chunk, session=session)
