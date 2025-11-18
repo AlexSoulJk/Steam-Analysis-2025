@@ -27,7 +27,6 @@ class UserAnalysisRepository(BaseAnalysisRepository[UserDataAnalysis, UserAnalys
                               session: Session,
                               no_commit=False) -> List[UserDataAnalysis]:
         """Создание пользователей из JSON схем"""
-        # TODO: Нужно добавить проверку на существование в базе self.exists_bulk(session, "steam_id", app_ids)
         create_objects = []
         for obj in objects_in:
             create_obj = UserAnalysisCreate(
