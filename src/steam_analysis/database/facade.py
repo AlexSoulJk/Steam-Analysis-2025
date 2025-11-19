@@ -6,6 +6,8 @@ from steam_analysis.config import db_path
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate, SchemaCreate
 from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate
 
+from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, GameDataAnalysisCreate
+from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.models import Game, GameGenre, GameCategory, GamePlatform
 from steam_analysis.database.repositories import GameRepository
@@ -17,14 +19,11 @@ from steam_analysis.database.repositories.game.category import CategoryRepositor
 from steam_analysis.database.repositories.game.genre import GenreRepository
 from steam_analysis.database.repositories.game.platform import PlatformRepository
 from steam_analysis.database.repositories.game.type import TypeRepository
-
 from steam_analysis.database.services.maindb.game_creator import GameCreationService
 from steam_analysis.database.services.maindb.game_provider import GameProviderService
-
-from steam_analysis.database.services.maindb.user_creator import UserCreationService
-# from steam_analysis.database.services.maindb.user_provider import UserProviderService # ?????????/
-
 from steam_analysis.database.services.maindb.game_relations_creator import GameRelationsCreationService
+from steam_analysis.database.services.maindb.player_creator import PlayerCreationService
+from steam_analysis.database.services.maindb.player_relations_creator import PlayerRelationsCreationService
 from steam_analysis.database.support_models.game_creation import PreparedForGameCreation
 from steam_analysis.database.services.maindb.schema_creator import SchemaCreationService
 # from steam_analysis.database.services.maindb.schema_relations_creator import SchemaRelationsCreationService
@@ -60,6 +59,8 @@ class DbFacade:
         self.game_creation = GameCreationService()
         self.game_relations_creation = GameRelationsCreationService()
         self.game_provider = GameProviderService()
+        self.player_creation = PlayerCreationService()
+        self.player_relations_creation = PlayerRelationsCreationService()
         self.schema_creation = SchemaCreationService()
         # self.schema_relations_creation = SchemaRelationsCreationService()
 
@@ -73,7 +74,7 @@ class DbFacade:
                                                             dict_without_none=dict_without_nons,
                                                             games=games,
                                                             session=session)
-            
+
     def create_schemas(self, schemas_chunk: List[Optional[SchemaCreate]]):
         with get_db() as session:
             schemas, prep_info, dict_without_nons = self.schema_creation.create_chunk_schemas(schemas_chunk,
@@ -106,4 +107,18 @@ class DbFacade:
         pass
 
     # endregion
+
+    # for players
+    def create_players(self, players_info_chunk: List[Optional[PlayerDataAnalysisCreate]]):
+        with get_db() as session:
+            players, prep_info, dict_without_nons = self.player_creation.create_chunk_players(players_info_chunk,
+                                                                     session)
+
+            self.player_relations_creation.create_connections(prep_info=prep_info,
+                                                              dict_without_none=dict_without_nons,
+                                                              players=players,
+                                                              session=session)
+
+            session.commit()
+            # session.refresh()
 
