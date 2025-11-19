@@ -8,8 +8,9 @@ from steam_analysis.database.models import User, UserPlaytime, UserGameOwnership
 @dataclass
 class PreparedForPlayerCreation:
     """Подготовленные данные для создания игроков"""
-    playtimes: Dict[str, UserPlaytime]
-    ownerships: Dict[str, UserGameOwnership]
-    achievements: Dict[str, UserAchievement]
-    friends: Dict[str, Friend]
-    reviews: Dict[str, Review]
+    friends: Dict[str, List[User]]
+    # playtimes: Dict[str, UserPlaytime]
+    # ownerships: Dict[str, UserGameOwnership]
+    # achievements: Dict[str, UserAchievement]
+    # friends: Dict[str, Friend]
+    # reviews: Dict[str, Review]
