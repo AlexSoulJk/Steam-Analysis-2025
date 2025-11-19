@@ -47,7 +47,6 @@ class GameAnalysisCreator:
         start_creation = datetime.datetime.now()
         created_chuncks = self._prepare_chunck_for_create(processor_name_strategy)
         game_list = list(map(lambda x: GameAnalysisFromJson.from_json_resource(x, start_creation),
-                             resource.get_app_list(last_app_id,
-                                                      self.chunk_size * self.butch_chunck_size)))
+                             resource.get_app_list(last_app_id, self.chunk_size * self.butch_chunck_size)))
         game_res = self._split_for_game_chunck(game_list)
         return (created_chuncks, game_res)
