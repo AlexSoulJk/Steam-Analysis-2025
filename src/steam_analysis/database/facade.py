@@ -3,8 +3,11 @@ from operator import or_
 from typing import Dict, List, Optional
 
 from steam_analysis.config import db_path
-from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, GameDataAnalysisCreate
-from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate
+from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate, \
+    GameDataAnalysisCreate, SchemaCreate
+from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate
+from steam_analysis.core.schemas.player.playergame import OwnershipHttp, AchievementHttp, ReviewHttp, PlaytimeHttp
+
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.models import Game, GameGenre, GameCategory, GamePlatform
 from steam_analysis.database.repositories import GameRepository
@@ -16,12 +19,20 @@ from steam_analysis.database.repositories.game.category import CategoryRepositor
 from steam_analysis.database.repositories.game.genre import GenreRepository
 from steam_analysis.database.repositories.game.platform import PlatformRepository
 from steam_analysis.database.repositories.game.type import TypeRepository
+
 from steam_analysis.database.services.maindb.game_creator import GameCreationService
 from steam_analysis.database.services.maindb.game_provider import GameProviderService
+
+from steam_analysis.database.services.maindb.user_creator import UserCreationService
+# from steam_analysis.database.services.maindb.user_provider import UserProviderService # ?????????/
+
 from steam_analysis.database.services.maindb.game_relations_creator import GameRelationsCreationService
+from steam_analysis.database.support_models.game_creation import PreparedForGameCreation
+from steam_analysis.database.services.maindb.schema_creator import SchemaCreationService
+
 from steam_analysis.database.services.maindb.player_creator import PlayerCreationService
 from steam_analysis.database.services.maindb.player_relations_creator import PlayerRelationsCreationService
-from steam_analysis.database.support_models.game_creation import PreparedForGameCreation
+from steam_analysis.database.services.maindb.player_game_relations_creator import PlayerGameRelationsCreationService
 
 # Для Windows абсолютного пути:
 engine = create_engine(f"sqlite:///{db_path}")
@@ -55,16 +66,22 @@ class DbFacade:
         self.game_provider = GameProviderService()
         self.player_creation = PlayerCreationService()
         self.player_relations_creation = PlayerRelationsCreationService()
+        self.player_game_relations_creation = PlayerGameRelationsCreationService()
 
     def create_games(self, games_info_chunk: List[Optional[GameDataAnalysisCreate]]):
         with get_db() as session:
             games, prep_info, dict_without_nons = self.game_creation.create_chunk_games(games_info_chunk,
-                                                                     session)
+                                                                                        session)
 
             self.game_relations_creation.create_connections(prep_info=prep_info,
                                                             dict_without_none=dict_without_nons,
                                                             games=games,
                                                             session=session)
+
+    def create_schemas(self, schemas_chunk: List[Optional[SchemaCreate]]):
+        with get_db() as session:
+            schemas, prep_info, dict_without_nons = self.schema_creation.create_chunk_schemas(schemas_chunk,
+                                                                                              session)
 
     def get_last_upploaded_game(self):
         with get_db() as session:
@@ -84,14 +101,50 @@ class DbFacade:
     # for players
     def create_players(self, players_info_chunk: List[Optional[PlayerDataAnalysisCreate]]):
         with get_db() as session:
-            players, prep_info, dict_without_nons = self.player_creation.create_chunk_players(players_info_chunk,
-                                                                     session)
+            no_created_friends, players, prep_info, dict_without_nons = self.player_creation.create_chunk_players(
+                players_info_chunk,
+                session)
 
-            self.player_relations_creation.create_connections(prep_info=prep_info,
-                                                              dict_without_none=dict_without_nons,
-                                                              players=players,
-                                                              session=session)
+            self.player_relations_creation.create_connections_friends(prep_info=prep_info,
+                                                                      players=players,
+                                                                      session=session)
 
             session.commit()
             # session.refresh()
+            return no_created_friends
 
+    def create_ownerships(self, ownerships_chunk: List[Optional[OwnershipHttp]]):
+        with get_db() as session:
+            no_created_ownership, no_created_players, no_created_games = self.player_game_relations_creation.\
+                create_connections_ownership(session=session, ownership_data=ownerships_chunk)
+
+            session.commit()
+            # session.refresh()
+            return no_created_ownership, no_created_players, no_created_games
+
+    def create_achievements(self, achievements_chunk: List[Optional[AchievementHttp]]):
+        with get_db() as session:
+            no_created_achievements, no_created_players, no_created_games = self.player_game_relations_creation.\
+                create_connections_achievements(session=session, achievements_data=achievements_chunk)
+
+            session.commit()
+            # session.refresh()
+            return no_created_achievements, no_created_players, no_created_games
+
+    def create_playtimes(self, playtimes_chunk: List[Optional[PlaytimeHttp]]):
+        with get_db() as session:
+            no_created_playtimes, no_created_players, no_created_games = self.player_game_relations_creation.\
+                create_connections_playtimes(session=session, playtimes_data=playtimes_chunk)
+
+            session.commit()
+            # session.refresh()
+            return no_created_playtimes, no_created_players, no_created_games
+
+    def create_reviews(self, reviews_chunk: List[Optional[ReviewHttp]]):
+        with get_db() as session:
+            no_created_reviews, no_created_players, no_created_games = self.player_game_relations_creation.\
+                create_connections_review(session=session, reviews_data=reviews_chunk)
+
+            session.commit()
+            # session.refresh()
+            return no_created_reviews, no_created_players, no_created_games
