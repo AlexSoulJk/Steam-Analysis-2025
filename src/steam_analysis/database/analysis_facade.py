@@ -36,7 +36,8 @@ def get_analysis_db():
         yield db
         # db.rollback()
         db.commit() # while testing with facade can be commented and up string need to uncommented for base safe
-    except:
+    except Exception as e:
+        print(e)
         db.rollback()
     finally:
         db.close()
@@ -131,10 +132,10 @@ class AnalysisDbFacade:
         with get_analysis_db() as session:
             return self.data_user_preparer.mark_user_chunk_complete(chunk, session=session)
 
-    def get_last_upploaded_game(self) -> Optional[GameDataAnalysis]:
+    def get_last_upploaded_game(self) -> Optional[int]:
         with get_analysis_db() as session:
-            return self.data_game_preparer.get_last_uploaded_game(session=session)
-
+            tmp = self.data_game_preparer.get_last_uploaded_game(session=session)
+            return tmp.app_id if tmp else None
     def get_last_upploaded_user(self) -> Optional[str]:
         steam_id = None
         with get_analysis_db() as session:

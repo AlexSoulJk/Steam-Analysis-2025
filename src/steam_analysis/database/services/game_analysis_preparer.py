@@ -31,16 +31,15 @@ class GamePreparer:
             raise Exception("Amount of chunks for create doesn't match with with amount fo games splited by chuncks")
 
         chunk_without_games = self.chunk_repo.create_bulk(objects_in=chuncks,
-                                                          session=session)
+                                                          session=session,
+                                                          no_commit=True)
 
         prepared_games = self._prepare_game_list_for_create(chunk_without_games,
                                                             games)
 
         self.game_model_repo.create_bulk(objects_in=prepared_games,
-                                         session=session)
-        session.commit()
-
-        pass
+                                         session=session,
+                                         no_commit=True)
 
     def get_last_uploaded_game(self, session: Session) -> Optional[GameDataAnalysis]:
         return self.game_model_repo.get_last_uploaded_game(session)
