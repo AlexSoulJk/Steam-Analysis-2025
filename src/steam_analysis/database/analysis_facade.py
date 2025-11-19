@@ -34,8 +34,8 @@ def get_analysis_db():
     db = AnalysisSessionLocal()
     try:
         yield db
-        db.rollback()
-        # db.commit() # while testing with facade can be commented and up string need to uncommented for base safe
+        # db.rollback()
+        db.commit() # while testing with facade can be commented and up string need to uncommented for base safe
     except:
         db.rollback()
     finally:
@@ -112,9 +112,13 @@ class AnalysisDbFacade:
         with get_analysis_db() as session:
             updated_chunk = self.provider_game_service.get_next_part_chunk_by_processor_name(processor_name=processor_name,
                                                                              session=session)
-            updated_chunk.games = updated_chunk.in_progress_games
-            return GameAnalysisChunkForResponse.from_orm(updated_chunk
-                )
+
+            # Создаем схему только с нужными полями
+            return GameAnalysisChunkForResponse(
+                id=updated_chunk.id,
+                status=updated_chunk.status,
+                games=updated_chunk.in_progress_games
+            )
 
     # region Next Partial Success
 

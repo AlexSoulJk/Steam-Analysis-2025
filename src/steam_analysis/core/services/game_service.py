@@ -3,7 +3,7 @@ from typing import List, Dict, Any, Optional
 from ..repositories.game_repository import GameRepository
 from ..schemas import GameCreate
 from ..schemas.analysis.game import GameAnalysisChunkForResponse, GameAnalysisChunkForRequest, GameAnalysisChunkUpdate
-from ..schemas.game.service import GameDataAnalysisCreate, TypeAnalysesSchema, FillGameAnalysisChunk, \
+from ..schemas.game.service import TypeAnalysesSchema, FillGameAnalysisChunk, \
     FillTypeSchemaChunk, FillSchemaChunk
 from ...resourcemanager.manager import resource_manager
 from ...resourcemanager.resources.codes import ResourceCodes

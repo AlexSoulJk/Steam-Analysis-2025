@@ -8,8 +8,8 @@ from ..codes.steamservices import SteamServices
 from ..parsers.json.steamapi.game import GameParser
 from ..schemas import GameShortInfo, GameCategory
 from ..schemas.analysis.game import GameAnalysisUpdate, GameAnalysisResponse
-from ..schemas.game.service import GameDataAnalysisCreate, SchemaCreate, AchievDataAnalysisCreate, \
-      UserDataAnalysisCreate, SchemaDataAnalysisCreate, AchievDataAnalysisCreate, \
+from ..schemas.game.service import SchemaCreate, AchievDataAnalysisCreate, \
+      UserDataAnalysisCreate, AchievDataAnalysisCreate, \
     PlayersDataAnalysisCreate, ReviewsDataAnalysisCreate, NewsDataAnalysisCreate
 from ...core.dependencies.basehttp import HTTPClient
 
