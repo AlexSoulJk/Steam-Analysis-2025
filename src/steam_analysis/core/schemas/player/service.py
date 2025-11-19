@@ -28,11 +28,12 @@ class PlayerCreateReportInfo(BaseSchema):
 class PlayerDataAnalysisCreate(BaseSchema):
     """Данные анализа игрока"""
     player: PlayerFromHttp
-    owned_games: List[OwnershipCreate]
-    playtimes: List[PlaytimeCreate]
-    achievements: List[AchievementCreate]
-    friends: List[FriendCreate]
-    reviews: List[ReviewCreate]
+    friends: List[str]
+    # owned_games: List[OwnershipCreate]
+    # playtimes: List[PlaytimeCreate]
+    # achievements: List[AchievementCreate]
+    # friends: List[FriendCreate]
+    # reviews: List[ReviewCreate]
 
 
 class PlayerAnalysesSchema(BaseSchema):
