@@ -3,8 +3,9 @@ from operator import or_
 from typing import Dict, List, Optional
 
 from steam_analysis.config import db_path
-from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate
+from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate, GameDataAnalysisCreate, SchemaCreate
 from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate
+
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.models import Game, GameGenre, GameCategory, GamePlatform
 from steam_analysis.database.repositories import GameRepository
@@ -25,7 +26,9 @@ from steam_analysis.database.services.maindb.user_creator import UserCreationSer
 
 from steam_analysis.database.services.maindb.game_relations_creator import GameRelationsCreationService
 from steam_analysis.database.support_models.game_creation import PreparedForGameCreation
-# from steam_analysis.database.support_models.user_creation import PreparedForUserCreation # ??????????????????/
+from steam_analysis.database.services.maindb.schema_creator import SchemaCreationService
+# from steam_analysis.database.services.maindb.schema_relations_creator import SchemaRelationsCreationService
+
 
 # Для Windows абсолютного пути:
 engine = create_engine(f"sqlite:///{db_path}")
@@ -57,8 +60,11 @@ class DbFacade:
         self.game_creation = GameCreationService()
         self.game_relations_creation = GameRelationsCreationService()
         self.game_provider = GameProviderService()
+        self.schema_creation = SchemaCreationService()
+        # self.schema_relations_creation = SchemaRelationsCreationService()
 
-    def create_games(self, games_info_chunk: List[Optional[UserDataAnalysisCreate]]):
+
+    def create_games(self, games_info_chunk: List[Optional[GameDataAnalysisCreate]]):
         with get_db() as session:
             games, prep_info, dict_without_nons = self.game_creation.create_chunk_games(games_info_chunk,
                                                                      session)
@@ -67,6 +73,11 @@ class DbFacade:
                                                             dict_without_none=dict_without_nons,
                                                             games=games,
                                                             session=session)
+            
+    def create_schemas(self, schemas_chunk: List[Optional[SchemaCreate]]):
+        with get_db() as session:
+            schemas, prep_info, dict_without_nons = self.schema_creation.create_chunk_schemas(schemas_chunk,
+                                                                     session)
 
     # TODO: Дописать начатое!
     # def create_users(self, users_info_chunk: List[Optional[PlayerDataAnalysisCreate]]):

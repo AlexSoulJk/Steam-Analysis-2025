@@ -8,7 +8,8 @@ from ..codes.steamservices import SteamServices
 from ..parsers.json.steamapi.game import GameParser
 from ..schemas import GameShortInfo, GameCategory
 from ..schemas.analysis.game import GameAnalysisUpdate, GameAnalysisResponse
-from ..schemas.game.service import UserDataAnalysisCreate, SchemaDataAnalysisCreate, AchievDataAnalysisCreate, \
+from ..schemas.game.service import GameDataAnalysisCreate, SchemaCreate, AchievDataAnalysisCreate, \
+      UserDataAnalysisCreate, SchemaDataAnalysisCreate, AchievDataAnalysisCreate, \
     PlayersDataAnalysisCreate, ReviewsDataAnalysisCreate, NewsDataAnalysisCreate
 from ...core.dependencies.basehttp import HTTPClient
 
@@ -155,23 +156,36 @@ class GameRepository(BaseRepository):
 
         return apps
 
-    def get_schema(self, app_id: int) -> Optional[SchemaDataAnalysisCreate]:
-        """Получить схему игры (достижения, статистика)"""
+    def get_schema(self, game: GameAnalysisResponse) -> Tuple[
+        Optional[SchemaCreate], GameAnalysisUpdate]:
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetSchemaForGame/v2/"
         params = {'key': self.api_key,
-                  'appid': app_id}
+                  'appid': game.app_id}
+        
+        error_log_message = ""
+        status = "particle"  # TODO: REFACTOR DEFAULT STATUS
+        request_model = None
 
         try:
             data = self.http_client.get(url, params=params)
             schema_data = data.get('game', [])
             if not schema_data:
-                logger.warning(f"\n ❗️ Schema for dame {app_id} not found or failed to load")
+                error_log_message = f"Schema for dame {game.app_id} not found or failed to load"
+                status = "particle" # тут не знаю, какой статус ставить, если нет схемы игры, оставила пока particle
+                logger.warning(f"\n ❗️ {error_log_message}")
                 return None
-            return self._parse_schema_data(app_id, schema_data)
+            else:
+                status = "success"
+                request_model = self._parse_schema_data(game.app_id, schema_data)
 
         except Exception as e:
-            logger.error(f"\n ❗️ Error getting schema for game {app_id}: {e}")
+            # status = "failed" тут тоже непонятно, какой статус ставить
+            logger.error(f"\n ❗️ Error getting schema for game {game.app_id}: {e}")
             return None
+        
+        return request_model, GameAnalysisUpdate.from_response_schema(response=game,
+                                                                      error_log=error_log_message,
+                                                                      status=status)
 
     def get_news(self, app_id: int) -> Optional[NewsDataAnalysisCreate]:
         """Получить новости об игре"""
@@ -301,11 +315,11 @@ class GameRepository(BaseRepository):
             platforms=platforms,
         )
 
-    def _parse_schema_data(self, app_id: int, raw_data: Dict[str, Any]) -> SchemaDataAnalysisCreate:
+    def _parse_schema_data(self, app_id: int, raw_data: Dict[str, Any]) -> SchemaCreate:
         stats = GameParser.extract_stats(raw_data['availableGameStats'])
         achievs = GameParser.extract_achievs(raw_data['availableGameStats'])
 
-        return SchemaDataAnalysisCreate(
+        return SchemaCreate(
             game_id=app_id,
             game_version=raw_data['gameVersion'],
             stats=stats,

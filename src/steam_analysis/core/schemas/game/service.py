@@ -18,9 +18,9 @@ class UserDataAnalysisCreate(BaseSchema):
     genres: List[GenreCreate]
     categories: List[CategoryCreate]
     platforms: List[PlatformCreate]
-
       
-class SchemaDataAnalysisCreate(BaseSchema):
+
+class SchemaCreate(BaseSchema):
     game_id: int
     game_version: int
     stats: List[StatsCreate]
@@ -67,6 +67,16 @@ class TypeAnalysesSchema(BaseSchema):
 class FillGameAnalysisChunk(BaseSchema):
     data_for_analysis_db: GameAnalysisChunkForRequest
     data_chunk: List[Optional[UserDataAnalysisCreate]]
+
+    def get_report_into(self) -> GameCreateReportInfo:
+        return GameCreateReportInfo(start_app_id=self.start_app_id,
+                                    end_app_id=self.end_app_id,
+                                    response_time=self.response_time)
+
+
+class FillSchemaChunk(BaseSchema):
+    data_for_analysis_db: GameAnalysisChunkForRequest
+    data_chunk: List[Optional[SchemaCreate]]
 
     def get_report_into(self) -> GameCreateReportInfo:
         return GameCreateReportInfo(start_app_id=self.start_app_id,

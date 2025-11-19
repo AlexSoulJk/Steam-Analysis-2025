@@ -63,7 +63,7 @@ class SteamAnalysisFacade:
     def get_game_list(self, app_ids: list[int], lang = None,) -> Optional[List[Dict[str, Any]]]:
         return self.game_repo.get_by_ids(app_ids, lang)
     
-    def get_schema(self, app_id: int) -> Optional[List[Dict[str, Any]]]:
+    def get_schema_list(self, app_id: int) -> Optional[List[Dict[str, Any]]]:
         return self.game_repo.get_schema(app_id)
 
     def get_news(self, app_id: int) -> Optional[List[Dict[str, Any]]]:
@@ -83,6 +83,9 @@ class SteamAnalysisFacade:
 
     def get_game_analysis_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillGameAnalysisChunk:
         return self.game_service.get_game_analysis_list(chunk_procession)
+    
+    def get_schema_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillGameAnalysisChunk:
+        return self.game_service.get_schema_list(chunk_procession)
 
     def get_game_timed_data(self, app_ids: list[int]):
         return self.game_service.get_game_timed_data(app_ids)

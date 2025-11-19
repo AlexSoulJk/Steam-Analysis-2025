@@ -173,6 +173,11 @@ class News(BaseModel):
         Index('idx_news_date', 'date'),
     )
 
+class Statistic(BaseModel):
+    """Статистики игры"""
+    __tablename__ = "statistics"
+
+    # TODO: дописать можельку со статистиками 
 
 class Achievement(BaseModel):
     """Достижения игры"""
@@ -181,14 +186,14 @@ class Achievement(BaseModel):
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
     name = Column(String(255), nullable=False)
     display_name = Column(String(255), nullable=False)
-    description = Column(Text)
-    icon_url = Column(String(500))
-    icon_gray_url = Column(String(500))
-    achieved = Column(Boolean, default=False)
-    unlock_time = Column(DateTime)
-    global_achievement_rate = Column(Float)  # Процент игроков, получивших достижение
+    # description = Column(Text)
+    # icon_url = Column(String(500))
+    # icon_gray_url = Column(String(500))
+    # achieved = Column(Boolean, default=False)
+    # unlock_time = Column(DateTime)
+    # global_achievement_rate = Column(Float)  # Процент игроков, получивших достижение
 
-    api_name = Column(String(255), nullable=False)  # Technical name from API
+    # api_name = Column(String(255), nullable=False)  # Technical name from API
     hidden = Column(Boolean, default=False)  # Hidden achievement
 
     user_achievements = relationship("UserAchievement", back_populates="achievement", cascade="all, delete-orphan")
