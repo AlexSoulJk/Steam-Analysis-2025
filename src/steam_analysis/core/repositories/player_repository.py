@@ -32,7 +32,6 @@ class PlayerRepository(BaseRepository):
         """Получить друзей игрока"""
         url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUser}/GetFriendList/v1/"
         params = {'key': self.api_key, 'steamid': steam_id, 'relationship': 'friend'}
-
         data = self.http_client.get(url, params=params)
         return data.get('friendslist', {}).get('friends', [])
 

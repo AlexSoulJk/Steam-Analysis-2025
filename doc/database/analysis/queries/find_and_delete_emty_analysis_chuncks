@@ -1,0 +1,12 @@
+SELECT ac.id, ac.status, ac.started_at, ac.finished_at
+FROM analysis_user_chunks ac
+LEFT JOIN user_data_analysis uda ON uda.chunk_id = ac.id
+WHERE uda.id IS NULL;
+
+-- Если результат устраивает, удаляем пустые чанки
+DELETE FROM analysis_user_chunks
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM user_data_analysis
+    WHERE user_data_analysis.chunk_id = analysis_user_chunks.id
+);

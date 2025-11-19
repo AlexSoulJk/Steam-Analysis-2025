@@ -131,7 +131,7 @@ class GameDataAnalysis(AnalysisBaseModel):
 
     chunk_id = Column(Integer, ForeignKey("analysis_chunks.id", ondelete="CASCADE"))
 
-    app_id = Column(Integer, nullable=False, index=True)
+    app_id = Column(Integer, nullable=False, index=True, unique=True)
 
     status = Column(String(50), default="pending")  # success / failed / partial
     error_log = Column(Text, nullable=True)  # ошибка, если не удалось обработать игру

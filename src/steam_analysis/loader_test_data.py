@@ -3,6 +3,7 @@ from typing import Optional
 
 from steam_analysis.config import test_data_path
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillSchemaChunk
+from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk
 
 
 class LoaderTestData:
@@ -31,6 +32,19 @@ class LoaderTestData:
                 data = f.read()
 
             return FillSchemaChunk.model_validate_json(data)
+
+        except Exception as e:
+            print(f"❌ Ошибка загрузки: {e}")
+            return None
+
+    def load_fill_user_batch(self, filename: str) -> Optional[FillPlayerAnalysisChunk]:
+        """Загружает батч из JSON"""
+        try:
+            filepath = self.dir_to_load / Path(filename)
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = f.read()
+
+            return FillPlayerAnalysisChunk.model_validate_json(data)
 
         except Exception as e:
             print(f"❌ Ошибка загрузки: {e}")

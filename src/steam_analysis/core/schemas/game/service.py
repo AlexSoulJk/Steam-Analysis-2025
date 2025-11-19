@@ -13,7 +13,7 @@ class GameCreateReportInfo(BaseSchema):
     response_time: datetime.timedelta
 
 
-class GameDataAnalysisCreate(BaseSchema):
+class UserDataAnalysisCreate(BaseSchema):
     game: GameFromHttp
     genres: List[GenreCreate]
     categories: List[CategoryCreate]
@@ -66,7 +66,7 @@ class TypeAnalysesSchema(BaseSchema):
 # region FillChunk schemas
 class FillGameAnalysisChunk(BaseSchema):
     data_for_analysis_db: GameAnalysisChunkForRequest
-    data_chunk: List[Optional[GameDataAnalysisCreate]]
+    data_chunk: List[Optional[UserDataAnalysisCreate]]
 
     def get_report_into(self) -> GameCreateReportInfo:
         return GameCreateReportInfo(start_app_id=self.start_app_id,
