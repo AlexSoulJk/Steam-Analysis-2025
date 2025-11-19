@@ -78,7 +78,7 @@ class FriendBase(BaseSchema):
     """Базовая схема для друга"""
     user_id: int
     friend_id: int
-    status: FriendStatus = Field(default=FriendStatus.INVALID)
+    status: FriendStatus = Field(default=FriendStatus.VALID)
 
 
 class FriendCreate(FriendBase):
