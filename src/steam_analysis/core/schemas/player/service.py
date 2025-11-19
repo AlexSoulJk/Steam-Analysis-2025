@@ -4,7 +4,8 @@ from typing import List, Optional, Dict, Any
 from steam_analysis.core.schemas.base import BaseSchema
 
 from steam_analysis.core.schemas.player.player import PlayerFromHttp, PlayerFullFromHttp
-from .playergame import AchievementBase, OwnershipBase, ReviewBase, PlaytimeBase
+from .playergame import AchievementCreate, OwnershipCreate, ReviewCreate, PlaytimeCreate, LogoffHistoryCreate
+from .player import FriendCreate
 
 
 class PlayerAnalysisForJson(BaseSchema):
@@ -27,6 +28,11 @@ class PlayerCreateReportInfo(BaseSchema):
 class PlayerDataAnalysisCreate(BaseSchema):
     """Данные анализа игрока"""
     player: PlayerFromHttp
+    owned_games: List[OwnershipCreate]
+    playtimes: List[PlaytimeCreate]
+    achievements: List[AchievementCreate]
+    friends: List[FriendCreate]
+    reviews: List[ReviewCreate]
 
 
 class PlayerAnalysesSchema(BaseSchema):
