@@ -15,5 +15,14 @@ def main():
     # print(chunk.games)
 
 
+def test_get_next_particle_chunk():
+    adbfacade = AnalysisDbFacade()
+    chunk = adbfacade.get_next_part_chunk_by_service(PROCESSOR_NAME[0])
+    print(chunk.status)
+    for game in chunk.games:
+        print(game.status)
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    test_get_next_particle_chunk()

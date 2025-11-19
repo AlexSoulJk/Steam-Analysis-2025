@@ -34,6 +34,10 @@ def get_analysis_db():
     db = AnalysisSessionLocal()
     try:
         yield db
+        db.rollback()
+        # db.commit() # while testing with facade can be commented and up string need to uncommented for base safe
+    except:
+        db.rollback()
     finally:
         db.close()
 
@@ -106,9 +110,11 @@ class AnalysisDbFacade:
     def get_next_part_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]:
         """Получаем следующий чанк для обработки"""
         with get_analysis_db() as session:
-            return GameAnalysisChunkForResponse.from_orm(
-                self.provider_game_service.get_next_part_chunk_by_processor_name(processor_name=processor_name,
-                                                                                 session=session))
+            updated_chunk = self.provider_game_service.get_next_part_chunk_by_processor_name(processor_name=processor_name,
+                                                                             session=session)
+            updated_chunk.games = updated_chunk.in_progress_games
+            return GameAnalysisChunkForResponse.from_orm(updated_chunk
+                )
 
     # region Next Partial Success
 

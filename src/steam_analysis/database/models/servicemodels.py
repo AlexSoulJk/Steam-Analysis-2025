@@ -4,7 +4,7 @@ from sqlalchemy import (
     Column, Integer, String, Boolean, Float, DateTime, Text, JSON,
     ForeignKey, Index, CheckConstraint
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Session
 from .analysisbase import AnalysisBaseModel
 
 
@@ -68,11 +68,11 @@ class AnalysisChunk(AnalysisBaseModel):
 
     @property
     def in_progress_games(self):
-        return self.games.filter(GameDataAnalysis.status == "in_progress").all()
+        return list(filter(lambda game: game.status == "in_progress", self.games))
 
     @property
     def partial_success_games(self):
-        return self.games.filter(GameDataAnalysis.status == "partial_success ").all()
+        return list(filter(lambda game: game.status == "particle", self.games))
 
     # endregion
 

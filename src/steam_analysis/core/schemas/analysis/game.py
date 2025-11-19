@@ -46,7 +46,7 @@ class GameAnalysisCreate(GameAnalysisBase):
 class GameAnalysisResponse(BaseSchema):
     id: int = Field(..., ge=1)
     app_id: int
-    status: str = Field(..., pattern="^(pending|in_progress|success|failed|partial|null_state)$")
+    status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle|null_state)$")
 
 
 class GameAnalysisUpdate(BaseSchema):
