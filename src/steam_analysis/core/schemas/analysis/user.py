@@ -68,7 +68,8 @@ class UserAnalysisUpdate(BaseSchema):
 class UserAnalysisChunkCreate(BaseSchema):
     """Создание чанка (БЕЗ списка юзеров)"""
     processed_by: Optional[str] = None
-    user_ids: Optional[List[int]] = None
+    chunk_size: int = Field(25, ge=1, le=100)
+    # user_ids: Optional[List[int]] = None
 
 class UserAnalysisChunkForResponse(BaseSchema):
     id: int = Field(..., ge=1)

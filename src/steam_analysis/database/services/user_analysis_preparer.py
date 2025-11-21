@@ -15,11 +15,14 @@ class UserPreparer:
         self.user_model_repo = UserAnalysisRepository()
         self.chunk_repo = UserChunkRepository()
 
+    def _get_empty_chunk_users(self, session: Session) -> List[UserDataAnalysis]:
+        return self.user_model_repo.get_users_by_chunk_id(None, session)
+
+
     def _prepare_user_list_for_create(self, created_chunks: List[AnalysisUserChunk],
                                       users: List[UserAnalysisFromJson]) -> List[UserAnalysisCreate]:
         res = []
         for created_chunk in created_chunks:
-            # Туть фильтр для пользователей
             chunk_user_ids = created_chunk.user_ids or []
             chunk_users = [user for user in users if user.id in chunk_user_ids]
 
@@ -46,18 +49,31 @@ class UserPreparer:
 
         pass
 
-    def create_users(self, users: List[UserAnalysisFromJson], session: Session):
-        valid_users = [user for user in users if user.steam_id]
+    def create_users(self, users: List[UserAnalysisFromJson], session: Session, chunk_size: int = 25):
 
-        if not valid_users:
-            print("Пользователи не найдены, чанк не создан")
-            return None
+        user_created = self.user_model_repo.create_bulk_from_json(objects_in=users, session=session)
 
-        user_created = self.user_model_repo.create_bulk_from_json(objects_in=valid_users, session=session)
+        empty_chunk_users = self._get_empty_chunk_users(session)
+
+        all_users_for_chunk = list(user_created) + list(empty_chunk_users)
+        print(f"Total users available for chunks: {len(all_users_for_chunk)}")
+
+        if not all_users_for_chunk:
+            # raise Exception("Users not created: No users to process - all users already exist and have chunks")
+            return {
+                "chunk": None,
+                "users": [],
+                "users_count": 0,
+                "new_users_count": 0,
+                "existing_users_count": 0,
+                "message": "No users to process - all users already exist and have chunks"
+            }
+
+        users_for_single_chunk = all_users_for_chunk[:chunk_size]
 
         chunk_data = UserAnalysisChunkCreate(
             processed_by=None,
-            user_ids= [user.id for user in user_created]
+            chunk_size=chunk_size
         )
 
         chunk_created = self.chunk_repo.create_bulk(objects_in=[chunk_data], session=session)
@@ -65,7 +81,9 @@ class UserPreparer:
         if not chunk_created:
             raise Exception("Failed to create chunk")
 
-        for user in user_created:
+        print(f"Created chunk with ID: {chunk_created[0].id}")
+
+        for user in users_for_single_chunk:
             user.chunk_id = chunk_created[0].id
             session.merge(user)
 
@@ -73,8 +91,10 @@ class UserPreparer:
 
         return {
             "chunk": chunk_created[0],
-            "users": user_created,
-            "users_count": len(user_created)
+            "users": all_users_for_chunk,
+            "users_count": len(all_users_for_chunk),
+            "new_users_count": len(user_created),
+            "existing_users_count": len(empty_chunk_users)
         }
 
 
