@@ -80,11 +80,11 @@ class AnalysisDbFacade:
             self.data_game_preparer.create_chuncks(chunks, games, session)
 
     def create_user_chunk_by_service(self,
-                                     users: list[UserAnalysisFromJson]):
+                                     users: list[UserAnalysisFromJson], processor_name: str):
         # chunks: list[UserAnalysisChunkCreate], # cуда пользователей и создаем чанкееее
         with get_analysis_db() as session:
             # self.data_user_preparer.create_chuncks(chunks, users, session)
-            self.data_user_preparer.create_users(users, session)
+            self.data_user_preparer.create_users(users, processor_name,  session)
             # Коммит на уровне фасада выноси под самый конец работы.
             # За сессию должен быть один коммит.
             # session.commit()

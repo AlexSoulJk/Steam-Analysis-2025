@@ -49,7 +49,7 @@ class UserPreparer:
 
         pass
 
-    def create_users(self, users: List[UserAnalysisFromJson], session: Session, chunk_size: int = 25):
+    def create_users(self, users: List[UserAnalysisFromJson], processor_name: str, session: Session, chunk_size: int = 25):
 
         user_created = self.user_model_repo.create_bulk_from_json(objects_in=users, session=session)
 
@@ -69,23 +69,44 @@ class UserPreparer:
                 "message": "No users to process - all users already exist and have chunks"
             }
 
-        users_for_single_chunk = all_users_for_chunk[:chunk_size]
+        total_users = len(all_users_for_chunk)
+        full_chunks_count = total_users // chunk_size
 
-        chunk_data = UserAnalysisChunkCreate(
-            processed_by=None,
-            chunk_size=chunk_size
-        )
+        if full_chunks_count == 0:
+            return {
+                "chunks": [],
+                "users": all_users_for_chunk,
+                "users_count": total_users,
+                "new_users_count": len(user_created),
+                "existing_users_count": len(empty_chunk_users),
+                "chunked_users_count": 0,
+                "remaining_users_count": total_users,
+                "message": f"Not enough users for a full chunk. Available: {total_users}, required: {chunk_size}"
+            }
 
-        chunk_created = self.chunk_repo.create_bulk(objects_in=[chunk_data], session=session)
+        chunk_data = [
+            UserAnalysisChunkCreate(
+                processed_by=processor_name,
+                chunk_size=chunk_size
+            )
+            for _ in range(full_chunks_count)
+        ]
+
+        chunk_created = self.chunk_repo.create_user_bulk(objects_in=chunk_data, session=session)
 
         if not chunk_created:
             raise Exception("Failed to create chunk")
 
-        print(f"Created chunk with ID: {chunk_created[0].id}")
+        print(f"Created {len(chunk_created)} chunks with IDs: {[chunk.id for chunk in chunk_created]}")
 
-        for user in users_for_single_chunk:
-            user.chunk_id = chunk_created[0].id
-            session.merge(user)
+        for chunk_index, chunk in enumerate(chunk_created):
+            start_index = chunk_index * chunk_size
+            end_index = start_index + chunk_size
+            users_for_chunk = all_users_for_chunk[start_index:end_index]
+
+            for user in users_for_chunk:
+                user.chunk_id = chunk.id
+                session.merge(user)
 
         session.commit()
 

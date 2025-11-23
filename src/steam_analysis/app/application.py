@@ -36,9 +36,10 @@ class AppMediator:
 
     def fill_analysis_user(self):
         last_steam_id = self.analysis_service.get_last_upploaded_user()
+        print("last_steam_id: ", last_steam_id)
         data_for_create = self.user_analysis_creator.get_user_analysis_data_for_create_from_resource(last_steam_id=last_steam_id,
                                                                                                      user_resource=self.resource_manager.get_resource(ResourceCodes.USER_LIST))
-        self.analysis_service.create_user_chunk_by_service(data_for_create)
+        self.analysis_service.create_user_chunk_by_service(data_for_create, processor_name=self.processor_name)
 
     # endregion
 
@@ -53,7 +54,7 @@ class AppMediator:
         default_saver.save_fill_game_batch(fill_butch)
         # Load chunk from JSON
         # fill_butch = default_loader.load_fill_game_batch(filename="games_chunk_2025110306.json")
-        # self.database_facade.create_games(fill_butch.data_chunk)
+        self.database_facade.create_games(fill_butch.data_chunk)
         # Завершаем чанк
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 

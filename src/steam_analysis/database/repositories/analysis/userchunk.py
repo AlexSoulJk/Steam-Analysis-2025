@@ -8,7 +8,6 @@ from steam_analysis.core.schemas.analysis.user import UserAnalysisChunkCreate, U
 from ..base.baseanalisis import BaseAnalysisRepository
 from ...models.serviceplayermodels import AnalysisUserChunk
 
-
 class UserChunkRepository(BaseAnalysisRepository[AnalysisUserChunk, UserAnalysisChunkCreate, UserAnalysisChunkUpdate]):
     """Репозиторий для работы с юзерами"""
 
@@ -65,3 +64,37 @@ class UserChunkRepository(BaseAnalysisRepository[AnalysisUserChunk, UserAnalysis
             self.mark_as_in_progress(obj, session)
 
         return obj
+
+    def create_user_bulk(self, objects_in: List[UserAnalysisChunkCreate], session: Session, no_commit=False) -> List[
+        AnalysisUserChunk]:
+        """
+        Массовое создание объектов AnalysisUserChunk, исключая поле chunk_size
+        которого нет в модели БД
+
+        Args:
+            objects_in: Список Pydantic схем UserAnalysisChunkCreate
+            session: Сессия БД
+            no_commit: Не коммитить транзакцию
+
+        Returns:
+            Список созданных объектов AnalysisUserChunk
+        """
+        db_objects = []
+        for obj_in in objects_in:
+            obj_data = obj_in.model_dump(by_alias=True) if hasattr(obj_in, 'model_dump') else obj_in.dict()
+
+            obj_data.pop('chunk_size', None)
+
+            db_obj = self.model(**obj_data)
+            db_objects.append(db_obj)
+
+        session.add_all(db_objects)
+
+        if not no_commit:
+            session.commit()
+            for db_obj in db_objects:
+                session.refresh(db_obj)
+        else:
+            session.flush()
+
+        return db_objects

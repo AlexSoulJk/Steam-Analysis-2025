@@ -100,8 +100,9 @@ class UserAnalysisRepository(BaseAnalysisRepository[UserDataAnalysis, UserAnalys
 
     def get_last_uploaded_user(self, session: Session) -> Optional[UserDataAnalysis]:
         return session.query(UserDataAnalysis). \
-            order_by(UserDataAnalysis.steam_id.desc()). \
+            order_by(UserDataAnalysis.id.desc()). \
             first()
+
 
     def mark_list_as_in_progress(self, users_to_mark: List[UserDataAnalysis], session: Session):
 
