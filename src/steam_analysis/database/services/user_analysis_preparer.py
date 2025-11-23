@@ -52,11 +52,13 @@ class UserPreparer:
     def create_users(self, users: List[UserAnalysisFromJson], processor_name: str, session: Session, chunk_size: int = 25):
 
         user_created = self.user_model_repo.create_bulk_from_json(objects_in=users, session=session)
+        print(f"Newly created users: {len(user_created)}")
 
         empty_chunk_users = self._get_empty_chunk_users(session)
+        print(f"Existing users without chunks: {len(empty_chunk_users)}")
 
-        all_users_for_chunk = list(user_created) + list(empty_chunk_users)
-        print(f"Total users available for chunks: {len(all_users_for_chunk)}")
+        all_users_for_chunk = empty_chunk_users
+        print(f"Total unique users available for chunks: {len(all_users_for_chunk)}")
 
         if not all_users_for_chunk:
             # raise Exception("Users not created: No users to process - all users already exist and have chunks")
