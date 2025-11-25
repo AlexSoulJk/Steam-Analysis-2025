@@ -16,11 +16,14 @@ class UserPreparer:
         self.chunk_repo = UserChunkRepository()
         # Chunk Creator(chunk_size, strategy_processor)
 
+    def _get_empty_chunk_users(self, session: Session) -> List[UserDataAnalysis]:
+        return self.user_model_repo.get_users_by_chunk_id(None, session)
+
+
     def _prepare_user_list_for_create(self, created_chunks: List[AnalysisUserChunk],
                                       users: List[UserAnalysisFromJson]) -> List[UserAnalysisCreate]:
         res = []
         for created_chunk in created_chunks:
-            # Туть фильтр для пользователей
             chunk_user_ids = created_chunk.user_ids or []
             chunk_users = [user for user in users if user.id in chunk_user_ids]
 
@@ -47,32 +50,73 @@ class UserPreparer:
 
         pass
 
-    def create_users(self, users: List[UserAnalysisFromJson], session: Session):
+    def create_users(self, users: List[UserAnalysisFromJson], processor_name: str, session: Session, chunk_size: int = 25):
 
         user_created = self.user_model_repo.create_bulk_from_json(objects_in=users, session=session)
-        # ADD WITHOUT CHUNK
-        chunk_data = UserAnalysisChunkCreate(
-            processed_by=None,
-            user_ids=[user.id for user in user_created]
-        )
-        # users_for_new_chunk = get_emty_users
-        # ChunkCreator ().create_chunk(users_for_new_chunk: ?Schema/Model) -> Chunk Created(model/schemas)
+        print(f"Newly created users: {len(user_created)}")
 
-        chunk_created = self.chunk_repo.create_bulk(objects_in=[chunk_data], session=session)
+        empty_chunk_users = self._get_empty_chunk_users(session)
+        print(f"Existing users without chunks: {len(empty_chunk_users)}")
+
+        all_users_for_chunk = empty_chunk_users
+        print(f"Total unique users available for chunks: {len(all_users_for_chunk)}")
+
+        if not all_users_for_chunk:
+            # raise Exception("Users not created: No users to process - all users already exist and have chunks")
+            return {
+                "chunk": None,
+                "users": [],
+                "users_count": 0,
+                "new_users_count": 0,
+                "existing_users_count": 0,
+                "message": "No users to process - all users already exist and have chunks"
+            }
+
+        total_users = len(all_users_for_chunk)
+        full_chunks_count = total_users // chunk_size
+
+        if full_chunks_count == 0:
+            return {
+                "chunks": [],
+                "users": all_users_for_chunk,
+                "users_count": total_users,
+                "new_users_count": len(user_created),
+                "existing_users_count": len(empty_chunk_users),
+                "chunked_users_count": 0,
+                "remaining_users_count": total_users,
+                "message": f"Not enough users for a full chunk. Available: {total_users}, required: {chunk_size}"
+            }
+
+        chunk_data = [
+            UserAnalysisChunkCreate(
+                processed_by=processor_name,
+                chunk_size=chunk_size
+            )
+            for _ in range(full_chunks_count)
+        ]
+
+        chunk_created = self.chunk_repo.create_user_bulk(objects_in=chunk_data, session=session)
 
         if not chunk_created:
             raise Exception("Failed to create chunk")
 
-        for user in user_created:
-            user.chunk_id = chunk_created[0].id
-            session.merge(user)
+        print(f"Created {len(chunk_created)} chunks with IDs: {[chunk.id for chunk in chunk_created]}")
 
-        session.commit()
+        for chunk_index, chunk in enumerate(chunk_created):
+            start_index = chunk_index * chunk_size
+            end_index = start_index + chunk_size
+            users_for_chunk = all_users_for_chunk[start_index:end_index]
+
+            for user in users_for_chunk:
+                user.chunk_id = chunk.id
+                session.merge(user)
 
         return {
             "chunk": chunk_created[0],
-            "users": user_created,
-            "users_count": len(user_created)
+            "users": all_users_for_chunk,
+            "users_count": len(all_users_for_chunk),
+            "new_users_count": len(user_created),
+            "existing_users_count": len(empty_chunk_users)
         }
 
 

@@ -82,14 +82,15 @@ class AnalysisDbFacade:
         with get_analysis_db() as session:
             self.data_game_preparer.create_chuncks(chunks, games, session)
 
-    def create_user_chunk_by_service(self, chunks: list[UserAnalysisChunkCreate],
-                                     # cуда пользователей и создаем чанкееее
-                                     users: list[list[UserAnalysisFromJson]]):
+    def create_user_chunk_by_service(self,
+                                     users: list[UserAnalysisFromJson], processor_name: str):
+        # chunks: list[UserAnalysisChunkCreate], # cуда пользователей и создаем чанкееее
         with get_analysis_db() as session:
-            self.data_user_preparer.create_chuncks(chunks, users, session)
+            # self.data_user_preparer.create_chuncks(chunks, users, session)
+            self.data_user_preparer.create_users(users, processor_name,  session)
             # Коммит на уровне фасада выноси под самый конец работы.
             # За сессию должен быть один коммит.
-            session.commit()
+            # session.commit()
 
     # region Next Pending Chunk
     def get_next_pending_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]:
