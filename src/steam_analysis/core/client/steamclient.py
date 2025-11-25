@@ -1,6 +1,7 @@
 from typing import Optional, Dict, Any, List
 
 from ..schemas.analysis.game import GameAnalysisChunkForResponse
+from ..schemas.analysis.user import UserAnalysisChunkForResponse
 from ..schemas.game.service import FillGameAnalysisChunk
 from ...core.dependencies.basehttp import RequestsClient, RequestsWithDelayClient
 from ..repositories.player_repository import PlayerRepository
@@ -50,7 +51,7 @@ class SteamAnalysisFacade:
     def analyze_player(self, steam_id: str) -> Optional[Dict[str, Any]]:
         return self.player_service.analyze_gaming_preferences(steam_id)
 
-    def get_player_data_bunch(self, chunk_procession: GameAnalysisChunkForResponse):
+    def get_player_data_bunch(self, chunk_procession: UserAnalysisChunkForResponse):
         return self.player_service.get_player_data_analysis(chunk_procession)
 
     def get_player_time_data_bunch(self, steam_ids: list[str]):

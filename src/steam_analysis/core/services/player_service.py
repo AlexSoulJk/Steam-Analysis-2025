@@ -3,6 +3,7 @@ from typing import List, Dict, Any, Optional, Set
 from ..repositories.player_repository import PlayerRepository
 from ..repositories.game_repository import GameRepository
 from ..schemas.analysis.game import GameAnalysisChunkForResponse
+from ..schemas.analysis.user import UserAnalysisChunkForResponse
 from ..schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate, FillPlayerSchemaChunk,\
     PlayerAnalysesSchema
 from ..schemas.player.player import PlayerFromHttp, PlayerFullFromHttp
@@ -84,7 +85,7 @@ class PlayerService:
             'most_played': max(games, key=lambda x: x.get('playtime_forever', 0)) if games else None
         }
 
-    def get_player_data_analysis(self, chunk_procession: GameAnalysisChunkForResponse) -> FillPlayerAnalysisChunk:
+    def get_player_data_analysis(self, chunk_procession: UserAnalysisChunkForResponse) -> FillPlayerAnalysisChunk:
         start_time = datetime.datetime.now()
 
         if not steam_ids:

@@ -75,15 +75,23 @@ class AppMediator:
     def create_user(self,
                     chunk_size: int = 25):
 
+        # Сначала протестируй что работают 2 строчки
         chunk_for_create = self.analysis_service.get_next_pending_user_chunk_by_service(self.processor_name)
-        self.steam_facade.get_player_data_bunch(chunk_for_create)
-        print(chunk_for_create)
+        fill_user_butch = self.steam_facade.get_player_data_bunch(chunk_for_create)
 
-        # fill_butch = default_loader.load_fill_user_batch(filename="players_20251020_100.json")
+        # Затем что сохраняется все. По идее не должно зависеть от схемы
+        default_saver.save_fill_game_batch(fill_user_butch)
+        # Тут можешь коментить первые 2 строчки и вытаскивать сериализованный чанк. Только путь поменяй к json на тот что у тебя получится
+        fill_user_butch = default_loader.load_fill_user_batch(filename="players_20251020_100.json")
         # users_ids = self.database_facade.create_users(fill_butch.data_chunk)
-        # self.analysis_service.create_user_chunk_by_service(fill_butch.data_chunk, users_ids)
+
+        # Тут вот ща лежит вызов твоего метода
+        response = self.database_facade.create_users(fill_user_butch.data_chunk)
         # # Завершаем чанк
-        # self.analysis_service.mark_user_chunk_complete(fill_butch.data_for_analysis_db)
+        # Этот метод должен работать. Если нет, то обязательно пиши!
+        self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
+        # ЭТО НУЖНО РЕАЛИЗОВАТЬ не тебе) Так что проверь только что response c database_facade летит как надо!
+        # self.analysis_service.update_info_after_user_creation(response)
 
     def create_time_game_butch(self):
         with open('test_data/games_30_130_20251006.json', 'r', encoding='utf-8') as f:
