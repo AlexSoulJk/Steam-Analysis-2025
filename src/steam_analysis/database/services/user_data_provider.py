@@ -19,8 +19,6 @@ class UserAnalysisProvider:
             raise Exception(f"Chunk storage for {processor_name} is empty. Please fill analysis-db")
 
         chunk.users = self.user_model_repo.mark_list_as_in_progress(chunk.users, session)
-        session.commit()
-        session.refresh(chunk)
         return chunk
 
     def mark_as_in_particle(self, chunk: UserAnalysisChunkUpdate, session: Session):

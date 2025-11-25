@@ -35,7 +35,7 @@ def get_analysis_db():
     try:
         yield db
         # db.rollback()
-        db.commit() # while testing with facade can be commented and up string need to uncommented for base safe
+        db.commit()  # while testing with facade can be commented and up string need to uncommented for base safe
     except Exception as e:
         print(e)
         db.rollback()
@@ -87,7 +87,7 @@ class AnalysisDbFacade:
         # chunks: list[UserAnalysisChunkCreate], # cуда пользователей и создаем чанкееее
         with get_analysis_db() as session:
             # self.data_user_preparer.create_chuncks(chunks, users, session)
-            self.data_user_preparer.create_users(users, processor_name,  session)
+            self.data_user_preparer.create_users(users, processor_name, session)
             # Коммит на уровне фасада выноси под самый конец работы.
             # За сессию должен быть один коммит.
             # session.commit()
@@ -101,19 +101,20 @@ class AnalysisDbFacade:
                                                                                     session=session))
 
     def get_next_pending_user_chunk_by_service(self, processor_name: str) -> Optional[
-        GameAnalysisChunkForResponse]:  # aaaaaaaaaaaaaaaaaaaaaaaaaaa
+        UserAnalysisChunkForResponse]:  # aaaaaaaaaaaaaaaaaaaaaaaaaaa
         """Получаем следующий чанк для обработки"""
         with get_analysis_db() as session:
-            return GameAnalysisChunkForResponse.from_orm(
-                self.provider_game_service.get_next_pending_chunk_by_processor_name(processor_name=processor_name,
+            return UserAnalysisChunkForResponse.from_orm(
+                self.provider_user_service.get_next_pending_chunk_by_processor_name(processor_name=processor_name,
                                                                                     session=session))
 
     # endregion
     def get_next_part_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]:
         """Получаем следующий чанк для обработки"""
         with get_analysis_db() as session:
-            updated_chunk = self.provider_game_service.get_next_part_chunk_by_processor_name(processor_name=processor_name,
-                                                                             session=session)
+            updated_chunk = self.provider_game_service.get_next_part_chunk_by_processor_name(
+                processor_name=processor_name,
+                session=session)
 
             # Создаем схему только с нужными полями
             return GameAnalysisChunkForResponse(
@@ -137,6 +138,7 @@ class AnalysisDbFacade:
         with get_analysis_db() as session:
             tmp = self.data_game_preparer.get_last_uploaded_game(session=session)
             return tmp.app_id if tmp else None
+
     def get_last_upploaded_user(self) -> Optional[str]:
         steam_id = None
         with get_analysis_db() as session:

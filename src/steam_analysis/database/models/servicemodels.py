@@ -64,7 +64,7 @@ class AnalysisChunk(AnalysisBaseModel):
     @property
     def pending_games(self):
         """Список игр в ожидании обработки"""
-        return self.games.filter(GameDataAnalysis.status == "pending").all()
+        return list(filter(lambda game: game.status == "pending", self.games))
 
     @property
     def in_progress_games(self):

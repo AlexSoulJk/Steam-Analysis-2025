@@ -1,0 +1,28 @@
+from steam_analysis.database.analysis_facade import AnalysisDbFacade
+
+PROCESSOR_NAME = ["AlexSoulJK",
+                  "baru1ina",
+                  "Ekaterina Lips",
+                  "Lo-Lap"]
+
+
+def main():
+    adbfacade = AnalysisDbFacade()
+    chunk = adbfacade.get_next_pending_user_chunk_by_service(PROCESSOR_NAME[0])
+    # Дополнительных запросов НЕТ
+    for game in chunk.users:
+        print(game.status)
+    # print(chunk.games)
+
+
+def test_get_next_particle_chunk():
+    adbfacade = AnalysisDbFacade()
+    chunk = adbfacade.get_next_part_chunk_by_service(PROCESSOR_NAME[0])
+    print(chunk.status)
+    for game in chunk.games:
+        print(game.status)
+
+
+if __name__ == "__main__":
+    main()
+    # test_get_next_particle_chunk()

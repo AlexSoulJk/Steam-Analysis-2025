@@ -30,7 +30,7 @@ class UserChunkRepository(BaseAnalysisRepository[AnalysisUserChunk, UserAnalysis
     def mark_as_in_progress(self, chunk: AnalysisUserChunk,
                             session: Session) -> AnalysisUserChunk:
         chunk.status = "in_progress"
-        session.refresh(chunk)
+        session.flush([chunk])
         return chunk
 
     def update_status_after_processing(self, chunk: UserAnalysisChunkUpdate,
@@ -42,8 +42,8 @@ class UserChunkRepository(BaseAnalysisRepository[AnalysisUserChunk, UserAnalysis
         obj = self._get_next_chunk_by_status_and_name(status="pending",
                                                       processor_name=processor_name,
                                                       session=session)
-        # if obj:
-        #     self.mark_as_in_progress(obj, session)
+        if obj:
+            self.mark_as_in_progress(obj, session)
 
         return obj
 

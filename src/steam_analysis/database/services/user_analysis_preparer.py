@@ -46,7 +46,6 @@ class UserPreparer:
 
         self.user_model_repo.create_bulk(objects_in=prepared_users,
                                          session=session)
-        session.commit()
 
         pass
 

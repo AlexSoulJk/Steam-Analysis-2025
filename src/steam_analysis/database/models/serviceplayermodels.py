@@ -65,7 +65,7 @@ class AnalysisUserChunk(AnalysisBaseModel):
 
     @property
     def in_progress_users(self):
-        return self.users.filter(UserDataAnalysis.status == "in_progress").all()
+        return list(filter(lambda users: users.status == "pending", self.users))
 
     @property
     def partial_success_users(self):
