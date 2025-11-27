@@ -3,15 +3,12 @@ from operator import or_
 from typing import Dict, List, Optional
 
 from steam_analysis.config import db_path
-from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate, \
-    GameDataAnalysisCreate, SchemaCreate
-from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate
+
 from steam_analysis.core.schemas.player.playergame import OwnershipHttp, AchievementHttp, ReviewHttp, PlaytimeHttp
 
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate, SchemaCreate
-from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate
 
-from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, GameDataAnalysisCreate
+from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate
 from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.models import Game, GameGenre, GameCategory, GamePlatform
@@ -79,7 +76,7 @@ class DbFacade:
         # self.schema_relations_creation = SchemaRelationsCreationService()
         self.player_game_relations_creation = PlayerGameRelationsCreationService()
 
-    def create_games(self, games_info_chunk: List[Optional[GameDataAnalysisCreate]]):
+    def create_games(self, games_info_chunk: List[Optional[UserDataAnalysisCreate]]):
         with get_db() as session:
             games, prep_info, dict_without_nons = self.game_creation.create_chunk_games(games_info_chunk,
                                                                      session)
@@ -115,13 +112,15 @@ class DbFacade:
             no_created_friends, players, prep_info, dict_without_nons = self.player_creation.create_chunk_players(
                 players_info_chunk,
                 session)
+            session.flush()
 
             self.player_relations_creation.create_connections_friends(prep_info=prep_info,
                                                                       players=players,
                                                                       session=session)
 
             session.commit()
-            # session.refresh()
+            for player in players:
+                session.refresh(player)
             return no_created_friends
 
     def create_ownerships(self, ownerships_chunk: List[Optional[OwnershipHttp]]):
