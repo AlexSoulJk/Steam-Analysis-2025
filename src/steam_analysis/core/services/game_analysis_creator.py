@@ -46,7 +46,13 @@ class GameAnalysisCreator:
         last_app_id = resource.get_first_app_id() if last_app_id is None else last_app_id
         start_creation = datetime.datetime.now()
         created_chuncks = self._prepare_chunck_for_create(processor_name_strategy)
-        game_list = list(map(lambda x: GameAnalysisFromJson.from_json_resource(x, start_creation),
-                             resource.get_app_list(last_app_id, self.chunk_size * self.butch_chunck_size)))
+        try:
+            tmp = resource.get_app_list(last_app_id, self.chunk_size * self.butch_chunck_size)
+            tmp = list(filter(lambda item: item.name != "", tmp))
+            game_list = list(map(lambda x: GameAnalysisFromJson.from_json_resource(x, start_creation),
+                                 tmp))
+        except Exception as e:
+            print("\n".join(list(map(lambda item: item.name, tmp))))
+            raise e
         game_res = self._split_for_game_chunck(game_list)
         return (created_chuncks, game_res)
