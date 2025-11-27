@@ -65,8 +65,8 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         session.add_all(db_objects)
         # session.commit()
 
-        for db_obj in db_objects:
-            session.refresh(db_obj)
+        # for db_obj in db_objects:
+        #     session.refresh(db_obj)
 
         return existing_users + db_objects
 

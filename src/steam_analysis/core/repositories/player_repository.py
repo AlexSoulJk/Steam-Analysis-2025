@@ -1,8 +1,20 @@
 from .base import BaseRepository
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
+from datetime import datetime
+
+from ..schemas.analysis.user import UserAnalysisChunkForResponse, UserAnalysisChunkForRequest, \
+    UserAnalysisUpdate, UserAnalysisResponse
+
+from ..schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate, FillPlayerSchemaChunk,\
+    PlayerAnalysesSchema
+from ..schemas.player.player import PlayerFromHttp, PlayerFullFromHttp
 
 from ..codes.steamservices import SteamServices
 from ...core.dependencies.basehttp import HTTPClient
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PlayerRepository(BaseRepository):
@@ -86,3 +98,100 @@ class PlayerRepository(BaseRepository):
             return data.get('playerstats', {}).get('stats', [])
         except:
             return None
+
+    def get_player_data(self, user_for_response: UserAnalysisResponse) -> \
+            Tuple[Optional[PlayerDataAnalysisCreate], UserAnalysisUpdate]:
+        """
+        Получение данных пользователя по схеме (аналог get_by_schema для игр)
+        """
+        steam_id = str(user_for_response.steam_id)
+        error_log_message = ""
+        status = ""
+        request_model = None
+
+        try:
+            # Получаем основные данные профиля
+            profile_data = self.get_by_id(steam_id)
+
+            if not profile_data:
+                error_log_message = f"Player steam_id: {steam_id} not found or failed to load"
+                status = "null_state"
+                logger.warning(f"\n ❗️ {error_log_message}")
+            else:
+                status = "particle"
+                # Получаем дополнительные данные (друзья, игры и т.д.)
+                request_model = self._parse_player_data(steam_id, profile_data)
+
+        except Exception as e:
+            status = "failed"
+            error_log_message = f"Error getting player: {e}"
+            logger.error(f"\n ❗❗️ {error_log_message}")
+
+        return request_model, UserAnalysisUpdate.from_response_schema(
+            response=user_for_response,
+            status=status,
+            error_log=error_log_message
+        )
+
+    def _parse_player_data(self, steam_id: str, raw_data: Dict[str, Any]) -> PlayerDataAnalysisCreate:
+        """
+        Парсинг сырых данных игрока в структурированный формат для анализа
+        (аналог _parse_game_data)
+        """
+        # Основная информация об игроке
+        player_base = self._create_player_base(raw_data)
+
+        # Получаем информацию о друзьях
+        friends_data = self._get_friends_data(steam_id)
+
+        return PlayerDataAnalysisCreate(
+            player=player_base,
+            friends=friends_data
+        )
+
+    def _create_player_base(self, raw_data: Dict[str, Any]) -> PlayerFromHttp:
+        """
+        Создание базового объекта игрока из сырых данных
+        """
+        # Обработка timestamp полей
+        time_created = None
+        if 'timecreated' in raw_data and raw_data['timecreated']:
+            time_created = datetime.fromtimestamp(raw_data['timecreated'])
+
+        last_logoff = None
+        if 'lastlogoff' in raw_data and raw_data['lastlogoff']:
+            last_logoff = datetime.fromtimestamp(raw_data['lastlogoff'])
+
+        # Получаем уровень Steam
+        steam_level = self.get_steam_level(raw_data.get('steamid', ''))
+
+        return PlayerFromHttp(
+            steam_id=raw_data.get('steamid', ''),
+            persona_name=raw_data.get('personaname'),
+            profile_url=raw_data.get('profileurl'),
+            avatar_url=raw_data.get('avatar'),
+            avatar_medium_url=raw_data.get('avatarmedium'),
+            avatar_full_url=raw_data.get('avatarfull'),
+            time_created=time_created,
+            community_visibility_state=raw_data.get('communityvisibilitystate'),
+            last_logoff=last_logoff,
+            steam_level=steam_level,
+            loccountrycode=raw_data.get('loccountrycode'),
+            locstatecode=raw_data.get('locstatecode'),
+            loccityid=raw_data.get('loccityid')
+        )
+
+    def _get_friends_data(self, steam_id: str) -> List[str]:
+        """
+        Получение и парсинг данных о друзьях
+        """
+        try:
+            friends_raw = self.get_friends(steam_id)
+            if not friends_raw:
+                return []
+
+            return [friend.get('steamid') for friend in friends_raw if friend.get('steamid')]
+
+        except Exception as e:
+            logger.error(f"Error getting friends data for {steam_id}: {e}")
+            return []
