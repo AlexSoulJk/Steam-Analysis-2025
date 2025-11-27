@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any
 
 from steam_analysis.core.schemas.base import BaseSchema
 
+from steam_analysis.core.schemas.analysis.user import UserAnalysisChunkForRequest
 from steam_analysis.core.schemas.player.player import PlayerFromHttp, PlayerFullFromHttp
 from .playergame import AchievementCreate, OwnershipCreate, ReviewCreate, PlaytimeCreate, LogoffHistoryCreate
 from .player import FriendCreate
@@ -42,31 +43,40 @@ class PlayerAnalysesSchema(BaseSchema):
 
 
 # region FillChunk schemas
+# class FillPlayerAnalysisChunk(BaseSchema):
+#     """Чанк данных анализа игроков"""
+#     start_steam_id: str
+#     end_steam_id: str
+#     response_time: datetime.timedelta
+#     data_chunk: List[Optional[PlayerDataAnalysisCreate]]
+#
+#     # Статистика чанка
+#     processed_count: int = 0
+#     success_count: int = 0
+#     error_count: int = 0
+#
+#     def get_report_info(self) -> PlayerCreateReportInfo:
+#         """Получить информацию об отчете"""
+#         return PlayerCreateReportInfo(
+#             start_steam_id=self.start_steam_id,
+#             end_steam_id=self.end_steam_id,
+#             response_time=self.response_time
+#         )
+#
+#     def calculate_stats(self) -> None:
+#         """Рассчитать статистику чанка"""
+#         self.processed_count = len(self.data_chunk)
+#         self.success_count = sum(1 for item in self.data_chunk if item is not None)
+#         self.error_count = self.processed_count - self.success_count
+
 class FillPlayerAnalysisChunk(BaseSchema):
-    """Чанк данных анализа игроков"""
-    start_steam_id: str
-    end_steam_id: str
-    response_time: datetime.timedelta
+    data_for_analysis_db: UserAnalysisChunkForRequest
     data_chunk: List[Optional[PlayerDataAnalysisCreate]]
 
-    # Статистика чанка
-    processed_count: int = 0
-    success_count: int = 0
-    error_count: int = 0
-
-    def get_report_info(self) -> PlayerCreateReportInfo:
-        """Получить информацию об отчете"""
-        return PlayerCreateReportInfo(
-            start_steam_id=self.start_steam_id,
-            end_steam_id=self.end_steam_id,
-            response_time=self.response_time
-        )
-
-    def calculate_stats(self) -> None:
-        """Рассчитать статистику чанка"""
-        self.processed_count = len(self.data_chunk)
-        self.success_count = sum(1 for item in self.data_chunk if item is not None)
-        self.error_count = self.processed_count - self.success_count
+    def get_report_into(self) -> PlayerCreateReportInfo:
+        return PlayerCreateReportInfo(start_app_id=self.start_app_id,
+                                      end_app_id=self.end_app_id,
+                                      response_time=self.response_time)
 
 
 class FillPlayerSchemaChunk(BaseSchema):
