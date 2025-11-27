@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 from steam_analysis.core.schemas.base import BaseSchema
 
 from steam_analysis.core.schemas.player.player import PlayerFromHttp, PlayerFullFromHttp
-from .playergame import AchievementCreate, OwnershipCreate, ReviewCreate, PlaytimeCreate, LogoffHistoryCreate
+from .playergame import AchievementHttp, OwnershipHttp, PlaytimeHttp, LogoffHistoryCreate
 from .player import FriendCreate
 
 
@@ -29,11 +29,13 @@ class PlayerDataAnalysisCreate(BaseSchema):
     """Данные анализа игрока"""
     player: PlayerFromHttp
     friends: List[str]
-    # owned_games: List[OwnershipCreate]
-    # playtimes: List[PlaytimeCreate]
-    # achievements: List[AchievementCreate]
-    # friends: List[FriendCreate]
-    # reviews: List[ReviewCreate]
+
+
+class PlayerGameDataAnalysisCreate(BaseSchema):
+    """Данные анализа игрока"""
+    owned_games: List[Optional[OwnershipHttp]]
+    playtimes: List[Optional[PlaytimeHttp]]
+    achievements: List[Optional[AchievementHttp]]
 
 
 class PlayerAnalysesSchema(BaseSchema):
@@ -67,6 +69,16 @@ class FillPlayerAnalysisChunk(BaseSchema):
         self.processed_count = len(self.data_chunk)
         self.success_count = sum(1 for item in self.data_chunk if item is not None)
         self.error_count = self.processed_count - self.success_count
+
+
+class FillPlayerGameSchemaChunk(BaseSchema):
+    data_for_analysis_db: UserAnalysisChunkForRequest
+    data_chunk: List[Optional[PlayerGameDataAnalysisCreate]]
+
+    def get_report_into(self) -> PlayerCreateReportInfo:
+        return PlayerCreateReportInfo(start_app_id=self.start_app_id,
+                                      end_app_id=self.end_app_id,
+                                      response_time=self.response_time)
 
 
 class FillPlayerSchemaChunk(BaseSchema):
