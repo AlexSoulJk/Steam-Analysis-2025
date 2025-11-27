@@ -88,7 +88,8 @@ class AppMediator:
         # Этот метод должен работать. Если нет, то обязательно пиши!
         self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
         # ЭТО НУЖНО РЕАЛИЗОВАТЬ не тебе) Так что проверь только что response c database_facade летит как надо!
-        # self.analysis_service.update_info_after_user_creation(response)
+        data_for_create = self.steam_facade.get_player_for_steam_analys_filling(response)
+        self.analysis_service.create_user_chunk_by_service(data_for_create, processor_name=self.processor_name)
 
     def create_time_game_butch(self):
         with open('test_data/games_30_130_20251006.json', 'r', encoding='utf-8') as f:

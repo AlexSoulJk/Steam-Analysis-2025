@@ -35,10 +35,19 @@ class PlayerRepository(BaseRepository):
 
     def get_by_ids(self, steam_ids: list[str], **kwargs) -> Optional[List[Any]]:
         """Получить информацию по списку SteamID игроков"""
-        url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUser}/GetPlayerSummaries/v2/"
-        params = {'key': self.api_key, 'steamids': ','.join(steam_ids)}
-        data = self.http_client.get(url, params=params)
-        players = data.get('response', {}).get('players', [])
+        butch_size = 30
+        all_amount = len(steam_ids)
+        len_butches = all_amount // butch_size
+        players = []
+        print(all_amount, len_butches)
+        for index in range(len_butches):
+            part_ids = steam_ids[index*butch_size:butch_size*(index + 1)]
+            url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUser}/GetPlayerSummaries/v2/"
+            params = {'key': self.api_key, 'steamids': ','.join(part_ids)}
+            data = self.http_client.get(url, params=params)
+            part_players = data.get('response', {}).get('players', [])
+            players.extend(part_players)
+
         return players if players else None
 
     def get_friends(self, steam_id: str) -> List[Dict[str, Any]]:

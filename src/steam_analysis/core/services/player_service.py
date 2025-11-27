@@ -3,8 +3,9 @@ from typing import List, Dict, Any, Optional, Set, Tuple
 from ..repositories.player_repository import PlayerRepository
 from ..repositories.game_repository import GameRepository
 
-from ..schemas.analysis.user import UserAnalysisChunkForResponse, UserAnalysisChunkForRequest, UserAnalysisChunkUpdate
-from ..schemas.player.service import FillPlayerAnalysisChunk, FillPlayerGameSchemaChunk, FillPlayerSchemaChunk,\
+from ..schemas.analysis.user import UserAnalysisChunkForResponse, UserAnalysisChunkForRequest, UserAnalysisChunkUpdate, \
+    UserAnalysisResponse, UserAnalysisFromJson
+from ..schemas.player.service import FillPlayerAnalysisChunk, FillPlayerGameSchemaChunk, FillPlayerSchemaChunk, \
     PlayerAnalysesSchema
 from ..schemas.player.playergame import AchievementBase, OwnershipBase, ReviewBase, PlaytimeBase
 
@@ -117,6 +118,17 @@ class PlayerService:
             ),
             data_chunk=list(map(lambda x: x[0], data_chunk))
         )
+
+    def get_player_for_steam_analys_filling(self, players_id: list[str]) -> Optional[List[UserAnalysisFromJson]]:
+        tmp = self.player_repo.get_by_ids(players_id)
+        if not tmp and len(tmp):
+            return None
+        tmp = filter(lambda x: x is not None, tmp)
+        create_time = datetime.datetime.now()
+        return list(map(lambda x: UserAnalysisFromJson(steam_id=int(x["steamid"]),
+                                                       name=x["personaname"],
+                                                       status="pending",
+                                                       created_at=create_time), tmp))
 
     def get_player_game_data_analysis(self, chunk_procession: UserAnalysisChunkForResponse) -> \
             FillPlayerGameSchemaChunk:
