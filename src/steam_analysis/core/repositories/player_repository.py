@@ -5,9 +5,10 @@ from datetime import datetime
 from ..schemas.analysis.user import UserAnalysisChunkForResponse, UserAnalysisChunkForRequest, \
     UserAnalysisUpdate, UserAnalysisResponse
 
-from ..schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate, FillPlayerSchemaChunk,\
+from ..schemas.player.service import PlayerGameDataAnalysisCreate, PlayerDataAnalysisCreate, FillPlayerSchemaChunk,\
     PlayerAnalysesSchema
 from ..schemas.player.player import PlayerFromHttp, PlayerFullFromHttp
+from ..schemas.player.playergame import AchievementHttp, OwnershipHttp, PlaytimeHttp
 
 from ..codes.steamservices import SteamServices
 from ...core.dependencies.basehttp import HTTPClient
@@ -195,3 +196,108 @@ class PlayerRepository(BaseRepository):
         except Exception as e:
             logger.error(f"Error getting friends data for {steam_id}: {e}")
             return []
+
+    def get_player_game_data(self, user_for_response: UserAnalysisResponse) -> \
+            Tuple[Optional[PlayerGameDataAnalysisCreate], UserAnalysisUpdate]:
+        """
+        Получение данных пользователя по схеме (аналог get_by_schema для игр)
+        """
+        steam_id = str(user_for_response.steam_id)
+        error_log_message = ""
+        status = ""
+        request_model = None
+
+        try:
+            # Получаем основные данные профиля
+            profile_data = self.get_by_id(steam_id)
+
+            if not profile_data:
+                error_log_message = f"Player steam_id: {steam_id} not found or failed to load"
+                status = "null_state"
+                logger.warning(f"\n ❗️ {error_log_message}")
+            else:
+                status = "particle"
+                # Получаем дополнительные данные по играм пользователя
+                request_model = self._parse_player_game_data(steam_id)
+
+        except Exception as e:
+            status = "failed"
+            error_log_message = f"Error getting player: {e}"
+            logger.error(f"\n ❗❗️ {error_log_message}")
+
+        return request_model, UserAnalysisUpdate.from_response_schema(
+            response=user_for_response,
+            status=status,
+            error_log=error_log_message
+        )
+
+    def _parse_player_game_data(self, steam_id: str) -> \
+            Optional[PlayerGameDataAnalysisCreate]:
+        """
+        Парсинг данных игрока и преобразование в схему PlayerGameDataAnalysisCreate
+        с обработкой ошибок
+        """
+        try:
+            owned_games = []
+            playtimes = []
+            achievements = []
+
+            # Получаем список игр пользователя
+            games_data = self.get_owned_games(steam_id)
+
+            if not games_data:
+                logger.warning(f"No games found for user {steam_id}")
+                return None
+
+            for game in games_data:
+                app_id = str(game.get('appid', ''))
+
+                # Создаем запись о владении игрой
+                ownership = OwnershipHttp(
+                    steam_id=steam_id,
+                    app_id=app_id
+                )
+                owned_games.append(ownership)
+
+                # Создаем запись о времени игры
+                playtime = PlaytimeHttp(
+                    steam_id=steam_id,
+                    app_id=app_id,
+                    playtime_forever=game.get('playtime_forever'),
+                    playtime_2weeks=game.get('playtime_2weeks'),
+                    last_played=self._convert_timestamp_to_datetime(game.get('rtime_last_played'))
+                )
+                playtimes.append(playtime)
+
+                # Получаем достижения для игры (может быть None если недоступны)
+                game_achievements = self.get_player_achievements(steam_id, app_id)
+                if game_achievements:
+                    for ach in game_achievements:
+                        if ach.get('achieved', 0) == 1:
+                            achievement = AchievementHttp(
+                                steam_id=steam_id,
+                                app_id=app_id,
+                                api_name=ach.get('apiname', ''),
+                                achieved=True,
+                                unlock_timestamp=ach.get('unlocktime'),
+                                unlock_time=self._convert_timestamp_to_datetime(ach.get('unlocktime'))
+                            )
+                            achievements.append(achievement)
+
+            return PlayerGameDataAnalysisCreate(
+                owned_games=owned_games,
+                playtimes=playtimes,
+                achievements=achievements
+            )
+
+        except Exception as e:
+            logger.error(f"Error parsing player data for {steam_id}: {e}")
+            return None
+
+    def _convert_timestamp_to_datetime(self, timestamp: Optional[int]) -> Optional[datetime]:
+        """
+        Конвертирует Unix timestamp в datetime объект
+        """
+        if timestamp and timestamp > 0:
+            return datetime.fromtimestamp(timestamp)
+        return None
