@@ -18,9 +18,9 @@ class User(BaseModel):
     community_visibility_state = Column(Integer)
     steam_level = Column(Integer, default=0)
 
-    loccountrycode = Column(String(500))
-    locstatecode = Column(String(500))
-    loccityid = Column(String(500))
+    loccountrycode = Column(String(500), nullable=True)
+    locstatecode = Column(String(500), nullable=True)
+    loccityid = Column(String(500), nullable=True)
 
     game_ownership = relationship("UserGameOwnership", back_populates="user", cascade="all, delete-orphan")
     playtime = relationship("UserPlaytime", back_populates="user", cascade="all, delete-orphan")
