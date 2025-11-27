@@ -54,8 +54,8 @@ class PlayerAchievementRepository(BaseDBRepository[UserAchievement, AchievementC
             existing = UserAchievement(**achievement_create.model_dump())
             session.add(existing)
 
-        session.commit()
-        session.refresh(existing)
+        # session.commit()
+        # session.refresh(existing)
         return existing
 
     def create_achievements_bulk(self, session: Session,
@@ -96,13 +96,14 @@ class PlayerAchievementRepository(BaseDBRepository[UserAchievement, AchievementC
                     skipped.append(achievement_data)
             else:
                 new_achievement = UserAchievement(**achievement_data.model_dump())
-                session.add(new_achievement)
+                # session.add(new_achievement)
                 created.append(new_achievement)
 
-        session.commit()
-
-        for item in created + updated:
-            session.refresh(item)
+        session.add_all(created)
+        # session.commit()
+        #
+        # for item in created + updated:
+        #     session.refresh(item)
 
         return {
             'created': created,

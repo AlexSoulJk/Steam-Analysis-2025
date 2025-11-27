@@ -69,8 +69,8 @@ class PlayerPlaytimeRepository(BaseDBRepository[UserPlaytime, PlaytimeCreate, An
             existing = UserPlaytime(**playtime_create.model_dump())
             session.add(existing)
 
-        session.commit()
-        session.refresh(existing)
+        # session.commit()
+        # session.refresh(existing)
         return existing
 
     def create_playtimes_bulk(self, session: Session,
@@ -117,14 +117,16 @@ class PlayerPlaytimeRepository(BaseDBRepository[UserPlaytime, PlaytimeCreate, An
             else:
                 # Создаем новую запись
                 new_playtime = UserPlaytime(**playtime_data.model_dump())
-                session.add(new_playtime)
+                # session.add(new_playtime)
                 created_playtimes.append(new_playtime)
 
-        session.commit()
+        if created_playtimes:
+            session.add_all(created_playtimes)
 
+        # session.commit()
         # Обновляем объекты чтобы получить ID
-        for playtime in created_playtimes + updated_playtimes:
-            session.refresh(playtime)
+        # for playtime in created_playtimes + updated_playtimes:
+        #     session.refresh(playtime)
 
         return {
             'created': created_playtimes,
