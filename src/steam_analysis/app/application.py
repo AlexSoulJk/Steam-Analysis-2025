@@ -74,12 +74,9 @@ class AppMediator:
 
     def create_user(self,
                     chunk_size: int = 25):
-
-        # Сначала протестируй что работают 2 строчки
         chunk_for_create = self.analysis_service.get_next_pending_user_chunk_by_service(self.processor_name)
         fill_user_butch = self.steam_facade.get_player_data_bunch(chunk_for_create)
 
-        # Затем что сохраняется все. По идее не должно зависеть от схемы
         default_saver.save_fill_player_butch(fill_user_butch)
         # Тут можешь коментить первые 2 строчки и вытаскивать сериализованный чанк. Только путь поменяй к json на тот что у тебя получится
         # fill_user_butch = default_loader.load_fill_user_batch(filename="players_20251020_100.json")
@@ -105,11 +102,32 @@ class AppMediator:
         default_saver.save_fill_game_timed_data(fill_butch)
         pass
 
-    def create_player_butch(self, steam_ids: List[str]):
-        fill_butch = self.steam_facade.get_player_data_bunch(steam_ids)
-        default_saver.save_fill_player_butch(fill_butch)
+    def create_user_game(self,
+                         chunk_size: int = 25):
 
-    def create_player_game_butch(self, steam_ids: List[str]):
-        fill_butch = self.steam_facade.get_player_time_data_bunch(steam_ids)
-        default_saver.save_fill_player_game_butch(fill_butch)
+        # Другой статус проверить? Типа rogress и ставить для пользователей in_progress??
+        chunk_for_create = self.analysis_service.get_next_pending_user_chunk_by_service(self.processor_name)
+        fill_user_butch = self.steam_facade.get_player_game_data_bunch(chunk_for_create)
+
+        # Затем что сохраняется все. По идее не должно зависеть от схемы
+        default_saver.save_fill_player_game_butch(fill_user_butch)
+        # Тут можешь коментить первые 2 строчки и вытаскивать сериализованный чанк. Только путь поменяй к json на тот что у тебя получится
+        # fill_user_butch = default_loader.load_fill_user_batch(filename="players_20251020_100.json")
+        # users_ids = self.database_facade.create_users(fill_butch.data_chunk)
+
+        # Тут вот ща лежит вызов твоего метода
+        response = self.database_facade.create_players_game_relations(fill_user_butch.data_chunk)
+        # # Завершаем чанк
+        # Этот метод должен работать. Если нет, то обязательно пиши!
+        self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
+        # ЭТО НУЖНО РЕАЛИЗОВАТЬ не тебе) Так что проверь только что response c database_facade летит как надо!
+        # self.analysis_service.update_info_after_user_creation(response)
+
+    # def create_player_butch(self, steam_ids: List[str]):
+    #     fill_butch = self.steam_facade.get_player_data_bunch(steam_ids)
+    #     default_saver.save_fill_player_butch(fill_butch)
+    #
+    # def create_player_game_butch(self, steam_ids: List[str]):
+    #     fill_butch = self.steam_facade.get_player_time_data_bunch(steam_ids)
+    #     default_saver.save_fill_player_game_butch(fill_butch)
     # endregion

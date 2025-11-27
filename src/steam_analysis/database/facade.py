@@ -9,7 +9,7 @@ from steam_analysis.core.schemas.player.playergame import OwnershipHttp, Achieve
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate, SchemaCreate
 
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate
-from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate
+from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate, PlayerGameDataAnalysisCreate
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.models import Game, GameGenre, GameCategory, GamePlatform
 from steam_analysis.database.repositories import GameRepository
@@ -51,6 +51,7 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+        db.commit()
     except Exception as e:
         print(e)
         db.rollback()
@@ -118,37 +119,54 @@ class DbFacade:
                                                                       players=players,
                                                                       session=session)
 
-            session.commit()
-            for player in players:
-                session.refresh(player)
+            session.flush()
             return no_created_friends
 
-    def create_ownerships(self, ownerships_chunk: List[Optional[OwnershipHttp]]):
+    def create_players_game_relations(self, players_info_chunk: List[Optional[PlayerGameDataAnalysisCreate]]):
+        # Фильтруем None значения
+        valid_players_data = [player_data for player_data in players_info_chunk if player_data is not None]
+
+        if not valid_players_data:
+            return
+
         with get_db() as session:
-            no_created_ownership, no_created_players, no_created_games = self.player_game_relations_creation.\
-                create_connections_ownership(session=session, ownership_data=ownerships_chunk)
+            try:
+                # Подготавливаем данные для пакетной обработки
+                all_ownerships = []
+                all_playtimes = []
+                all_achievements = []
 
-            session.commit()
-            # session.refresh()
-            return no_created_ownership, no_created_players, no_created_games
+                for player_data in valid_players_data:
+                    all_ownerships.extend(player_data.owned_games)
+                    all_playtimes.extend(player_data.playtimes)
+                    all_achievements.extend(player_data.achievements)
 
-    def create_achievements(self, achievements_chunk: List[Optional[AchievementHttp]]):
-        with get_db() as session:
-            no_created_achievements, no_created_players, no_created_games = self.player_game_relations_creation.\
-                create_connections_achievements(session=session, achievements_data=achievements_chunk)
+                # Создаем записи о владении играми
+                self.create_ownerships(all_ownerships, session)
+                # Создаем записи о времени игры
+                self.create_playtimes(all_playtimes, session)
+                # Создаем записи о достижениях
+                self.create_achievements(all_achievements, session)
 
-            session.commit()
-            # session.refresh()
-            return no_created_achievements, no_created_players, no_created_games
+            except Exception as e:
+                raise
 
-    def create_playtimes(self, playtimes_chunk: List[Optional[PlaytimeHttp]]):
-        with get_db() as session:
-            no_created_playtimes, no_created_players, no_created_games = self.player_game_relations_creation.\
-                create_connections_playtimes(session=session, playtimes_data=playtimes_chunk)
+    def create_ownerships(self, ownerships_chunk: List[Optional[OwnershipHttp]], session: Session):
+        no_created_ownership, no_created_players, no_created_games = self.player_game_relations_creation. \
+            create_connections_ownership(session=session, ownership_data=ownerships_chunk)
 
-            session.commit()
-            # session.refresh()
-            return no_created_playtimes, no_created_players, no_created_games
+        return no_created_ownership, no_created_players, no_created_games
+
+    def create_achievements(self, achievements_chunk: List[Optional[AchievementHttp]], session: Session):
+        no_created_achievements, no_created_players, no_created_games = self.player_game_relations_creation. \
+            create_connections_achievements(session=session, achievements_data=achievements_chunk)
+
+        return no_created_achievements, no_created_players, no_created_games
+
+    def create_playtimes(self, playtimes_chunk: List[Optional[PlaytimeHttp]], session: Session):
+        no_created_playtimes, no_created_players, no_created_games = self.player_game_relations_creation. \
+            create_connections_playtimes(session=session, playtimes_data=playtimes_chunk)
+        return no_created_playtimes, no_created_players, no_created_games
 
     def create_reviews(self, reviews_chunk: List[Optional[ReviewHttp]]):
         with get_db() as session:
