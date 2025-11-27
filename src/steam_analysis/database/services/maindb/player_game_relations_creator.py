@@ -10,6 +10,7 @@ from steam_analysis.database.models import (
 from steam_analysis.core.schemas.player.player import FriendCreate
 from steam_analysis.core.schemas.player.playergame import OwnershipHttp, OwnershipCreate, \
     PlaytimeHttp, PlaytimeCreate, AchievementHttp, AchievementCreate, ReviewHttp, ReviewCreate
+from steam_analysis.database.models import Achievement
 from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate
 from steam_analysis.database.support_models.player_creation import PreparedForPlayerCreation
 from steam_analysis.database.repositories import (
@@ -32,7 +33,7 @@ class PlayerGameRelationsCreationService:
         self.achievement_repos = PlayerAchievementRepository()
         self.review_repos = ReviewRepository()
 
-    def __check_user_game_created(self, data_list, session) ->\
+    def __check_user_game_created(self, data_list, session) -> \
             Tuple[Dict[str, int], Dict[str, int], List[str], List[str]]:
 
         unique_steam_ids = list({data.steam_id for data in data_list})
@@ -88,10 +89,15 @@ class PlayerGameRelationsCreationService:
             if data.steam_id in no_created_players or data.app_id in no_created_games:
                 no_created.append(data)
                 continue
+
+            achievement = session.query(Achievement).filter(
+                Achievement.game_id == games_ids[data.app_id],
+                Achievement.name == data.apiname).first()
+
             achievements.append(AchievementCreate(
                 user_id=players_ids[data.steam_id],
                 game_id=games_ids[data.app_id],
-                achievement_id=0,  # как получить-> нужен repo для achievments который отдельный от пользователей
+                achievement_id=achievement.id,
                 achieved=data.achieved,
                 unlock_time=data.unlock_time,
                 unlock_timestamp=data.unlock_timestamp,
@@ -136,7 +142,7 @@ class PlayerGameRelationsCreationService:
             reviews.append(ReviewCreate(
                 user_id=players_ids[data.steam_id],
                 game_id=games_ids[data.app_id],
-                recommendation_id=0, # как взять??
+                recommendation_id=0,  # как взять??
                 steam_id=data.steam_id,
                 language=data.language,
                 review=data.review,

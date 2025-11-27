@@ -75,7 +75,7 @@ class AchievementCreate(AchievementBase):
 
 class AchievementHttp(PlayerGameRelation, AchievementCore):
     """Базовая модель достижения"""
-    pass
+    apiname: str
 
 
 class ReviewCore(BaseSchema):
