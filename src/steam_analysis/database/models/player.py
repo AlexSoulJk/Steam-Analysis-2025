@@ -20,7 +20,7 @@ class User(BaseModel):
 
     loccountrycode = Column(String(500), nullable=True)
     locstatecode = Column(String(500), nullable=True)
-    loccityid = Column(String(500), nullable=True)
+    loccityid = Column(Integer, nullable=True)
 
     game_ownership = relationship("UserGameOwnership", back_populates="user", cascade="all, delete-orphan")
     playtime = relationship("UserPlaytime", back_populates="user", cascade="all, delete-orphan")

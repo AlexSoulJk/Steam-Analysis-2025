@@ -29,6 +29,9 @@ class PlayerBase(BaseSchema):
     time_created: Optional[datetime] = None
     community_visibility_state: Optional[CommunityVisibilityState] = None
     steam_level: Optional[int] = Field(None, ge=0)
+    loccountrycode: Optional[str] = None
+    locstatecode: Optional[str] = None
+    loccityid: Optional[int] = None
 
 
 class SteamUserDynamic(BaseSchema):
@@ -39,9 +42,6 @@ class SteamUserDynamic(BaseSchema):
 class PlayerFromHttp(PlayerBase):
     """Игрок с данными из Steam API"""
     last_logoff: Optional[datetime] = None
-    loccountrycode: Optional[str] = None
-    locstatecode: Optional[str] = None
-    loccityid: Optional[int] = None
 
 
 class PlayerCreate(PlayerBase):

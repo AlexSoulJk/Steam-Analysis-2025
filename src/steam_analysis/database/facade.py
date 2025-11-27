@@ -108,7 +108,7 @@ class DbFacade:
     # endregion
 
     # for players
-    def create_players(self, players_info_chunk: List[Optional[PlayerDataAnalysisCreate]]):
+    def create_players(self, players_info_chunk: List[Optional[PlayerDataAnalysisCreate]]) -> List[str]:
         with get_db() as session:
             no_created_friends, players, prep_info, dict_without_nons = self.player_creation.create_chunk_players(
                 players_info_chunk,

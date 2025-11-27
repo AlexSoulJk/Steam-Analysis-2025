@@ -23,10 +23,6 @@ class SchemaMorpher:
         res = []
         for player in players:
             player_data = player.model_dump()
-            player_data.pop('loccountrycode', None)
-            player_data.pop('locstatecode', None)
-            player_data.pop('loccityid', None)
-
             res.append(PlayerCreate(**player_data))
 
         return res

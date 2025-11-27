@@ -105,7 +105,6 @@ class AppMediator:
     def create_user_game(self,
                          chunk_size: int = 25):
 
-        # Другой статус проверить? Типа rogress и ставить для пользователей in_progress??
         chunk_for_create = self.analysis_service.get_next_pending_user_chunk_by_service(self.processor_name)
         fill_user_butch = self.steam_facade.get_player_game_data_bunch(chunk_for_create)
 
