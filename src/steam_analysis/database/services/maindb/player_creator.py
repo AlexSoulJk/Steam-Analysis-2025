@@ -2,6 +2,7 @@ from typing import Optional, List, Tuple, Dict, Any
 from sqlalchemy.orm import Session
 
 from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate
+from steam_analysis.core.schemas.player.player import PlayerFromHttp
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.models import User
 from steam_analysis.database.repositories import (

@@ -71,6 +71,7 @@ class UserAnalysisChunkCreate(BaseSchema):
     chunk_size: int = Field(25, ge=1, le=100)
     # user_ids: Optional[List[int]] = None
 
+
 class UserAnalysisChunkForResponse(BaseSchema):
     id: int = Field(..., ge=1)
     status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle_success)$")
