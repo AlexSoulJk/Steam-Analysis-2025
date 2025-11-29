@@ -33,9 +33,6 @@ class PriceHistory(BaseModel):
     price_final= Column(Integer)
     price_initial = Column(Integer)
     discount_percent = Column(Integer, default=0)
-    price_original = Column(Integer)
-    purchase_available = Column(Boolean, default=True)
-    package_id = Column(Integer)
 
     game = relationship("Game", back_populates="prices")
 
