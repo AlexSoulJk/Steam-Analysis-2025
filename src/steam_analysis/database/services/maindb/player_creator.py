@@ -30,7 +30,8 @@ class PlayerCreationService:
                 if friend:
                     friends_prep[x.player.steam_id].append(friend)
                 else:
-                    no_created_friends.append(friend_name)
+                    if friend_name not in no_created_friends:
+                        no_created_friends.append(friend_name)
 
         return PreparedForPlayerCreation(friends=friends_prep), no_created_friends
 

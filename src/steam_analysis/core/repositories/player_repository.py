@@ -37,7 +37,7 @@ class PlayerRepository(BaseRepository):
         """Получить информацию по списку SteamID игроков"""
         butch_size = 30
         all_amount = len(steam_ids)
-        len_butches = all_amount // butch_size
+        len_butches = max(1, all_amount // butch_size)
         players = []
         print(all_amount, len_butches)
         for index in range(len_butches):
@@ -47,15 +47,6 @@ class PlayerRepository(BaseRepository):
             data = self.http_client.get(url, params=params)
             part_players = data.get('response', {}).get('players', [])
             players.extend(part_players)
-
-        return players if players else None
-
-    def get_by_list_ids(self, steam_ids: list[str]) -> Optional[List[Any]]:
-        """Получить информацию по списку SteamID игроков"""
-        url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUser}/GetPlayerSummaries/v2/"
-        params = {'key': self.api_key, 'steamids': ','.join(steam_ids)}
-        data = self.http_client.get(url, params=params)
-        players = data.get('response', {}).get('players', [])
 
         return players if players else None
 
@@ -168,7 +159,7 @@ class PlayerRepository(BaseRepository):
             steam_ids = [str(user.steam_id) for user in users_for_response]
 
             # Массово получаем данные профилей
-            profiles_data = self.get_by_list_ids(steam_ids) or []
+            profiles_data = self.get_by_ids(steam_ids) or []
 
             # Создаем словарь для быстрого доступа к данным по steam_id
             profiles_dict = {profile['steamid']: profile for profile in profiles_data}
@@ -301,7 +292,7 @@ class PlayerRepository(BaseRepository):
                 status = "null_state"
                 logger.warning(f"\n ❗️ {error_log_message}")
             else:
-                status = "particle"  #или другой статус??
+                status = "success"
                 # Получаем дополнительные данные по играм пользователя
                 request_model = self._parse_player_game_data(steam_id)
 

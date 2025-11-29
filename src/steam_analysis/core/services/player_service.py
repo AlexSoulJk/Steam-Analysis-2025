@@ -151,7 +151,7 @@ class PlayerService:
             started_at=start_time,
             finished_at=finished_at,
             error_log=chunk_error_log,
-            status="particle_success"  # или success?? (но есть ещё review и когда мы их собираем??)
+            status="success"
         )
 
         return FillPlayerGameSchemaChunk(
