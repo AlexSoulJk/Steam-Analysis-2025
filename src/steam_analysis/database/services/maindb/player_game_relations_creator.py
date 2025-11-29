@@ -1,5 +1,5 @@
 # player_relations_creator.py
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
@@ -11,7 +11,7 @@ from steam_analysis.core.schemas.player.player import FriendCreate
 from steam_analysis.core.schemas.player.playergame import OwnershipHttp, OwnershipCreate, \
     PlaytimeHttp, PlaytimeCreate, AchievementHttp, AchievementCreate, ReviewHttp, ReviewCreate
 from steam_analysis.database.models import Achievement
-from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate
+from steam_analysis.core.schemas.player.service import PlayerGameDataAnalysisCreate
 from steam_analysis.database.support_models.player_creation import PreparedForPlayerCreation
 from steam_analysis.database.repositories import (
     PlayerRepository,
@@ -60,6 +60,95 @@ class PlayerGameRelationsCreationService:
 
         return players_id, games_id, no_created_players, no_created_games
 
+    def create_connections(self, players_info_chunk: List[Optional[PlayerGameDataAnalysisCreate]], session: Session):
+        valid_players_data = [player_data for player_data in players_info_chunk if player_data is not None]
+
+        if not valid_players_data:
+            return
+
+        all_owned = []
+
+        for data in valid_players_data:
+            if data is None:
+                continue
+            for owned in data.owned_games:
+                all_owned.append(owned)
+
+        players_ids, games_ids, no_created_players, no_created_games = \
+            self.__check_user_game_created(all_owned, session)
+
+        no_success_players = []
+
+        ownerships = []
+        playtimes = []
+        achievements = []
+
+        for player_data in valid_players_data:
+            for data in player_data.owned_games:
+                if data.steam_id in no_created_players:
+                    continue
+
+                if data.app_id in no_created_games:
+                    if data.steam_id not in no_success_players:
+                        no_success_players.append(data.steam_id)
+                    continue
+
+                if data is None:
+                    continue
+
+                ownerships.append(OwnershipCreate(
+                    user_id=players_ids[data.steam_id],
+                    game_id=games_ids[data.app_id]
+                ))
+
+            for data in player_data.playtimes:
+                if data.steam_id in no_created_players:
+                    continue
+
+                if data.app_id in no_created_games:
+                    if data.steam_id not in no_success_players:
+                        no_success_players.append(data.steam_id)
+                    continue
+                playtimes.append(PlaytimeCreate(
+                    user_id=players_ids[data.steam_id],
+                    game_id=games_ids[data.app_id],
+                    playtime_forever=data.playtime_forever,
+                    playtime_2weeks=data.playtime_2weeks,
+                    last_played=data.last_played,
+                ))
+
+            # for data in player_data.achievements:
+            #     if data.steam_id in no_created_players:
+            #         continue
+            #
+            #     if data.app_id in no_created_games:
+            #         if data.steam_id not in no_success_players:
+            #             no_success_players.append(data.steam_id)
+            #         continue
+            #
+            #     achievement = session.query(Achievement).filter(
+            #         Achievement.game_id == games_ids[data.app_id],
+            #         Achievement.name == data.apiname).first()
+            #
+            #     if achievement is None:
+            #         no_success_players.append(player_data.steam_id)
+            #         continue
+            #
+            #     achievements.append(AchievementCreate(
+            #         user_id=players_ids[data.steam_id],
+            #         game_id=games_ids[data.app_id],
+            #         achievement_id=achievement.id,
+            #         achieved=data.achieved,
+            #         unlock_time=data.unlock_time,
+            #         unlock_timestamp=data.unlock_timestamp,
+            #     ))
+
+        self.ownership_repos.create_ownerships_bulk(session=session, ownerships_data=ownerships)
+        self.playtime_repos.create_playtimes_bulk(session=session, playtimes_data=playtimes)
+        # self.achievement_repos.create_achievements_bulk(session=session, achievements_data=achievements)
+
+        return no_created_players, no_created_games, no_success_players
+
     def create_connections_ownership(self, ownership_data: List[OwnershipHttp], session: Session):
         players_ids, games_ids, no_created_players, no_created_games = \
             self.__check_user_game_created(ownership_data, session)
@@ -93,6 +182,9 @@ class PlayerGameRelationsCreationService:
             achievement = session.query(Achievement).filter(
                 Achievement.game_id == games_ids[data.app_id],
                 Achievement.name == data.apiname).first()
+
+            if achievement is None:
+                continue
 
             achievements.append(AchievementCreate(
                 user_id=players_ids[data.steam_id],

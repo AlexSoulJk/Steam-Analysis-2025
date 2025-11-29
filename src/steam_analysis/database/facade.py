@@ -124,29 +124,10 @@ class DbFacade:
 
     def create_players_game_relations(self, players_info_chunk: List[Optional[PlayerGameDataAnalysisCreate]]):
         # Фильтруем None значения
-        valid_players_data = [player_data for player_data in players_info_chunk if player_data is not None]
-
-        if not valid_players_data:
-            return
-
         with get_db() as session:
             try:
-                # Подготавливаем данные для пакетной обработки
-                all_ownerships = []
-                all_playtimes = []
-                all_achievements = []
-
-                for player_data in valid_players_data:
-                    all_ownerships.extend(player_data.owned_games)
-                    all_playtimes.extend(player_data.playtimes)
-                    all_achievements.extend(player_data.achievements)
-
-                # Создаем записи о владении играми
-                self.create_ownerships(all_ownerships, session)
-                # Создаем записи о времени игры
-                self.create_playtimes(all_playtimes, session)
-                # Создаем записи о достижениях
-                self.create_achievements(all_achievements, session)
+                no_created_players, no_created_games, no_success_players = \
+                    self.player_game_relations_creation.create_connections(players_info_chunk, session)
 
             except Exception as e:
                 raise

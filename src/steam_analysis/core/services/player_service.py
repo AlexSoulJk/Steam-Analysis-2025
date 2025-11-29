@@ -92,7 +92,7 @@ class PlayerService:
         start_time = datetime.datetime.now()
 
         # Получаем данные для каждого пользователя в чанке
-        data_chunk = list(map(self.player_repo.get_player_data, chunk_procession.users))
+        data_chunk = self.player_repo.get_players_data_batch(chunk_procession.users)
 
         finished_at = datetime.datetime.now()
         response_time = finished_at - start_time
@@ -151,7 +151,7 @@ class PlayerService:
             started_at=start_time,
             finished_at=finished_at,
             error_log=chunk_error_log,
-            status="particle_success"
+            status="particle_success"  # или success?? (но есть ещё review и когда мы их собираем??)
         )
 
         return FillPlayerGameSchemaChunk(

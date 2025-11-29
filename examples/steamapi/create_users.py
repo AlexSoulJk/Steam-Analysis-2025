@@ -10,6 +10,7 @@ def main():
     app = AppMediator(steam_api_key=api_key,
                       processor_name="Lo-Lap")
     app.create_user()
+    # app.create_user_game()
 
 
 if __name__ == "__main__":
