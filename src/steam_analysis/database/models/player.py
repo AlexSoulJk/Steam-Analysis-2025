@@ -20,7 +20,7 @@ class User(BaseModel):
 
     loccountrycode = Column(String(500))
     locstatecode = Column(String(500))
-    loccityid = Column(String(500))
+    loccityid = Column(Integer, default=0)
 
     game_ownership = relationship("UserGameOwnership", back_populates="user", cascade="all, delete-orphan")
     playtime = relationship("UserPlaytime", back_populates="user", cascade="all, delete-orphan")
@@ -65,11 +65,14 @@ class Friend(BaseModel):
     __tablename__ = "friends"
 
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    friend_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    friend_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
     status = Column(String(20), default='valid')
 
     user = relationship("User", foreign_keys=[user_id], back_populates="friends")
     friend = relationship("User", foreign_keys=[friend_id])
+
+    user_steamid = Column(String(500))
+    friend_steamid = Column(String(500))
 
     __table_args__ = (
         UniqueConstraint('user_id', 'friend_id', name='uq_friends_pair'),
