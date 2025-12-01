@@ -1,8 +1,8 @@
-"""add location for user
+"""add location to player
 
-Revision ID: af19b06538b4
+Revision ID: 19be8adee673
 Revises: cb0071f8fa50
-Create Date: 2025-11-27 22:01:34.540270
+Create Date: 2025-11-27 20:43:53.189475
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'af19b06538b4'
+revision: str = '19be8adee673'
 down_revision: Union[str, Sequence[str], None] = 'cb0071f8fa50'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,16 +27,16 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.drop_column('achievements', 'unlock_time')
+    op.drop_column('achievements', 'achieved')
+    op.drop_column('achievements', 'global_achievement_rate')
     op.drop_column('achievements', 'icon_gray_url')
     op.drop_column('achievements', 'api_name')
-    op.drop_column('achievements', 'global_achievement_rate')
-    op.drop_column('achievements', 'unlock_time')
     op.drop_column('achievements', 'description')
     op.drop_column('achievements', 'icon_url')
-    op.drop_column('achievements', 'achieved')
     op.add_column('users', sa.Column('loccountrycode', sa.String(length=500), nullable=True))
     op.add_column('users', sa.Column('locstatecode', sa.String(length=500), nullable=True))
-    op.add_column('users', sa.Column('loccityid', sa.Integer(), nullable=True))
+    op.add_column('users', sa.Column('loccityid', sa.String(length=500), nullable=True))
     # ### end Alembic commands ###
 
 
@@ -46,12 +46,12 @@ def downgrade() -> None:
     op.drop_column('users', 'loccityid')
     op.drop_column('users', 'locstatecode')
     op.drop_column('users', 'loccountrycode')
-    op.add_column('achievements', sa.Column('achieved', sa.BOOLEAN(), nullable=True))
     op.add_column('achievements', sa.Column('icon_url', sa.VARCHAR(length=500), nullable=True))
     op.add_column('achievements', sa.Column('description', sa.TEXT(), nullable=True))
-    op.add_column('achievements', sa.Column('unlock_time', sa.DATETIME(), nullable=True))
-    op.add_column('achievements', sa.Column('global_achievement_rate', sa.FLOAT(), nullable=True))
     op.add_column('achievements', sa.Column('api_name', sa.VARCHAR(length=255), nullable=False))
     op.add_column('achievements', sa.Column('icon_gray_url', sa.VARCHAR(length=500), nullable=True))
+    op.add_column('achievements', sa.Column('global_achievement_rate', sa.FLOAT(), nullable=True))
+    op.add_column('achievements', sa.Column('achieved', sa.BOOLEAN(), nullable=True))
+    op.add_column('achievements', sa.Column('unlock_time', sa.DATETIME(), nullable=True))
     op.drop_table('statistics')
     # ### end Alembic commands ###

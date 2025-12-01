@@ -115,11 +115,11 @@ class DbFacade:
                 session)
             session.flush()
 
-            self.player_relations_creation.create_connections_friends(prep_info=prep_info,
-                                                                      players=players,
-                                                                      session=session)
-
-            session.flush()
+            # self.player_relations_creation.create_connections_friends(prep_info=prep_info,
+            #                                                           players=players,
+            #                                                           session=session)
+            #
+            # session.flush()
             return no_created_friends
 
     def create_players_game_relations(self, players_info_chunk: List[Optional[PlayerGameDataAnalysisCreate]]):
