@@ -3,11 +3,11 @@ from typing import Any
 from steam_analysis.core.schemas.base import BaseSchema
 
 
-class GameBySmth(BaseSchema):
+class AbstractGameBy_(BaseSchema):
     values: list[Any]
     ticks: list[Any]
 
 
-class GamesByTypes(BaseSchema):
+class GamesByTypes(AbstractGameBy_):
     values: dict[str, int]
     ticks: list[str]

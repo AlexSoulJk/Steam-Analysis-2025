@@ -6,7 +6,7 @@ from steam_analysis.database.repositories.game.type import TypeRepository
 from steam_analysis.proccessors.schemas.games import GamesByTypes
 
 
-class ClusteringGameProcessor:
+class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С БАЗОЙ И СОБРАЛ ДАННЫЕ ДЛЯ КЛАСТЕРИЗАЦИИ И ОТДАЛ В ПРОВАЙДЕР (ФАСАД)
 
     def __init__(self):
         self.game_repo = GameRepository()
@@ -17,7 +17,8 @@ class ClusteringGameProcessor:
         with get_db() as session:
             types = self.game_type_repo.get_multi(session=session)
             ticks = list(map(lambda x: x.description, types))
-            values = {type.description: self.game_type_repo.count(session=session, filters={"type_id": type.id}) for type in types}
+            values = {type.description: self.game_type_repo.count(session=session, filters={"type_id": type.id})
+                      for type in types}
             ret = GamesByTypes(types=ticks,
                                values=values)
         return ret
