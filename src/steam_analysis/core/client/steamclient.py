@@ -55,6 +55,8 @@ class SteamAnalysisFacade:
         return self.player_service.get_player_data_analysis(chunk_procession)
 
     def get_player_for_steam_analys_filling(self, players_id: list[str]):
+        if not players_id:
+            return None
         tmp = list(set(players_id))
         if len(players_id) != len(tmp): print("Ouch steam_id for players has some duplicates")
         return self.player_service.get_player_for_steam_analys_filling(tmp)

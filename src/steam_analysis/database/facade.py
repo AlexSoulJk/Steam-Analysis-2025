@@ -80,7 +80,7 @@ class DbFacade:
     def create_games(self, games_info_chunk: List[Optional[UserDataAnalysisCreate]]):
         with get_db() as session:
             games, prep_info, dict_without_nons = self.game_creation.create_chunk_games(games_info_chunk,
-                                                                     session)
+                                                                                        session)
 
             self.game_relations_creation.create_connections(prep_info=prep_info,
                                                             dict_without_none=dict_without_nons,
@@ -110,16 +110,17 @@ class DbFacade:
     # for players
     def create_players(self, players_info_chunk: List[Optional[PlayerDataAnalysisCreate]]) -> List[str]:
         with get_db() as session:
-            no_created_friends, players, prep_info, dict_without_nons = self.player_creation.create_chunk_players(
+            players, dict_without_nons = self.player_creation.create_chunk_players(
                 players_info_chunk,
                 session)
             session.flush()
 
-            # self.player_relations_creation.create_connections_friends(prep_info=prep_info,
-            #                                                           players=players,
-            #                                                           session=session)
-            #
-            # session.flush()
+            no_created_friends = self.player_relations_creation.create_connections_friends(
+                data_without_none=dict_without_nons,
+                players=players,
+                session=session)
+
+            session.flush()
             return no_created_friends
 
     def create_players_game_relations(self, players_info_chunk: List[Optional[PlayerGameDataAnalysisCreate]]):
@@ -151,7 +152,7 @@ class DbFacade:
 
     def create_reviews(self, reviews_chunk: List[Optional[ReviewHttp]]):
         with get_db() as session:
-            no_created_reviews, no_created_players, no_created_games = self.player_game_relations_creation.\
+            no_created_reviews, no_created_players, no_created_games = self.player_game_relations_creation. \
                 create_connections_review(session=session, reviews_data=reviews_chunk)
 
             session.commit()

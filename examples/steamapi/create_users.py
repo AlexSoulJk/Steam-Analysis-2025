@@ -8,7 +8,7 @@ from steam_analysis.app.application import AppMediator
 def main():
     api_key = load_api_key()
     app = AppMediator(steam_api_key=api_key,
-                      processor_name="Lo-Lap")
+                      processor_name="AlexSoulJK")
     app.create_user()
     # app.create_user_game()
 

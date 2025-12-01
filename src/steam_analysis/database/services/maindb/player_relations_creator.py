@@ -1,5 +1,5 @@
 # player_relations_creator.py
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
@@ -13,7 +13,8 @@ from steam_analysis.core.schemas.player.playergame import OwnershipHttp, Ownersh
 from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate
 from steam_analysis.database.support_models.player_creation import PreparedForPlayerCreation
 from steam_analysis.database.repositories import (
-    FriendRepository
+    FriendRepository,
+    PlayerRepository
 )
 
 
@@ -21,100 +22,57 @@ class PlayerRelationsCreationService:
 
     def __init__(self):
         self.friend_repos = FriendRepository()
+        self.player_repos = PlayerRepository()
 
-    def _prepare_relations(self, players: List[User],
-                           dict_without_none: Dict[int, PlayerDataAnalysisCreate],
-                           prep_info: PreparedForPlayerCreation):
-        """Подготавливает все связи для создания"""
+    def _prepare_data_for_player_creation(self,
+                                          data_without_none: List[PlayerDataAnalysisCreate],
+                                          session: Session) -> Tuple[PreparedForPlayerCreation, List[str]]:
+        """Подготовить данные для создания игроков"""
+        friends_prep = {}
+        no_created_friends_prep = {}
+        no_created_friends = []
+        for x in data_without_none:
+            friends_prep[x.player.steam_id] = []
+            no_created_friends_prep[x.player.steam_id] = []
+            for friend_name in x.friends:
+                friend = self.player_repos.get_by_steam_id(friend_name, session)
+                if friend:
+                    friends_prep[x.player.steam_id].append(friend)
+                else:
+                    no_created_friends_prep[x.player.steam_id].append(friend_name)
+                    if friend_name not in no_created_friends:
+                        no_created_friends.append(friend_name)
 
-        friends = []
-        # playtimes = []
-        # ownerships = []
-        # achievements = []
-        # reviews = []
+        return PreparedForPlayerCreation(friends=friends_prep, no_created_friends=no_created_friends_prep), \
+            no_created_friends
 
-        for player in players:
-            data = prep_info.friends[player.steam_id]
-
-            # Подготовка друзей
-            for friend_create in data:
-                # Создаем уникальный ключ для проверки существования ???
-                friends.append(FriendCreate(
-                    user_id=player.id,
-                    friend_id=friend_create.id
-                ))
-
-            # # Подготовка времени игры
-            # for playtime_create in data.playtimes:
-            #     playtime_key = f"{player.id}_{playtime_create.game_id}"
-            #     if playtime_key not in prep_info.playtimes:
-            #         playtimes.append(UserPlaytime(
-            #             user_id=player.id,
-            #             game_id=playtime_create.game_id,
-            #             playtime_forever=playtime_create.playtime_forever,
-            #             playtime_2weeks=playtime_create.playtime_2weeks,
-            #             last_played=playtime_create.last_played
-            #         ))
-            #
-            # # Подготовка владения играми
-            # for ownership_create in data.owned_games:
-            #     ownership_key = f"{player.id}_{ownership_create.game_id}"
-            #     if ownership_key not in prep_info.ownerships:
-            #         ownerships.append(UserGameOwnership(
-            #             user_id=player.id,
-            #             game_id=ownership_create.game_id,
-            #             owned=ownership_create.owned
-            #         ))
-            #
-            # # Подготовка достижений
-            # for achievement_create in data.achievements:
-            #     achievement_key = f"{player.id}_{achievement_create.game_id}_{achievement_create.achievement_id}"
-            #     if achievement_key not in prep_info.achievements:
-            #         achievements.append(UserAchievement(
-            #             user_id=player.id,
-            #             game_id=achievement_create.game_id,
-            #             achievement_id=achievement_create.achievement_id,
-            #             achieved=achievement_create.achieved,
-            #             unlock_timestamp=achievement_create.unlock_timestamp,
-            #             unlock_time=achievement_create.unlock_time
-            #         ))
-            #
-            # # Подготовка отзывов
-            # for review_create in data.reviews:
-            #     if review_create.recommendation_id not in prep_info.reviews:
-            #         reviews.append(Review(
-            #             game_id=review_create.game_id,
-            #             user_id=player.id,
-            #             recommendation_id=review_create.recommendation_id,
-            #             steam_id=review_create.steam_id,
-            #             language=review_create.language,
-            #             review=review_create.review,
-            #             timestamp_created=review_create.timestamp_created,
-            #             timestamp_updated=review_create.timestamp_updated,
-            #             voted_up=review_create.voted_up,
-            #             votes_up=review_create.votes_up,
-            #             votes_funny=review_create.votes_funny,
-            #             weighted_vote_score=review_create.weighted_vote_score,
-            #             comment_count=review_create.comment_count,
-            #             steam_purchase=review_create.steam_purchase,
-            #             received_for_free=review_create.received_for_free,
-            #             written_during_early_access=review_create.written_during_early_access,
-            #             primarily_steam_deck=review_create.primarily_steam_deck
-            #         ))
-
-        return friends
-
-    def create_connections_friends(self, prep_info: PreparedForPlayerCreation,
+    def create_connections_friends(self, data_without_none,
                                    players: List[User],
                                    session: Session):
+
+        # Подготавливаем и создаем данные
+        prep_info, no_created_friends = self._prepare_data_for_player_creation(
+            data_without_none=data_without_none,
+            session=session
+        )
+
         """Создает связи с друзьями для пользователей"""
         friends = []
+        friendships = []
+        without_friends = []
 
         for player in players:
             data = prep_info.friends[player.steam_id]
 
             # Подготовка друзей
             for friend_create in data:
+                if (player.steam_id, friend_create.steam_id) in friendships or \
+                        (friend_create.steam_id, player.steam_id) in friendships:
+                    continue
+
+                friendships.append((player.steam_id, friend_create.steam_id))
+                friendships.append((friend_create.steam_id, player.steam_id))
+
                 friends.append(FriendCreate(
                     user_id=player.id,
                     user_steamid=player.steam_id,
@@ -127,11 +85,18 @@ class PlayerRelationsCreationService:
                 friends.append(FriendCreate(
                     user_id=player.id,
                     user_steamid=player.steam_id,
-                    friend_steamid=friend_data.steam_id,
+                    friend_steamid=friend_data,
                     status=FriendStatus.INVALID
                 ))
 
-        self.friend_repos.create_friends_bulk(session=session, friends_create=friends)
+            if not data and not no_created_data:
+                without_friends.append(player)
+
+        self.friend_repos.create_friends_bulk(session=session,
+                                              friends_create=friends,
+                                              without_friends=without_friends)
+
+        return no_created_friends
 
     def _filter_existing_relations(self, session, model, relations, unique_fields):
         """Фильтрует существующие связи массово - улучшенная версия"""

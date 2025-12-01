@@ -107,37 +107,71 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
         if not steamid_pairs:
             return {}
 
-        # Используем OR для проверки в обе стороны
-        conditions = []
-        for user_steamid, friend_steamid in steamid_pairs:
-            conditions.append(
-                (self.model.user_steamid == user_steamid) &
-                (self.model.friend_steamid == friend_steamid)
-            )
+        try:
+            # Используем временную таблицу или подход с пакетной обработкой
+            existing = []
 
-        query = session.query(self.model).filter(or_(*conditions))
-        existing = query.all()
+            # Разбиваем на пакеты по 500 пар (чтобы избежать лимита SQLite)
+            batch_size = 500
+            for i in range(0, len(steamid_pairs), batch_size):
+                batch = steamid_pairs[i:i + batch_size]
 
-        # Создаем словарь для быстрого поиска
-        result = {}
-        for friendship in existing:
-            key = (friendship.user_steamid, friendship.friend_steamid)
-            result[key] = friendship
+                conditions = []
+                for user_steamid, friend_steamid in batch:
+                    conditions.append(
+                        and_(
+                            Friend.user_steamid == str(user_steamid),
+                            Friend.friend_steamid == str(friend_steamid)
+                        )
+                    )
 
-        return result
+                if conditions:
+                    batch_existing = session.query(Friend).filter(or_(*conditions)).all()
+                    existing.extend(batch_existing)
+
+            # Создаем словарь для быстрого поиска
+            result = {}
+            for friendship in existing:
+                key = (friendship.user_steamid, friendship.friend_steamid)
+                result[key] = friendship
+
+            return result
+
+        except Exception as e:
+            print(f"Error in get_existing_friendships_by_steamid: {e}")
+            import traceback
+            traceback.print_exc()
+            return {}
 
     def get_user_by_steamid(self, session: Session, steamid: str):
-        return session.query(User).filter(User.steamid == steamid).first()
+        return session.query(User).filter(User.steam_id == steamid).first()
 
-    def get_existing_user_ids(self, session: Session, user_ids: List[int]) -> set:
+    def get_existing_user_ids(self, session: Session, user_ids: List[str]) -> dict:
         """Получить множество существующих ID пользователей"""
         if not user_ids:
-            return set()
+            return dict()
 
-        query = select(User.id).where(User.id.in_(user_ids))
+        query = select(User.id, User.steam_id).where(User.steam_id.in_(user_ids))
         result = session.execute(query)
-        return {row[0] for row in result}
 
+        return {row.steam_id: row.id for row in result}
+
+    def get_existing_friendship_ids(self, session: Session, user_ids: List[str]) -> dict:
+        """Получить множество существующих ID пользователей"""
+        if not user_ids:
+            return dict()
+
+        query = select(Friend).where(
+            Friend.friend_steamid.in_(user_ids),
+            Friend.status == FriendStatus.INVALID
+        )
+        existing = session.execute(query).scalars().all()
+
+        result = {}
+        for friendship in existing:
+            result[friendship.friend_steamid] = friendship
+
+        return result
     # def create_friends_bulk(self, session: Session,
     #                         friends_create: List[FriendCreate]) -> Dict[str, Any]:
     #     """
@@ -226,11 +260,12 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
     #     }
 
     def create_friends_bulk(self, session: Session,
-                            friends_create: List[FriendCreate]) -> Dict[str, Any]:
+                            friends_create: List[FriendCreate],
+                            without_friends: List[User]) -> Dict[str, Any]:
         """
         Массовое создание связей дружбы из схем с учетом steamid в обе стороны
         """
-        if not friends_create:
+        if not friends_create and not without_friends:
             return {
                 'created': [],
                 'updated': [],
@@ -252,16 +287,16 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
         )
 
         # Получаем существующих пользователей
-        all_user_ids = set()
         all_steamids = set()
+        all_user_steamids = set()
+        dict_all_user_ids = {}
         for fc in friends_create:
-            all_user_ids.add(fc.user_id)
-            if fc.friend_id:
-                all_user_ids.add(fc.friend_id)
-            all_steamids.add(fc.user_steamid)
             all_steamids.add(fc.friend_steamid)
+            all_user_steamids.add(fc.user_steamid)
+            if fc.user_steamid not in dict_all_user_ids:
+                dict_all_user_ids[fc.user_steamid] = fc.user_id
 
-        existing_user_ids = self.get_existing_user_ids(session, list(all_user_ids))
+        existing_user_ids = self.get_existing_user_ids(session, list(all_steamids))
 
         created_friends = []
         updated_friends = []
@@ -279,11 +314,10 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
                 continue
 
             # Определяем финальный статус на основе существования пользователей
-            user_exists = user_id in existing_user_ids
-            friend_exists = friend_id in existing_user_ids if friend_id else False
+            friend_exists = friend_steamid in existing_user_ids if not friend_id else True
 
             # Если friend_id None, но оба пользователя существуют по steamid, статус VALID
-            final_status = FriendStatus.VALID if (user_exists and friend_exists) else FriendStatus.INVALID
+            final_status = FriendStatus.VALID if (user_id and friend_exists) else FriendStatus.INVALID
 
             # Проверяем существование связи по steamid парам (в обе стороны)
             steamid_key_forward = (user_steamid, friend_steamid)
@@ -344,6 +378,10 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
                     existing_friend_reverse.status = final_status.value
                     needs_update = True
 
+                if existing_friend_reverse.friend_id is None and user_id is not None:
+                    existing_friend_reverse.friend_id = user_id
+                    needs_update = True
+
                 if needs_update:
                     updated_friends.append(existing_friend_reverse)
                 else:
@@ -357,7 +395,29 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
                 new_friend = Friend(**friend_data)
                 created_friends.append(new_friend)
 
-        session.add_all(created_friends)
+        without_friends_steamids = [friend.steam_id for friend in without_friends]
+        existing_friends_for_with = self.get_existing_friendship_ids(session, without_friends_steamids)
+        for user in without_friends:
+            existing_friend = existing_friends_for_with.get(user.steam_id)
+            if not existing_friend:
+                continue
+            existing_friend.friend_id = user.id
+            existing_friend.status = FriendStatus.VALID
+            updated_friends.append(existing_friend)
+
+        if created_friends:
+            session.add_all(created_friends)
+            session.flush()
+
+        existing_friends_for_with = self.get_existing_friendship_ids(session, list(all_user_steamids))
+
+        for fc in dict_all_user_ids:
+            existing_friend = existing_friends_for_with.get(fc)
+            if not existing_friend:
+                continue
+            existing_friend.friend_id = dict_all_user_ids[fc]
+            existing_friend.status = FriendStatus.VALID
+            updated_friends.append(existing_friend)
 
         return {
             'created': created_friends,

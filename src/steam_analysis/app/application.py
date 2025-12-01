@@ -79,7 +79,7 @@ class AppMediator:
 
         default_saver.save_fill_player_butch(fill_user_butch)
         # Тут можешь коментить первые 2 строчки и вытаскивать сериализованный чанк. Только путь поменяй к json на тот что у тебя получится
-        # fill_user_butch = default_loader.load_fill_user_batch(filename="players_20251020_100.json")
+        # fill_user_butch = default_loader.load_fill_user_batch(filename="players_20251201_25.json")
         # users_ids = self.database_facade.create_users(fill_butch.data_chunk)
 
         # Тут вот ща лежит вызов твоего метода
@@ -89,7 +89,8 @@ class AppMediator:
         self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
         # ЭТО НУЖНО РЕАЛИЗОВАТЬ не тебе) Так что проверь только что response c database_facade летит как надо!
         data_for_create = self.steam_facade.get_player_for_steam_analys_filling(response)
-        self.analysis_service.create_user_chunk_by_service(data_for_create, processor_name=self.processor_name)
+        if data_for_create:
+            self.analysis_service.create_user_chunk_by_service(data_for_create, processor_name=self.processor_name)
 
     def create_time_game_butch(self):
         with open('test_data/games_30_130_20251006.json', 'r', encoding='utf-8') as f:
