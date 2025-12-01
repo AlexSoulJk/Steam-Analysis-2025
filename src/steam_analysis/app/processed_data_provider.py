@@ -5,16 +5,17 @@ from steam_analysis.proccessors.clustering_game_proccessor import ClusteringGame
 class ProcessedDataProvider: # типа фасад
 
     def __init__(self):
-        self.database_facade = DbFacade()
+        # Services that process data
         self.clustering_game_proccesor = ClusteringGameProcessor()
 
     # region Providing data for simple-visualisation
     def get_games_by_categories(self):
-        data = self.database_facade.get_games_by_categories()
-        return data
+        return self.clustering_game_proccesor.get_games_by_types()
+
+    def get_games_by_types(self):
+        pass
 
     def get_games_by_genres(self):
-        data = self.database_facade.get_games_by_genres()
-        return data
+        pass
 
     # endregion
