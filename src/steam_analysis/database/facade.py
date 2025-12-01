@@ -1,3 +1,4 @@
+import logging
 import os
 from operator import or_
 from typing import Dict, List, Optional
@@ -10,6 +11,7 @@ from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, User
 
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate
 from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate, PlayerGameDataAnalysisCreate
+from steam_analysis.core.services.fastlogger import setup_logger
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.models import Game, GameGenre, GameCategory, GamePlatform
 from steam_analysis.database.repositories import GameRepository
@@ -44,7 +46,8 @@ from steam_analysis.database.services.maindb.player_game_relations_creator impor
 engine = create_engine(f"sqlite:///{db_path}")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-
+# Использование
+logger = setup_logger("steam_analys")
 @contextmanager
 def get_db():
     """Простой контекстный менеджер"""
@@ -53,6 +56,7 @@ def get_db():
         yield db
         db.commit()
     except Exception as e:
+        logger.error(str(e))
         print(e)
         db.rollback()
     finally:

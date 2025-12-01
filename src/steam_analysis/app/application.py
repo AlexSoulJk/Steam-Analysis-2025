@@ -24,6 +24,7 @@ class AppMediator:
         self.game_analysis_creator = GameAnalysisCreator()
         self.user_analysis_creator = UserAnalysisCreator()
         self.resource_manager = ResourceManager()
+        self.steam_api_key = steam_api_key
 
     # region Fill analysis-db.db
 
@@ -50,7 +51,7 @@ class AppMediator:
         # Получаем данные через Steam API
         fill_butch = self.steam_facade.get_game_analysis_list(chunk_for_create)
         # Сохранение chunk игр в JSON
-        default_saver.save_fill_game_batch(fill_butch)
+        # default_saver.save_fill_game_batch(fill_butch)
         # Load chunk from JSON
         # fill_butch = default_loader.load_fill_game_batch(filename="games_chunk_2025110306.json")
         self.database_facade.create_games(fill_butch.data_chunk)
