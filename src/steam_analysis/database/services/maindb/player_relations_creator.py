@@ -7,7 +7,7 @@ from steam_analysis.database.models import (
     User, Friend, UserPlaytime, UserGameOwnership,
     UserAchievement, Review
 )
-from steam_analysis.core.schemas.player.player import FriendCreate
+from steam_analysis.core.schemas.player.player import FriendCreate, FriendStatus
 from steam_analysis.core.schemas.player.playergame import OwnershipHttp, OwnershipCreate, \
     PlaytimeHttp, PlaytimeCreate, AchievementHttp, AchievementCreate, ReviewHttp, ReviewCreate
 from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate
@@ -104,7 +104,7 @@ class PlayerRelationsCreationService:
 
         return friends
 
-    def create_connections_friends(self, prep_info,
+    def create_connections_friends(self, prep_info: PreparedForPlayerCreation,
                                    players: List[User],
                                    session: Session):
         """Создает связи с друзьями для пользователей"""
@@ -117,7 +117,18 @@ class PlayerRelationsCreationService:
             for friend_create in data:
                 friends.append(FriendCreate(
                     user_id=player.id,
-                    friend_id=friend_create.id
+                    user_steamid=player.steam_id,
+                    friend_id=friend_create.id,
+                    friend_steamid=friend_create.steam_id
+                ))
+
+            no_created_data = prep_info.no_created_friends.get(player.steam_id)
+            for friend_data in no_created_data:
+                friends.append(FriendCreate(
+                    user_id=player.id,
+                    user_steamid=player.steam_id,
+                    friend_steamid=friend_data.steam_id,
+                    status=FriendStatus.INVALID
                 ))
 
         self.friend_repos.create_friends_bulk(session=session, friends_create=friends)

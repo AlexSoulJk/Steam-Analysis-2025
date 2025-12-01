@@ -75,7 +75,9 @@ class FriendStatus(str, Enum):
 class FriendBase(BaseSchema):
     """Базовая схема для друга"""
     user_id: int
-    friend_id: int
+    friend_id: Optional[int] = None
+    user_steamid: Optional[str] = None
+    friend_steamid: Optional[str] = None
     status: FriendStatus = Field(default=FriendStatus.VALID)
 
 
@@ -89,7 +91,6 @@ class FriendResponse(FriendBase):
     id: int
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    friend_info: Optional[PlayerResponse] = None
 
 
 class PlayerWithFriends(PlayerResponse):

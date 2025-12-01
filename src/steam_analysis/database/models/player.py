@@ -65,7 +65,10 @@ class Friend(BaseModel):
     __tablename__ = "friends"
 
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    friend_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    friend_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
+    user_steamid = Column(String(500), nullable=True)
+    friend_steamid = Column(String(500), nullable=True)
+
     status = Column(String(20), default='valid')
 
     user = relationship("User", foreign_keys=[user_id], back_populates="friends")

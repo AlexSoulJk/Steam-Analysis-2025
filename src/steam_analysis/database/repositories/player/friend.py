@@ -99,6 +99,36 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
 
         return friendship_map
 
+    def get_existing_friendships_by_steamid(self, session: Session,
+                                            steamid_pairs: List[Tuple[str, str]]) -> Dict[Tuple[str, str], Friend]:
+        """
+        Получить существующие связи дружбы по парам steamid
+        """
+        if not steamid_pairs:
+            return {}
+
+        # Используем OR для проверки в обе стороны
+        conditions = []
+        for user_steamid, friend_steamid in steamid_pairs:
+            conditions.append(
+                (self.model.user_steamid == user_steamid) &
+                (self.model.friend_steamid == friend_steamid)
+            )
+
+        query = session.query(self.model).filter(or_(*conditions))
+        existing = query.all()
+
+        # Создаем словарь для быстрого поиска
+        result = {}
+        for friendship in existing:
+            key = (friendship.user_steamid, friendship.friend_steamid)
+            result[key] = friendship
+
+        return result
+
+    def get_user_by_steamid(self, session: Session, steamid: str):
+        return session.query(User).filter(User.steamid == steamid).first()
+
     def get_existing_user_ids(self, session: Session, user_ids: List[int]) -> set:
         """Получить множество существующих ID пользователей"""
         if not user_ids:
@@ -108,10 +138,97 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
         result = session.execute(query)
         return {row[0] for row in result}
 
+    # def create_friends_bulk(self, session: Session,
+    #                         friends_create: List[FriendCreate]) -> Dict[str, Any]:
+    #     """
+    #     Массовое создание связей дружбы из схем
+    #     """
+    #     if not friends_create:
+    #         return {
+    #             'created': [],
+    #             'updated': [],
+    #             'skipped': [],
+    #             'total_processed': 0,
+    #             'total_created': 0,
+    #             'total_updated': 0
+    #         }
+    #
+    #     # Подготавливаем данные для проверки
+    #     friendship_pairs = [(fc.user_id, fc.friend_id) for fc in friends_create]
+    #     existing_friendships = self.get_existing_friendships(session, friendship_pairs)
+    #
+    #     # Получаем существующих пользователей
+    #     all_user_ids = set()
+    #     for fc in friends_create:
+    #         all_user_ids.add(fc.user_id)
+    #         all_user_ids.add(fc.friend_id)
+    #     existing_user_ids = self.get_existing_user_ids(session, list(all_user_ids))
+    #
+    #     created_friends = []
+    #     updated_friends = []
+    #     skipped_friends = []
+    #
+    #     for friend_create in friends_create:
+    #         user_id = friend_create.user_id
+    #         friend_id = friend_create.friend_id
+    #
+    #         # Проверяем, не пытаемся ли добавить себя в друзья
+    #         if user_id == friend_id:
+    #             skipped_friends.append(friend_create)
+    #             continue
+    #
+    #         # Определяем финальный статус на основе существования пользователей
+    #         both_users_exist = user_id in existing_user_ids and friend_id in existing_user_ids
+    #         final_status = FriendStatus.VALID if both_users_exist else FriendStatus.INVALID
+    #
+    #         # Проверяем существование связи (в обе стороны)
+    #         existing_key_forward = (user_id, friend_id)
+    #         existing_key_reverse = (friend_id, user_id)
+    #
+    #         existing_friend_forward = existing_friendships.get(existing_key_forward)
+    #         existing_friend_reverse = existing_friendships.get(existing_key_reverse)
+    #
+    #         if existing_friend_forward:
+    #             # Связь уже существует в прямом направлении
+    #             if existing_friend_forward.status != final_status.value:
+    #                 existing_friend_forward.status = final_status.value
+    #                 updated_friends.append(existing_friend_forward)
+    #             else:
+    #                 skipped_friends.append(friend_create)
+    #
+    #         elif existing_friend_reverse:
+    #             # Связь существует в обратном направлении - обновляем статус
+    #             existing_friend_reverse.status = final_status.value
+    #             updated_friends.append(existing_friend_reverse)
+    #
+    #         else:
+    #             # Создаем новую связь с финальным статусом используя model_dump()
+    #             friend_data = friend_create.model_dump()
+    #             friend_data['status'] = final_status.value  # Переопределяем статус
+    #
+    #             new_friend = Friend(**friend_data)
+    #             # session.add(new_friend)
+    #             created_friends.append(new_friend)
+    #
+    #     session.add_all(created_friends)
+    #     # session.commit()
+    #     #
+    #     # for friend in created_friends + updated_friends:
+    #     #     session.refresh(friend)
+    #
+    #     return {
+    #         'created': created_friends,
+    #         'updated': updated_friends,
+    #         'skipped': skipped_friends,
+    #         'total_processed': len(friends_create),
+    #         'total_created': len(created_friends),
+    #         'total_updated': len(updated_friends)
+    #     }
+
     def create_friends_bulk(self, session: Session,
                             friends_create: List[FriendCreate]) -> Dict[str, Any]:
         """
-        Массовое создание связей дружбы из схем
+        Массовое создание связей дружбы из схем с учетом steamid в обе стороны
         """
         if not friends_create:
             return {
@@ -123,15 +240,27 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
                 'total_updated': 0
             }
 
-        # Подготавливаем данные для проверки
-        friendship_pairs = [(fc.user_id, fc.friend_id) for fc in friends_create]
-        existing_friendships = self.get_existing_friendships(session, friendship_pairs)
+        # Собираем все steamid для проверки существующих связей
+        steamid_pairs = []
+        for fc in friends_create:
+            steamid_pairs.append((fc.user_steamid, fc.friend_steamid))
+            steamid_pairs.append((fc.friend_steamid, fc.user_steamid))
+
+        # Получаем существующие связи по steamid парам
+        existing_friendships_by_steamid = self.get_existing_friendships_by_steamid(
+            session, steamid_pairs
+        )
 
         # Получаем существующих пользователей
         all_user_ids = set()
+        all_steamids = set()
         for fc in friends_create:
             all_user_ids.add(fc.user_id)
-            all_user_ids.add(fc.friend_id)
+            if fc.friend_id:
+                all_user_ids.add(fc.friend_id)
+            all_steamids.add(fc.user_steamid)
+            all_steamids.add(fc.friend_steamid)
+
         existing_user_ids = self.get_existing_user_ids(session, list(all_user_ids))
 
         created_friends = []
@@ -141,35 +270,84 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
         for friend_create in friends_create:
             user_id = friend_create.user_id
             friend_id = friend_create.friend_id
+            user_steamid = friend_create.user_steamid
+            friend_steamid = friend_create.friend_steamid
 
             # Проверяем, не пытаемся ли добавить себя в друзья
-            if user_id == friend_id:
+            if user_steamid == friend_steamid:
                 skipped_friends.append(friend_create)
                 continue
 
             # Определяем финальный статус на основе существования пользователей
-            both_users_exist = user_id in existing_user_ids and friend_id in existing_user_ids
-            final_status = FriendStatus.VALID if both_users_exist else FriendStatus.INVALID
+            user_exists = user_id in existing_user_ids
+            friend_exists = friend_id in existing_user_ids if friend_id else False
 
-            # Проверяем существование связи (в обе стороны)
-            existing_key_forward = (user_id, friend_id)
-            existing_key_reverse = (friend_id, user_id)
+            # Если friend_id None, но оба пользователя существуют по steamid, статус VALID
+            final_status = FriendStatus.VALID if (user_exists and friend_exists) else FriendStatus.INVALID
 
-            existing_friend_forward = existing_friendships.get(existing_key_forward)
-            existing_friend_reverse = existing_friendships.get(existing_key_reverse)
+            # Проверяем существование связи по steamid парам (в обе стороны)
+            steamid_key_forward = (user_steamid, friend_steamid)
+            steamid_key_reverse = (friend_steamid, user_steamid)
 
+            existing_friend_forward = existing_friendships_by_steamid.get(steamid_key_forward)
+            existing_friend_reverse = existing_friendships_by_steamid.get(steamid_key_reverse)
+
+            # НОВАЯ ЛОГИКА: Если friend_id None и статус INVALID, но связь существует
+            if friend_id is None and final_status == FriendStatus.INVALID:
+                if existing_friend_forward or existing_friend_reverse:
+                    # Нашли существующую связь, нужно обновить friend_id и статус
+                    existing_friend = existing_friend_forward or existing_friend_reverse
+
+                    # Проверяем, можем ли мы получить friend_id по friend_steamid
+                    # Для этого нужно найти пользователя с friend_steamid
+                    friend_user = self.get_user_by_steamid(session, friend_steamid)
+                    if friend_user:
+                        # Обновляем существующую запись
+                        existing_friend.friend_id = friend_user.id
+                        existing_friend.status = FriendStatus.VALID.value
+                        updated_friends.append(existing_friend)
+                    else:
+                        # Пользователь не найден, оставляем как есть
+                        skipped_friends.append(friend_create)
+                    continue
+
+            # Старая логика обработки (с учетом steamid)
             if existing_friend_forward:
                 # Связь уже существует в прямом направлении
+                needs_update = False
+
+                # Обновляем friend_id если он None
+                if existing_friend_forward.friend_id is None and friend_id is not None:
+                    existing_friend_forward.friend_id = friend_id
+                    needs_update = True
+
+                # Обновляем статус если изменился
                 if existing_friend_forward.status != final_status.value:
                     existing_friend_forward.status = final_status.value
+                    needs_update = True
+
+                if needs_update:
                     updated_friends.append(existing_friend_forward)
                 else:
                     skipped_friends.append(friend_create)
 
             elif existing_friend_reverse:
-                # Связь существует в обратном направлении - обновляем статус
-                existing_friend_reverse.status = final_status.value
-                updated_friends.append(existing_friend_reverse)
+                # Связь существует в обратном направлении
+                needs_update = False
+
+                # В обратной связи роли меняются местами
+                # user_id становится friend_id и наоборот
+                # Здесь логика обновления зависит от бизнес-требований
+
+                # Обновляем статус если изменился
+                if existing_friend_reverse.status != final_status.value:
+                    existing_friend_reverse.status = final_status.value
+                    needs_update = True
+
+                if needs_update:
+                    updated_friends.append(existing_friend_reverse)
+                else:
+                    skipped_friends.append(friend_create)
 
             else:
                 # Создаем новую связь с финальным статусом используя model_dump()
@@ -177,14 +355,9 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
                 friend_data['status'] = final_status.value  # Переопределяем статус
 
                 new_friend = Friend(**friend_data)
-                # session.add(new_friend)
                 created_friends.append(new_friend)
 
         session.add_all(created_friends)
-        # session.commit()
-        #
-        # for friend in created_friends + updated_friends:
-        #     session.refresh(friend)
 
         return {
             'created': created_friends,

@@ -22,6 +22,7 @@ class PlayerCreationService:
                                           session: Session) -> Tuple[PreparedForPlayerCreation, List[str]]:
         """Подготовить данные для создания игроков"""
         friends_prep = {}
+        no_created_friends_prep = {}
         no_created_friends = []
         for x in data_without_none:
             friends_prep[x.player.steam_id] = []
@@ -30,10 +31,12 @@ class PlayerCreationService:
                 if friend:
                     friends_prep[x.player.steam_id].append(friend)
                 else:
+                    no_created_friends_prep[x.player.steam_id].append(friend_name)
                     if friend_name not in no_created_friends:
                         no_created_friends.append(friend_name)
 
-        return PreparedForPlayerCreation(friends=friends_prep), no_created_friends
+        return PreparedForPlayerCreation(friends=friends_prep, no_created_friends=no_created_friends_prep), \
+            no_created_friends
 
     def create_chunk_players(self,
                              players_info_chunk: List[Optional[PlayerDataAnalysisCreate]],
