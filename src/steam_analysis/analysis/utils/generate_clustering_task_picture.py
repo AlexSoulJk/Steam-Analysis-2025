@@ -2,9 +2,9 @@ from steam_analysis.proccessors.schemas.games import AbstractGameBy_
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def generate_distribution_by_feature(data: AbstractGameBy_, title_name: str,
                                      path_to_save: str) -> None:
-
     ticks = data.ticks
     values_data = data.values
 
