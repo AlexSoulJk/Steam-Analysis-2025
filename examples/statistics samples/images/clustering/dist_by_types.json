@@ -1,0 +1,26 @@
+{
+  "values": {
+    "game": 93963,
+    "advertising": 237,
+    "demo": 14053,
+    "dlc": 31196,
+    "mod": 100,
+    "music": 5177,
+    "video": 517,
+    "hardware": 3,
+    "series": 54,
+    "episode": 867
+  },
+  "ticks": [
+    "game",
+    "advertising",
+    "demo",
+    "dlc",
+    "mod",
+    "music",
+    "video",
+    "hardware",
+    "series",
+    "episode"
+  ]
+}
