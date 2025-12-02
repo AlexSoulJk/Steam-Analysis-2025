@@ -5,8 +5,7 @@ from steam_analysis.database.repositories import GameRepository
 from steam_analysis.database.repositories.game.type import TypeRepository
 from steam_analysis.database.repositories.game.category import CategoryRepository
 
-from steam_analysis.proccessors.schemas.games import GamesByTypes, GamesByCategories
-
+from steam_analysis.proccessors.schemas.games import GamesByTypes, GamesByCategories, GamesByCountCategoriesWithSubs
 
 
 class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С БАЗОЙ И СОБРАЛ ДАННЫЕ ДЛЯ КЛАСТЕРИЗАЦИИ И ОТДАЛ В ПРОВАЙДЕР (ФАСАД)
@@ -38,3 +37,13 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
             ret = GamesByCategories(ticks=ticks,
                                     values=values)
         return ret
+
+    def get_games_by_categories_count(self) -> Optional[GamesByCountCategoriesWithSubs]:
+
+        values = None
+
+        with get_db() as session:
+            values = self.game_repo.get_games_by_category_combinations_sql(session=session, max_category_count=15)
+
+        return values
+

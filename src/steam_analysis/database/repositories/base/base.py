@@ -380,3 +380,4 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         result = session.execute(query)
         return result.all()
+

@@ -1,9 +1,11 @@
+from collections import defaultdict
 from typing import Optional, List, Dict, Tuple
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload, Session
 
 from steam_analysis.core.schemas import GameCreate, GameUpdate
+from steam_analysis.proccessors.schemas.games import GamesByCountCategoriesWithSubs
 
 from ..base.base import BaseDBRepository
 from ...models import Game
@@ -148,3 +150,173 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
         return session.query(Game). \
             order_by(Game.app_id.desc()). \
             first()
+
+    def get_games_by_category_combinations(
+            self,
+            session: Session,
+            type_id: int = 1,
+            max_category_count: int = 10
+    ) -> GamesByCountCategoriesWithSubs:
+        from ...models.game import Category, GameCategory
+        """
+        Получить игры по комбинациям категорий
+
+        Args:
+            session: SQLAlchemy сессия
+            type_id: ID типа игр
+            max_category_count: Максимальное количество категорий для анализа
+
+        Returns:
+            GamesByCountCategoriesWithSubs
+        """
+
+        # Шаг 1: Получаем все игры нужного типа с их категориями
+        games_with_categories = session.execute(
+            select(
+                Game.id,
+                Category.description
+            )
+            .join(GameCategory, Game.id == GameCategory.game_id)
+            .join(Category, GameCategory.category_id == Category.id)
+            .where(Game.type_id == type_id)
+            .order_by(Game.id, Category.description)
+        ).all()
+
+        # Шаг 2: Группируем категории по играм
+        game_categories = defaultdict(list)
+        for game_id, category_desc in games_with_categories:
+            game_categories[game_id].append(category_desc)
+
+        # Шаг 3: Считаем комбинации для каждого количества категорий
+        result = GamesByCountCategoriesWithSubs()
+        result.values = defaultdict(lambda: defaultdict(int))
+        result.ticks = list(range(1, max_category_count + 1))
+
+        for game_id, categories in game_categories.items():
+            category_count = len(categories)
+
+            # Если количество категорий превышает максимум - пропускаем
+            if category_count > max_category_count:
+                continue
+
+            # Создаем ключ комбинации (сортируем для единообразия)
+            sorted_categories = sorted(categories)
+            combination_key = ", ".join(sorted_categories)
+
+            # Увеличиваем счетчик для этой комбинации
+            result.values[category_count][combination_key] += 1
+
+        # Убираем пустые категории
+        result.values = {k: dict(v) for k, v in result.values.items() if v}
+
+        return result
+
+    def get_games_by_category_combinations_sql(
+            self,
+            session: Session,
+            type_id: int = 1,
+            max_category_count: int = 10
+    ) -> GamesByCountCategoriesWithSubs:
+        """
+        Тот же результат, но чисто через SQL (быстрее для больших данных)
+        """
+        from ...models.game import Category, GameCategory
+
+        values = {}
+        ticks = list(range(1, max_category_count + 1))
+
+        # Для каждого количества категорий делаем отдельный запрос
+        for category_count in range(1, max_category_count + 1):
+            # CTE: получаем игры с нужным количеством категорий
+            games_with_n_categories = (
+                select(GameCategory.game_id)
+                .group_by(GameCategory.game_id)
+                .having(func.count(GameCategory.category_id) == category_count)
+                .cte('games_n_categories')
+            )
+
+            # Основной запрос: для этих игр собираем комбинации категорий
+            query = (
+                select(
+                    func.group_concat(Category.description, ', ').label('combination'),
+                    func.count('*').label('game_count')
+                )
+                .select_from(GameCategory)
+                .join(Category, GameCategory.category_id == Category.id)
+                .join(games_with_n_categories,
+                      GameCategory.game_id == games_with_n_categories.c.game_id)
+                .join(Game, Game.id == games_with_n_categories.c.game_id)
+                .where(Game.type_id == type_id)
+                .group_by(GameCategory.game_id)  # Группируем по игре чтобы получить комбинацию
+                .subquery()
+            )
+
+            # Теперь группируем по комбинациям
+            final_query = (
+                select(
+                    query.c.combination,
+                    func.count('*').label('total_games')
+                )
+                .select_from(query)
+                .group_by(query.c.combination)
+                .order_by(func.count('*').desc())
+            )
+
+            combos = session.execute(final_query).all()
+
+            if combos:
+                values[category_count] = {
+                    combo: count for combo, count in combos
+                }
+
+        return GamesByCountCategoriesWithSubs(values=values,
+                                              ticks=ticks)
+
+    def get_top_combinations_per_count(
+            self,
+            session: Session,
+            type_id: int = 1,
+            top_n: int = 5,
+            max_category_count: int = 10
+    ) -> Dict[int, List[Tuple[str, int]]]:
+        """
+        Получить топ-N комбинаций для каждого количества категорий
+        (упрощенная версия для отладки)
+        """
+        from ...models.game import Category, GameCategory
+
+        result = {}
+
+        for category_count in range(1, max_category_count + 1):
+            # Простой запрос для каждой группы
+            query = (
+                select(
+                    func.group_concat(Category.description, ', ').label('combination'),
+                    func.count('*').label('game_count')
+                )
+                .select_from(Game)
+                .join(GameCategory, Game.id == GameCategory.game_id)
+                .join(Category, GameCategory.category_id == Category.id)
+                .where(Game.type_id == type_id)
+                .group_by(Game.id)
+                .having(func.count(Category.id) == category_count)
+                .subquery()
+            )
+
+            final_query = (
+                select(
+                    query.c.combination,
+                    func.count('*').label('total')
+                )
+                .select_from(query)
+                .group_by(query.c.combination)
+                .order_by(func.count('*').desc())
+                .limit(top_n)
+            )
+
+            combos = session.execute(final_query).all()
+
+            if combos:
+                result[category_count] = combos
+
+        return result

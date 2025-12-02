@@ -16,3 +16,8 @@ class GamesByTypes(AbstractGameBy_):
 class GamesByCategories(AbstractGameBy_):
     values: dict[str, int]
     ticks: list[str]
+
+
+class GamesByCountCategoriesWithSubs(AbstractGameBy_):
+    values: dict[int, dict[str, int]]
+    ticks: list[int]
