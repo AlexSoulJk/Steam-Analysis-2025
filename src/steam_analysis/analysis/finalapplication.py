@@ -41,7 +41,7 @@ class Application:
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
 
-    def generate_distribution_by_category(self):
+    def generate_distribution_by_category(self, columns_num: int):
 
         path_for_type_pic = self.folder_clustering / Path("distribution_by_categories.png")
         path_for_type_json = self.folder_clustering / Path("dist_by_categories.json")
@@ -54,7 +54,8 @@ class Application:
             generate_clustering_task_picture.generate_distribution_by_feature(data=data_for_response,
                                                                               title_name=self.TITLES["Clustering"][
                                                                                   "ByType"],
-                                                                              path_to_save=path_for_type_pic)
+                                                                              path_to_save=path_for_type_pic,
+                                                                              columns_num=columns_num)
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
 

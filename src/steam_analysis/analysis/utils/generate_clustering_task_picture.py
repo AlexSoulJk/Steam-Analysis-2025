@@ -4,7 +4,7 @@ import numpy as np
 
 
 def generate_distribution_by_feature(data: AbstractGameBy_, title_name: str,
-                                     path_to_save: str) -> None:
+                                     path_to_save: str, columns_num = 10) -> None:
     ticks = data.ticks
     values_data = data.values
 
@@ -31,12 +31,12 @@ def generate_distribution_by_feature(data: AbstractGameBy_, title_name: str,
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
-    if len(ticks) > 10:
+    if len(ticks) > columns_num:
         combined = list(zip(ticks, values))
         combined.sort(key=lambda x: x[1], reverse=True)
-        top_ticks = [t[0] for t in combined[:9]]
-        top_values = [t[1] for t in combined[:9]]
-        others_sum = sum(t[1] for t in combined[9:])
+        top_ticks = [t[0] for t in combined[:columns_num-1]]
+        top_values = [t[1] for t in combined[:columns_num-1]]
+        others_sum = sum(t[1] for t in combined[columns_num-1:])
         ticks = top_ticks + ["others"]
         values = top_values + [others_sum]
 

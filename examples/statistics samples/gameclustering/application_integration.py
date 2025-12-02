@@ -9,7 +9,7 @@ def main():
 
 def categories():
     app = Application(path_to_save_work=examples_statistics_images_path)
-    app.generate_distribution_by_category()
+    app.generate_distribution_by_category(15)
 
 if __name__ == "__main__":
     categories()
