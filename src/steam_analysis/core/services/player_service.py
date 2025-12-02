@@ -1,6 +1,6 @@
 import datetime
 from typing import List, Dict, Any, Optional, Set, Tuple
-from ..repositories.player_repository import PlayerRepository
+from ..repositories.player_repository import PlayerRepository, logger, logger_player_game
 from ..repositories.game_repository import GameRepository
 
 from ..schemas.analysis.user import UserAnalysisChunkForResponse, UserAnalysisChunkForRequest, UserAnalysisChunkUpdate, \
@@ -90,7 +90,7 @@ class PlayerService:
 
     def get_player_data_analysis(self, chunk_procession: UserAnalysisChunkForResponse) -> FillPlayerAnalysisChunk:
         start_time = datetime.datetime.now()
-
+        logger.info(f"\n ℹ️ Starting batch processing of players chunk with id = {chunk_procession.id}")
         # Получаем данные для каждого пользователя в чанке
         data_chunk = self.player_repo.get_players_data_batch(chunk_procession.users)
 
@@ -133,6 +133,8 @@ class PlayerService:
     def get_player_game_data_analysis(self, chunk_procession: UserAnalysisChunkForResponse) -> \
             FillPlayerGameSchemaChunk:
         start_time = datetime.datetime.now()
+
+        logger_player_game.info(f"\nℹ️ Starting processing chunk players (relations games) with id = {chunk_procession.id}")
 
         # Получаем данные для каждого пользователя в чанке
         data_chunk = list(map(self.player_repo.get_player_game_data, chunk_procession.users))

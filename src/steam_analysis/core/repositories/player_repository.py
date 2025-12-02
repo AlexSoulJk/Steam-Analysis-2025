@@ -13,9 +13,10 @@ from ..schemas.player.playergame import AchievementHttp, OwnershipHttp, Playtime
 from ..codes.steamservices import SteamServices
 from ...core.dependencies.basehttp import HTTPClient
 
-import logging
+from ..services.fastlogger import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("player_http_client")
+logger_player_game = setup_logger("player_game_http_client")
 
 
 class PlayerRepository(BaseRepository):
@@ -29,9 +30,17 @@ class PlayerRepository(BaseRepository):
         """Получить игрока по SteamID"""
         url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUser}/GetPlayerSummaries/v2/"
         params = {'key': self.api_key, 'steamids': steam_id}
-        data = self.http_client.get(url, params=params)
-        players = data.get('response', {}).get('players', [])
-        return players[0] if players else None
+        try:
+            data = self.http_client.get(url, params=params)
+            players = data.get('response', {}).get('players', [])
+            if players:
+                return players[0]
+            else:
+                logger.warning(f"\nNo player found for SteamID: {steam_id}")
+                return None
+        except Exception as e:
+            logger.error(f"\nError getting player {steam_id}: {e}")
+            return None
 
     def get_by_ids(self, steam_ids: list[str], **kwargs) -> Optional[List[Any]]:
         """Получить информацию по списку SteamID игроков"""
@@ -40,22 +49,32 @@ class PlayerRepository(BaseRepository):
         len_butches = max(1, all_amount // butch_size)
         players = []
         print(all_amount, len_butches)
+        # logger.info(f"\nGet players info: total={all_amount}, batch_size={butch_size}, batches={len_butches}")
         for index in range(len_butches):
             part_ids = steam_ids[index*butch_size:butch_size*(index + 1)]
             url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUser}/GetPlayerSummaries/v2/"
             params = {'key': self.api_key, 'steamids': ','.join(part_ids)}
-            data = self.http_client.get(url, params=params)
-            part_players = data.get('response', {}).get('players', [])
-            players.extend(part_players)
-
+            try:
+                data = self.http_client.get(url, params=params)
+                part_players = data.get('response', {}).get('players', [])
+                players.extend(part_players)
+            except Exception as e:
+                logger.error(f"\nError in batch {index + 1}: {e}")
+                continue
+        # logger.info(f"\nGetting players info (without friends) complete")
         return players if players else None
 
-    def get_friends(self, steam_id: str) -> List[Dict[str, Any]]:
+    def get_friends(self, steam_id: str) -> Optional[List[Dict[str, Any]]]:
         """Получить друзей игрока"""
         url = f"{PlayerRepository.API_STEAM_POWERED_URL}/{SteamServices.ISteamUser}/GetFriendList/v1/"
         params = {'key': self.api_key, 'steamid': steam_id, 'relationship': 'friend'}
-        data = self.http_client.get(url, params=params)
-        return data.get('friendslist', {}).get('friends', [])
+        try:
+            data = self.http_client.get(url, params=params)
+            friends = data.get('friendslist', {}).get('friends', [])
+            return friends
+        except Exception as e:
+            logger.error(f"\nError getting friends for {steam_id}: {e}")
+            return None
 
     def get_owned_games(self, steam_id: str) -> List[Dict[str, Any]]:
         """Получить игры игрока"""
@@ -67,8 +86,13 @@ class PlayerRepository(BaseRepository):
             'include_played_free_games': 1
         }
 
-        data = self.http_client.get(url, params=params)
-        return data.get('response', {}).get('games', [])
+        try:
+            data = self.http_client.get(url, params=params)
+            games = data.get('response', {}).get('games', [])
+            return games
+        except Exception as e:
+            logger_player_game.error(f"\nError getting owned games for {steam_id}: {e}")
+            return []
 
     def get_steam_level(self, steam_id: str) -> int:
         """Получить уровень игрока"""
@@ -78,8 +102,13 @@ class PlayerRepository(BaseRepository):
             'steamid': steam_id,
         }
 
-        data = self.http_client.get(url, params=params)
-        return data.get('response', {}).get('player_level')
+        try:
+            data = self.http_client.get(url, params=params)
+            level = data.get('response', {}).get('player_level')
+            return level
+        except Exception as e:
+            logger.error(f"\nError getting Steam level for {steam_id}: {e}")
+            return 0
 
     def get_player_achievements(self, steam_id: str, app_id: str) -> Optional[List[Dict[str, Any]]]:
         """Получить достижения игрока по его SteamId и app_id игры"""
@@ -91,8 +120,10 @@ class PlayerRepository(BaseRepository):
         }
         try:
             data = self.http_client.get(url, params=params)
-            return data.get('playerstats', {}).get('achievements', [])
-        except:
+            achievements = data.get('playerstats', {}).get('achievements', [])
+            return achievements
+        except Exception as e:
+            logger_player_game.warning(f"\nCould not get achievements for player {steam_id}, game {app_id}: {e}")
             return None
 
     def get_player_game_stats(self, steam_id: str, app_id: str) -> Optional[List[Dict[str, Any]]]:
@@ -105,43 +136,46 @@ class PlayerRepository(BaseRepository):
         }
         try:
             data = self.http_client.get(url, params=params)
-            return data.get('playerstats', {}).get('stats', [])
-        except:
+            stats = data.get('playerstats', {}).get('stats', [])
+            return stats
+        except Exception as e:
+            logger_player_game.warning(f"\nCould not get game stats for player {steam_id}, game {app_id}: {e}")
             return None
 
-    def get_player_data(self, user_for_response: UserAnalysisResponse) -> \
-            Tuple[Optional[PlayerDataAnalysisCreate], UserAnalysisUpdate]:
-        """
-        Получение данных пользователя по схеме (аналог get_by_schema для игр)
-        """
-        steam_id = str(user_for_response.steam_id)
-        error_log_message = ""
-        status = ""
-        request_model = None
-
-        try:
-            # Получаем основные данные профиля
-            profile_data = self.get_by_id(steam_id)
-
-            if not profile_data:
-                error_log_message = f"Player steam_id: {steam_id} not found or failed to load"
-                status = "null_state"
-                logger.warning(f"\n ❗️ {error_log_message}")
-            else:
-                status = "particle"
-                # Получаем дополнительные данные (друзья, игры и т.д.)
-                request_model = self._parse_player_data(steam_id, profile_data)
-
-        except Exception as e:
-            status = "failed"
-            error_log_message = f"Error getting player: {e}"
-            logger.error(f"\n ❗❗️ {error_log_message}")
-
-        return request_model, UserAnalysisUpdate.from_response_schema(
-            response=user_for_response,
-            status=status,
-            error_log=error_log_message
-        )
+    # def get_player_data(self, user_for_response: UserAnalysisResponse) -> \
+    #         Tuple[Optional[PlayerDataAnalysisCreate], UserAnalysisUpdate]:
+    #     """
+    #     Получение данных пользователя по схеме (аналог get_by_schema для игр)
+    #     """
+    #     logger.info()
+    #     steam_id = str(user_for_response.steam_id)
+    #     error_log_message = ""
+    #     status = ""
+    #     request_model = None
+    #
+    #     try:
+    #         # Получаем основные данные профиля
+    #         profile_data = self.get_by_id(steam_id)
+    #
+    #         if not profile_data:
+    #             error_log_message = f"Player steam_id: {steam_id} not found or failed to load"
+    #             status = "null_state"
+    #             logger.warning(f"\n ❗️ {error_log_message}")
+    #         else:
+    #             status = "particle"
+    #             # Получаем дополнительные данные (друзья, игры и т.д.)
+    #             request_model = self._parse_player_data(steam_id, profile_data)
+    #
+    #     except Exception as e:
+    #         status = "failed"
+    #         error_log_message = f"Error getting player: {e}"
+    #         logger.error(f"\n ❗❗️ {error_log_message}")
+    #
+    #     return request_model, UserAnalysisUpdate.from_response_schema(
+    #         response=user_for_response,
+    #         status=status,
+    #         error_log=error_log_message
+    #     )
 
     def get_players_data_batch(self, users_for_response: List[UserAnalysisResponse]) -> List[
         Tuple[Optional[PlayerDataAnalysisCreate], UserAnalysisUpdate]]:
@@ -152,6 +186,7 @@ class PlayerRepository(BaseRepository):
         results = []
 
         if not users_for_response:
+            logger.warning("\nEmpty users list provided for batch processing")
             return []
 
         try:
@@ -176,15 +211,14 @@ class PlayerRepository(BaseRepository):
 
                     if not profile_data:
                         error_log_message = f"Player steam_id: {steam_id} not found or failed to load"
-                        status = "null_state"
+                        status = "null_state_profile"
                         logger.warning(f"\n ❗️ {error_log_message}")
                     else:
-                        status = "particle"
                         # Получаем дополнительные данные (друзья, игры и т.д.)
-                        request_model = self._parse_player_data(steam_id, profile_data)
+                        status, request_model = self._parse_player_data(steam_id, profile_data)
 
                 except Exception as e:
-                    status = "failed"
+                    status = "failed_get_profile_data"
                     error_log_message = f"Error getting player {steam_id}: {e}"
                     logger.error(f"\n ❗❗️ {error_log_message}")
 
@@ -195,10 +229,11 @@ class PlayerRepository(BaseRepository):
                 )
 
                 results.append((request_model, user_update))
+            logger.info("\nSuccessfully processed players")
 
         except Exception as e:
             # Обработка ошибок на уровне всего батча
-            logger.error(f"Error in batch players data processing: {e}")
+            logger.error(f"\nError in batch players data processing: {e}")
             # Возвращаем ошибки для всех пользователей в случае сбоя батча
             for user_response in users_for_response:
                 error_update = UserAnalysisUpdate.from_response_schema(
@@ -209,11 +244,12 @@ class PlayerRepository(BaseRepository):
                 results.append((None, error_update))
 
         response_time = datetime.now() - start_time
-        logger.info(f"Processed {len(users_for_response)} players in {response_time.total_seconds()} seconds")
+        logger.info(f"\nProcessed {len(users_for_response)} players in {response_time.total_seconds()} seconds")
 
         return results
 
-    def _parse_player_data(self, steam_id: str, raw_data: Dict[str, Any]) -> PlayerDataAnalysisCreate:
+    def _parse_player_data(self, steam_id: str, raw_data: Dict[str, Any]) -> \
+            Tuple[str, PlayerDataAnalysisCreate]:
         """
         Парсинг сырых данных игрока в структурированный формат для анализа
         (аналог _parse_game_data)
@@ -223,8 +259,12 @@ class PlayerRepository(BaseRepository):
 
         # Получаем информацию о друзьях
         friends_data = self._get_friends_data(steam_id)
+        status = "particle"
+        if friends_data is None:
+            friends_data = []
+            status = "null_state"
 
-        return PlayerDataAnalysisCreate(
+        return status, PlayerDataAnalysisCreate(
             player=player_base,
             friends=friends_data
         )
@@ -261,19 +301,19 @@ class PlayerRepository(BaseRepository):
             loccityid=raw_data.get('loccityid')
         )
 
-    def _get_friends_data(self, steam_id: str) -> List[str]:
+    def _get_friends_data(self, steam_id: str) -> Optional[List[str]]:
         """
         Получение и парсинг данных о друзьях
         """
         try:
             friends_raw = self.get_friends(steam_id)
-            if not friends_raw:
-                return []
+            if friends_raw is None:
+                return None
 
             return [friend.get('steamid') for friend in friends_raw if friend.get('steamid')]
 
         except Exception as e:
-            logger.error(f"Error getting friends data for {steam_id}: {e}")
+            logger.error(f"\nError getting friends data for {steam_id}: {e}")
             return []
 
     def get_player_game_data(self, user_for_response: UserAnalysisResponse) -> \
@@ -290,16 +330,19 @@ class PlayerRepository(BaseRepository):
             if not steam_id:
                 error_log_message = f"Player steam_id: {steam_id} not found or failed to load"
                 status = "null_state"
-                logger.warning(f"\n ❗️ {error_log_message}")
+                logger_player_game.warning(f"\n ❗️ {error_log_message}")
             else:
-                status = "success"
                 # Получаем дополнительные данные по играм пользователя
-                request_model = self._parse_player_game_data(steam_id)
+                status, request_model = self._parse_player_game_data(steam_id)
+                if request_model is None and status:
+                    status = f"null_{status}"
+                else:
+                    status = "success"
 
         except Exception as e:
-            status = "failed"
-            error_log_message = f"Error getting player: {e}"
-            logger.error(f"\n ❗❗️ {error_log_message}")
+            status = "failed_get_games"
+            error_log_message = f"Error getting player game data: {e}"
+            logger_player_game.error(f"\n ❗❗️ {error_log_message}")
 
         return request_model, UserAnalysisUpdate.from_response_schema(
             response=user_for_response,
@@ -308,7 +351,7 @@ class PlayerRepository(BaseRepository):
         )
 
     def _parse_player_game_data(self, steam_id: str) -> \
-            Optional[PlayerGameDataAnalysisCreate]:
+            Tuple[str, Optional[PlayerGameDataAnalysisCreate]]:
         """
         Парсинг данных игрока и преобразование в схему PlayerGameDataAnalysisCreate
         с обработкой ошибок
@@ -322,9 +365,10 @@ class PlayerRepository(BaseRepository):
             games_data = self.get_owned_games(steam_id)
 
             if not games_data:
-                logger.warning(f"No games found for user {steam_id}")
-                return None
+                logger_player_game.warning(f"\nNo games found for user {steam_id}")
+                return "games", None
 
+            status = ""
             for game in games_data:
                 app_id = str(game.get('appid', ''))
 
@@ -359,16 +403,18 @@ class PlayerRepository(BaseRepository):
                                 unlock_time=self._convert_timestamp_to_datetime(ach.get('unlocktime'))
                             )
                             achievements.append(achievement)
+                else:
+                    status = "game-achievements"
 
-            return PlayerGameDataAnalysisCreate(
+            return status, PlayerGameDataAnalysisCreate(
                 owned_games=owned_games,
                 playtimes=playtimes,
                 achievements=achievements
             )
 
         except Exception as e:
-            logger.error(f"Error parsing player data for {steam_id}: {e}")
-            return None
+            logger_player_game.error(f"Error parsing player-game data for {steam_id}: {e}")
+            return "error-parsing", None
 
     def _convert_timestamp_to_datetime(self, timestamp: Optional[int]) -> Optional[datetime]:
         """
