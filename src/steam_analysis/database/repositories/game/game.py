@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload, Session
@@ -34,6 +34,47 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
         existing_games = result.scalars().all()
 
         return {game.app_id: game for game in existing_games}
+
+    def count_games_by_categories_for_type(
+            self,
+            session: Session,
+            type_id: int = 1
+    ) -> List[Tuple[str, int]]:
+        from ...models.game import Category, GameCategory
+
+        """
+        Подсчитать количество игр по категориям для типа type_id
+
+        Args:
+            session: SQLAlchemy сессия
+            type_id: ID типа игры
+
+        Returns:
+            Список кортежей (название_категории, количество_игр)
+        """
+        # Для связи Game -> Category нам нужен промежуточный JOIN через GameCategory
+        # Сначала JOIN Game -> GameCategory, потом GameCategory -> Category
+
+        additional_joins = [
+            (GameCategory, Game.id == GameCategory.game_id),
+            (Category, GameCategory.category_id == Category.id)
+        ]
+
+        # Используем базовый метод
+        results = self.count_with_join_group_by(
+            session=session,
+            join_model=GameCategory,  # Первый JOIN
+            join_condition=Game.id == GameCategory.game_id,
+            group_by_field='category_id',  # Группируем по названию категории
+            count_field='id',
+            filters={'type_id': type_id},
+            additional_joins=[
+            # Второй JOIN: GameCategory → Category
+            (Category, GameCategory.category_id == Category.id)
+        ]
+        )
+
+        return results
 
     def create_bulk(self, objects_in: List[GameCreate], session: Session) -> List[Game]:
         """

@@ -6,5 +6,10 @@ def main():
     app = Application(path_to_save_work=examples_statistics_images_path)
     app.generate_distribution_by_type()
 
+
+def categories():
+    app = Application(path_to_save_work=examples_statistics_images_path)
+    app.generate_distribution_by_category()
+
 if __name__ == "__main__":
-    main()
+    categories()

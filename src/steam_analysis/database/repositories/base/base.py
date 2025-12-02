@@ -1,5 +1,5 @@
-from typing import Any, Dict, List, Optional, Type, TypeVar, Generic, Union
-from sqlalchemy import select, update, delete
+from typing import Any, Dict, List, Optional, Type, TypeVar, Generic, Union, Tuple
+from sqlalchemy import select, update, delete, func
 from sqlalchemy.orm import Session, DeclarativeBase
 from steam_analysis.database.models.base import BaseModel as BaseDBModel
 from pydantic import BaseModel
@@ -328,3 +328,55 @@ class BaseDBRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         session.refresh(db_obj)
 
         return db_obj, True
+
+    def count_with_join_group_by(
+            self,
+            session: Session,
+            join_model: Type,
+            join_condition,
+            group_by_field: str,
+            count_field: str = 'id',
+            filters: Optional[Dict] = None,
+            additional_joins: Optional[List[Tuple[Type, Any]]] = None
+    ) -> List[Tuple[Any, int]]:
+        """
+        Подсчитать количество объектов с JOIN и GROUP BY
+
+        Args:
+            session: SQLAlchemy сессия
+            join_model: Модель для JOIN
+            join_condition: Условие JOIN
+            group_by_field: Поле для группировки
+            count_field: Поле для подсчета
+            filters: Дополнительные фильтры
+            additional_joins: Дополнительные JOIN-ы
+
+        Returns:
+            Список кортежей (значение_группы, количество)
+        """
+        query = (
+            select(
+                getattr(join_model, group_by_field),
+                func.count(getattr(self.model, count_field)).label('count')
+            )
+            .select_from(self.model)
+            .join(join_model, join_condition)
+        )
+
+        # Добавляем дополнительные JOIN-ы
+        if additional_joins:
+            for join_model_extra, join_condition_extra in additional_joins:
+                query = query.join(join_model_extra, join_condition_extra)
+
+        # Применяем фильтры
+        if filters:
+            for field, value in filters.items():
+                if hasattr(self.model, field):
+                    query = query.where(getattr(self.model, field) == value)
+
+        # Группировка и сортировка
+        query = query.group_by(getattr(join_model, group_by_field))
+        query = query.order_by(func.count(getattr(self.model, count_field)).desc())
+
+        result = session.execute(query)
+        return result.all()

@@ -3,7 +3,10 @@ from typing import Optional
 from steam_analysis.database.facade import get_db
 from steam_analysis.database.repositories import GameRepository
 from steam_analysis.database.repositories.game.type import TypeRepository
-from steam_analysis.proccessors.schemas.games import GamesByTypes
+from steam_analysis.database.repositories.game.category import CategoryRepository
+
+from steam_analysis.proccessors.schemas.games import GamesByTypes, GamesByCategories
+
 
 
 class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С БАЗОЙ И СОБРАЛ ДАННЫЕ ДЛЯ КЛАСТЕРИЗАЦИИ И ОТДАЛ В ПРОВАЙДЕР (ФАСАД)
@@ -11,6 +14,7 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
     def __init__(self):
         self.game_repo = GameRepository()
         self.game_type_repo = TypeRepository()
+        self.categories = CategoryRepository()
 
     def get_games_by_types(self) -> Optional[GamesByTypes]:
         ret = None
@@ -23,3 +27,14 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
                                values=values)
         return ret
 
+    def get_games_by_categories(self) -> Optional[GamesByCategories]:
+        ret = None
+        with get_db() as session:
+            categories = self.categories.get_multi(session=session)
+            categories_dict = {category.id: category.description for category in categories}
+            ticks = list(map(lambda x: x.description, categories))
+            values = self.game_repo.count_games_by_categories_for_type(session=session)
+            values = {categories_dict[value[0]]: value[1]for value in values}
+            ret = GamesByCategories(ticks=ticks,
+                                    values=values)
+        return ret

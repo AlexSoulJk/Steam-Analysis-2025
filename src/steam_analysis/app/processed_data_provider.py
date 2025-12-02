@@ -12,6 +12,8 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
     def get_games_by_types(self):
         return self.clustering_game_proccesor.get_games_by_types()
 
+    def get_games_by_categories(self):
+        return self.clustering_game_proccesor.get_games_by_categories()
     def get_games_by_genres(self):
         pass
 

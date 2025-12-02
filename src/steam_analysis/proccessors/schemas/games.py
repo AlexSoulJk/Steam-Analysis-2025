@@ -11,3 +11,8 @@ class AbstractGameBy_(BaseSchema):
 class GamesByTypes(AbstractGameBy_):
     values: dict[str, int]
     ticks: list[str]
+
+
+class GamesByCategories(AbstractGameBy_):
+    values: dict[str, int]
+    ticks: list[str]
