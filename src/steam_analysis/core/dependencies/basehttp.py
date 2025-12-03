@@ -4,7 +4,9 @@ from typing import Dict, Any
 import logging
 from typing import Protocol
 
-logger = logging.getLogger(__name__)
+from steam_analysis.core.services.fastlogger import setup_logger
+
+logger = setup_logger("RequestsWithDelayClient")
 
 
 class HTTPClient(Protocol):
@@ -37,9 +39,11 @@ class RequestsClient(HTTPClient):
 class RequestsWithDelayClient(HTTPClient):
     """Синхронный клиент с rate limiting"""
     ## 5 мин = 200 запросов ??
+    count_of_request = 0
+    MAX_REQUEST = 200
+    last_request_time = 0
+    interval_time = 300
     def __init__(self, delay: float = 0.1):
-        self.delay = delay
-        self.last_request_time = 0
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -49,10 +53,21 @@ class RequestsWithDelayClient(HTTPClient):
     def _ensure_delay(self):
         """Защита от слишком частых запросов"""
         current_time = time.time()
-        time_since_last = current_time - self.last_request_time
-        if time_since_last < self.delay:
-            time.sleep(self.delay - time_since_last)
-        self.last_request_time = time.time()
+
+        if RequestsWithDelayClient.count_of_request == 0:
+            RequestsWithDelayClient.last_request_time = current_time
+
+        elif RequestsWithDelayClient.count_of_request - 1 == RequestsWithDelayClient.MAX_REQUEST:
+            delay = current_time - RequestsWithDelayClient.last_request_time
+            logger.info(f"Now we will sleep {RequestsWithDelayClient.interval_time - delay}")
+            time.sleep(RequestsWithDelayClient.interval_time - delay)
+            RequestsWithDelayClient.last_request_time = time.time()
+            RequestsWithDelayClient.count_of_request = 0
+
+        RequestsWithDelayClient.count_of_request += 1
+
+        if RequestsWithDelayClient.count_of_request % 20:
+            logger.info(f"Count of requests {RequestsWithDelayClient.count_of_request}")
 
     def get(self, url: str, params: dict = None, headers: dict = None) -> Dict[str, Any]:
         self._ensure_delay()
