@@ -21,6 +21,17 @@ class UserAnalysisProvider:
         chunk.users = self.user_model_repo.mark_list_as_in_progress(chunk.users, session)
         return chunk
 
+    def get_next_part_chunk_by_processor_name(self, processor_name: str, session: Session):
+        chunk = self.chunk_repo.get_next_particle_chunk_by_name(processor_name, session)
+
+        if chunk is None:
+            raise Exception(f"Chunk storage for {processor_name} is empty. Please fill analysis-db")
+
+        self.user_model_repo.mark_list_as_in_progress(chunk.users, session)
+
+        session.refresh(chunk)
+        return chunk
+
     def mark_as_in_particle(self, chunk: UserAnalysisChunkUpdate, session: Session):
         pass
 

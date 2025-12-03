@@ -47,13 +47,13 @@ class UserAnalysisCreate(UserAnalysisBase):
 class UserAnalysisResponse(BaseSchema):
     id: int = Field(..., ge=1)
     steam_id: int
-    status: str = Field(..., pattern="^(pending|in_progress|success|failed|partial|null_state)$")
+    status: str = Field(..., pattern="^(pending|in_progress|success|failed|partial|null(_[a-z]+)?)$")
 
 
 class UserAnalysisUpdate(BaseSchema):
     """Обновление юзера (только изменяемые поля)"""
     id: int = Field(..., ge=1)
-    status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle|null_state)$")
+    status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle|null(_[a-z]+)?)$")
     error_log: Optional[str] = None
     # processed: Optional[bool] = None
 
@@ -77,6 +77,7 @@ class UserAnalysisChunkForResponse(BaseSchema):
     id: int = Field(..., ge=1)
     status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle_success)$")
     users: List[UserAnalysisResponse]
+    response_time: Optional[float] = None
 
     @property
     def get_chunk_steam_ids(self) -> List[int]:

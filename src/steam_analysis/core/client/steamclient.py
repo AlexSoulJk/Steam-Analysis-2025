@@ -51,8 +51,8 @@ class SteamAnalysisFacade:
     def analyze_player(self, steam_id: str) -> Optional[Dict[str, Any]]:
         return self.player_service.analyze_gaming_preferences(steam_id)
 
-    def get_player_data_bunch(self, chunk_procession: UserAnalysisChunkForResponse):
-        return self.player_service.get_player_data_analysis(chunk_procession)
+    def get_player_data_bunch(self, chunk_procession: UserAnalysisChunkForResponse, flag: bool):
+        return self.player_service.get_player_data_analysis(chunk_procession, flag)
 
     def get_player_for_steam_analys_filling(self, players_id: list[str]):
         if not players_id:

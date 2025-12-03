@@ -177,7 +177,7 @@ class PlayerRepository(BaseRepository):
     #         error_log=error_log_message
     #     )
 
-    def get_players_data_batch(self, users_for_response: List[UserAnalysisResponse]) -> List[
+    def get_players_data_batch(self, users_for_response: List[UserAnalysisResponse], flag: bool) -> List[
         Tuple[Optional[PlayerDataAnalysisCreate], UserAnalysisUpdate]]:
         """
         Массовое получение данных пользователей по схеме с использованием get_by_ids
@@ -215,7 +215,7 @@ class PlayerRepository(BaseRepository):
                         logger.warning(f"\n ❗️ {error_log_message}")
                     else:
                         # Получаем дополнительные данные (друзья, игры и т.д.)
-                        status, request_model = self._parse_player_data(steam_id, profile_data)
+                        status, request_model = self._parse_player_data(steam_id, profile_data, flag)
 
                 except Exception as e:
                     status = "failed_get_profile_data"
@@ -248,7 +248,7 @@ class PlayerRepository(BaseRepository):
 
         return results
 
-    def _parse_player_data(self, steam_id: str, raw_data: Dict[str, Any]) -> \
+    def _parse_player_data(self, steam_id: str, raw_data: Dict[str, Any], flag: bool) -> \
             Tuple[str, PlayerDataAnalysisCreate]:
         """
         Парсинг сырых данных игрока в структурированный формат для анализа
@@ -257,12 +257,14 @@ class PlayerRepository(BaseRepository):
         # Основная информация об игроке
         player_base = self._create_player_base(raw_data)
 
-        # Получаем информацию о друзьях
-        friends_data = self._get_friends_data(steam_id)
+        friends_data = []
         status = "particle"
-        if friends_data is None:
-            friends_data = []
-            status = "null_state"
+        if not flag:
+            # Получаем информацию о друзьях
+            friends_data = self._get_friends_data(steam_id)
+            if friends_data is None:
+                friends_data = []
+                status = "null_state"
 
         return status, PlayerDataAnalysisCreate(
             player=player_base,
@@ -321,6 +323,13 @@ class PlayerRepository(BaseRepository):
         """
         Получение данных пользователя по схеме (аналог get_by_schema для игр)
         """
+        if user_for_response.status == "null_state":
+            return None, UserAnalysisUpdate.from_response_schema(
+                response=user_for_response,
+                status=user_for_response.status,
+                error_log=""
+            )
+
         steam_id = str(user_for_response.steam_id)
         error_log_message = ""
         status = ""
@@ -390,21 +399,21 @@ class PlayerRepository(BaseRepository):
                 playtimes.append(playtime)
 
                 # Получаем достижения для игры (может быть None если недоступны)
-                game_achievements = self.get_player_achievements(steam_id, app_id)
-                if game_achievements:
-                    for ach in game_achievements:
-                        if ach.get('achieved', 0) == 1:
-                            achievement = AchievementHttp(
-                                steam_id=steam_id,
-                                app_id=app_id,
-                                apiname=ach.get('apiname', ''),
-                                achieved=True,
-                                unlock_timestamp=ach.get('unlocktime'),
-                                unlock_time=self._convert_timestamp_to_datetime(ach.get('unlocktime'))
-                            )
-                            achievements.append(achievement)
-                else:
-                    status = "game-achievements"
+                # game_achievements = self.get_player_achievements(steam_id, app_id)
+                # if game_achievements:
+                #     for ach in game_achievements:
+                #         if ach.get('achieved', 0) == 1:
+                #             achievement = AchievementHttp(
+                #                 steam_id=steam_id,
+                #                 app_id=app_id,
+                #                 apiname=ach.get('apiname', ''),
+                #                 achieved=True,
+                #                 unlock_timestamp=ach.get('unlocktime'),
+                #                 unlock_time=self._convert_timestamp_to_datetime(ach.get('unlocktime'))
+                #             )
+                #             achievements.append(achievement)
+                # else:
+                #     status = "game-achievements"
 
             return status, PlayerGameDataAnalysisCreate(
                 owned_games=owned_games,

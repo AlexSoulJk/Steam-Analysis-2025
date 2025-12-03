@@ -169,7 +169,9 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
 
         result = {}
         for friendship in existing:
-            result[friendship.friend_steamid] = friendship
+            if friendship.friend_steamid not in result:
+                result[friendship.friend_steamid] = []
+            result[friendship.friend_steamid].append(friendship)
 
         return result
     # def create_friends_bulk(self, session: Session,
@@ -401,9 +403,10 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
             existing_friend = existing_friends_for_with.get(user.steam_id)
             if not existing_friend:
                 continue
-            existing_friend.friend_id = user.id
-            existing_friend.status = FriendStatus.VALID
-            updated_friends.append(existing_friend)
+            for friend in existing_friend:
+                friend.friend_id = user.id
+                friend.status = FriendStatus.VALID
+                updated_friends.append(friend)
 
         if created_friends:
             session.add_all(created_friends)
@@ -411,13 +414,15 @@ class FriendRepository(BaseDBRepository[Friend, FriendCreate, Any]):
 
         existing_friends_for_with = self.get_existing_friendship_ids(session, list(all_user_steamids))
 
-        for fc in dict_all_user_ids:
-            existing_friend = existing_friends_for_with.get(fc)
-            if not existing_friend:
-                continue
-            existing_friend.friend_id = dict_all_user_ids[fc]
-            existing_friend.status = FriendStatus.VALID
-            updated_friends.append(existing_friend)
+        if existing_friends_for_with:
+            for fc in dict_all_user_ids:
+                existing_friend = existing_friends_for_with.get(fc)
+                if not existing_friend:
+                    continue
+                for friend in existing_friend:
+                    friend.friend_id = dict_all_user_ids[fc]
+                    friend.status = FriendStatus.VALID
+                    updated_friends.append(friend)
 
         return {
             'created': created_friends,

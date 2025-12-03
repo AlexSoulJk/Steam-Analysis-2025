@@ -88,11 +88,11 @@ class PlayerService:
     # def get_player_data_analysis(self, chunk_procession: UserAnalysisChunkForResponse) -> FillPlayerAnalysisChunk:
     #     pass
 
-    def get_player_data_analysis(self, chunk_procession: UserAnalysisChunkForResponse) -> FillPlayerAnalysisChunk:
+    def get_player_data_analysis(self, chunk_procession: UserAnalysisChunkForResponse, flag: bool) -> FillPlayerAnalysisChunk:
         start_time = datetime.datetime.now()
         logger.info(f"\n ℹ️ Starting batch processing of players chunk with id = {chunk_procession.id}")
         # Получаем данные для каждого пользователя в чанке
-        data_chunk = self.player_repo.get_players_data_batch(chunk_procession.users)
+        data_chunk = self.player_repo.get_players_data_batch(chunk_procession.users, flag)
 
         finished_at = datetime.datetime.now()
         response_time = finished_at - start_time
@@ -149,7 +149,7 @@ class PlayerService:
         # Создаем обновление чанка
         chunk_request_part = UserAnalysisChunkUpdate.from_response_schema(
             response=chunk_procession,
-            response_time=response_time.total_seconds(),
+            response_time=chunk_procession.response_time + response_time.total_seconds(),
             started_at=start_time,
             finished_at=finished_at,
             error_log=chunk_error_log,

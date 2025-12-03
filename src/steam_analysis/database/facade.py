@@ -131,8 +131,7 @@ class DbFacade:
         # Фильтруем None значения
         with get_db() as session:
             try:
-                no_created_players, no_created_games, no_success_players = \
-                    self.player_game_relations_creation.create_connections(players_info_chunk, session)
+                self.player_game_relations_creation.create_connections(players_info_chunk, session)
 
             except Exception as e:
                 raise

@@ -110,7 +110,8 @@ class SaveTestData:
             print(f"✅ Данные сохранены в: {filepath}")
             print(f"📊 Статистика:")
             print(f"   - Пользователей в батче: {len(fill_model.data_chunk)}")
-            print(f"   - Время выполнения: {fill_model.data_for_analysis_db.chunk.response_time}")
+            print(f"   - Время выполнения (с учетом времени заполнения информации по пользователям): "
+                  f"{fill_model.data_for_analysis_db.chunk.response_time}")
 
             return filepath
 
