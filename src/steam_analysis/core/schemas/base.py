@@ -28,6 +28,7 @@ class SteamEntityMixin(BaseSchema):
         alias_generator=None
     )
 
+
 class StatsMixin(BaseSchema):
     """Миксин для Stats&Achiev"""
     name: str = Field(..., description="Название статистики", alias="name")

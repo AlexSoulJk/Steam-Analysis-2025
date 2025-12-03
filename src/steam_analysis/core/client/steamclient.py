@@ -86,7 +86,7 @@ class SteamAnalysisFacade:
         return self.game_service.get_game_analysis_list(chunk_procession)
     
     def get_schema_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillGameAnalysisChunk:
-        return self.game_service.get_schema_list(chunk_procession)
+        return self.game_service.get_add_game_info(chunk_procession)
 
     def get_game_timed_data(self, app_ids: list[int]):
         return self.game_service.get_game_timed_data(app_ids)

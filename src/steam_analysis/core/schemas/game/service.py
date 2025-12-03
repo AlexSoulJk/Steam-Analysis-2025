@@ -13,12 +13,12 @@ class GameCreateReportInfo(BaseSchema):
     response_time: datetime.timedelta
 
 
-class UserDataAnalysisCreate(BaseSchema):
+class GameDataAnalysisCreate(BaseSchema):
     game: GameFromHttp
     genres: List[GenreCreate]
     categories: List[CategoryCreate]
     platforms: List[PlatformCreate]
-      
+  
 
 class SchemaCreate(BaseSchema):
     game_id: int
@@ -61,12 +61,33 @@ class TypeAnalysesSchema(BaseSchema):
     reviews: Optional[ReviewsDataAnalysisCreate]
 
 
+class Price(BaseSchema):
+    game_id: int
+    currency: str
+    initial: int
+    final: int
+    discount_percent: int
+
+class AddDetails(BaseSchema):
+    game_id: int
+    developers: List[str]
+    publishers: List[str]
+    price_overview: Optional[Price]
+
+class AddInfo(BaseSchema):
+    game_id: int
+    add_details: Optional[AddDetails]
+    schema: Optional[SchemaCreate]
+    achiev_persentage: Optional[AchievDataAnalysisCreate]
+    review_info: Optional[ReviewsDataAnalysisCreate]
+
+
 
 
 # region FillChunk schemas
 class FillGameAnalysisChunk(BaseSchema):
     data_for_analysis_db: GameAnalysisChunkForRequest
-    data_chunk: List[Optional[UserDataAnalysisCreate]]
+    data_chunk: List[Optional[GameDataAnalysisCreate]]
 
     def get_report_into(self) -> GameCreateReportInfo:
         return GameCreateReportInfo(start_app_id=self.start_app_id,

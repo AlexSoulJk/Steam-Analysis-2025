@@ -40,7 +40,7 @@ class GameService:
                                                                                       chunk_games=requested_games),
                                      data_chunk=list(map(lambda x: x[0], data_chunk)))
     
-    def get_schema_list(self, chunk: GameAnalysisChunkForResponse) -> FillSchemaChunk:
+    def get_add_game_info(self, chunk: GameAnalysisChunkForResponse) -> FillSchemaChunk:
         start_time = datetime.datetime.now()
 
         # data_chunk = []
@@ -48,7 +48,7 @@ class GameService:
         #     tmp_request = self.game_repo.get_by_schema(game)
         #     data_chunk.append(tmp_request)
 
-        data_chunk = list(map(self.game_repo.get_schema, chunk.games))
+        data_chunk = list(map(self.game_repo.get_add_info, chunk.games))
 
         finished_at = datetime.datetime.now()
         response_time = finished_at - start_time
