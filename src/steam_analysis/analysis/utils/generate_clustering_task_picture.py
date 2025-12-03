@@ -4,6 +4,25 @@ from steam_analysis.proccessors.schemas.games import AbstractGameBy_
 import matplotlib.pyplot as plt
 import numpy as np
 
+import matplotlib.cm as cm
+
+
+
+def generate_colormap_colors(num_colors, colormap_name='tab20'):
+    cmap = cm.get_cmap(colormap_name)
+    colors = [cmap(i / max(num_colors - 1, 1)) for i in range(num_colors)]
+
+    hex_colors = []
+    for r, g, b, _ in colors:
+        r_int = int(r * 255)
+        g_int = int(g * 255)
+        b_int = int(b * 255)
+
+        hex_color = f"#{r_int:02x}{g_int:02x}{b_int:02x}"
+        hex_colors.append(hex_color)
+
+    return hex_colors
+
 
 def data_prep(data: AbstractGameBy_) -> Tuple[List[str], List[str]]:
     ticks = data.ticks
@@ -86,31 +105,51 @@ def generate_distribution_by_feature(data: AbstractGameBy_, title_name: str,
 
 
 def generate_pie_by_feature(data: AbstractGameBy_, title_name: str,
-                                     path_to_save: str, columns_num = 10) -> None:
-    ticks, values = create_data_columns(data, columns_num)
+                            path_to_save: str, sections_num: int, max_to_color: int) -> None:
+    ticks, values = create_data_columns(data, sections_num)
 
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    colors = plt.cm.Set3(np.linspace(0, 1, len(ticks)))
+    sorted_data = sorted(zip(values, ticks), reverse=True)
 
-    if len(values) > 0:
-        explode = [0.1] + [0] * (len(ticks) - 1)
-    else:
-        explode = [0] * len(ticks)
+    top_value = [v for v, _ in sorted_data[:max_to_color]]
+    top_label = [l for _, l in sorted_data[:max_to_color]]
+
+    print(top_value)
+    print(top_label)
+
+    colors = []
+    # colors_ = generate_colormap_colors(max_to_color, 'Blues')
+    colors_ = generate_colormap_colors(max_to_color, 'Dark2')
+
+
+    for i, (val, label) in enumerate(zip(values, ticks)):
+        if label in top_label:
+            idx = top_label.index(label)
+            colors.append(colors_[idx])
+        else:
+            colors.append('none')
+
+    print(colors)
 
     wedges, texts, autotexts = ax.pie(
         values,
         labels=ticks,
         colors=colors,
-        explode=explode,
-        autopct='%1.1f%%',
-        shadow=True,
+        autopct=lambda pct: f'{pct:.1f}%',
+        pctdistance=0.75,
+        labeldistance=1.1,
         startangle=90,
-        textprops={'fontsize': 10}
+        wedgeprops={
+            'edgecolor': 'black',
+            'linewidth': 1.5,
+            'linestyle': '-',
+            'alpha': 0.8
+        }
     )
 
     for autotext in autotexts:
-        autotext.set_color('white')
+        autotext.set_color('black')
         autotext.set_fontweight('bold')
 
     ax.set_title(title_name, fontsize=14, fontweight='bold')
@@ -120,4 +159,3 @@ def generate_pie_by_feature(data: AbstractGameBy_, title_name: str,
     plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
     plt.close(fig)
 
-    pass
