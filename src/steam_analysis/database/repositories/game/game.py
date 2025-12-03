@@ -1,11 +1,11 @@
 from collections import defaultdict
 from typing import Optional, List, Dict, Tuple
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, extract, Integer
 from sqlalchemy.orm import joinedload, Session
 
 from steam_analysis.core.schemas import GameCreate, GameUpdate
-from steam_analysis.proccessors.schemas.games import GamesByCountCategoriesWithSubs
+from steam_analysis.proccessors.schemas.games import GamesByCountCategoriesWithSubs, GamesReleaseBySeason
 
 from ..base.base import BaseDBRepository
 from ...models import Game
@@ -73,6 +73,43 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             additional_joins=[
             # Второй JOIN: GameCategory → Category
             (Category, GameCategory.category_id == Category.id)
+        ]
+        )
+
+        return results
+
+    def count_games_by_genres_for_type(
+            self,
+            session: Session,
+            type_id: int = 1
+    ) -> List[Tuple[str, int]]:
+        from ...models.game import Genre, GameGenre
+
+        """
+        Подсчитать количество игр по категориям для типа type_id
+
+        Args:
+            session: SQLAlchemy сессия
+            type_id: ID типа игры
+
+        Returns:
+            Список кортежей (название_категории, количество_игр)
+        """
+        # Для связи Game -> Category нам нужен промежуточный JOIN через GameCategory
+        # Сначала JOIN Game -> GameCategory, потом GameCategory -> Category
+
+
+        # Используем базовый метод
+        results = self.count_with_join_group_by(
+            session=session,
+            join_model=GameGenre,  # Первый JOIN
+            join_condition=Game.id == GameGenre.game_id,
+            group_by_field='genre_id',  # Группируем по названию категории
+            count_field='id',
+            filters={'type_id': type_id},
+            additional_joins=[
+            # Второй JOIN: GameCategory → Category
+            (Genre, GameGenre.category_id == Genre.id)
         ]
         )
 
@@ -320,3 +357,69 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 result[category_count] = combos
 
         return result
+
+    def get_games_release_by_season(
+            self,
+            session: Session,
+            season_mode: str = "monthly",
+            year: Optional[int] = None,
+            type_id: int = 1
+    , ):
+        """
+        Получить распределение релизов по сезонам (месяцам или кварталам)
+
+        Args:
+            session: SQLAlchemy сессия
+            season_mode: 'monthly' (по месяцам) или 'quarter' (по кварталам)
+            year: Фильтр по году (опционально)
+            type_id: Фильтр по типу игры (опционально)
+
+        Returns:
+            GamesReleaseBySeason с распределением по сезонам
+        """
+
+        if season_mode == "monthly":
+            # 0-11 для месяцев (январь=1, но в SQLite extract выдаст 1-12)
+            ticks = list(range(1, 13))
+            season_expr = extract('month', Game.release_date)
+        elif season_mode == "quarter":
+            # 1-4 для кварталов
+            ticks = list(range(1, 5))
+            # Квартал = ceil(месяц / 3)
+            season_expr = func.cast((extract('month', Game.release_date) + 2) / 3, Integer)
+        else:
+            raise ValueError(f"Unknown season_mode: {season_mode}")
+
+        # Базовый запрос
+        query = select(
+            season_expr.label('season'),
+            func.count(Game.id).label('count')
+        ).where(
+            Game.release_date.isnot(None)
+        )
+
+        # Применяем фильтры
+        if year:
+            query = query.where(extract('year', Game.release_date) == year)
+
+        if type_id:
+            query = query.where(Game.type_id == type_id)
+
+        # Группировка и сортировка
+        query = query.group_by(season_expr).order_by(season_expr)
+
+        # Выполняем запрос
+        db_result = session.execute(query).all()
+
+        # Преобразуем в словарь, заполняя нулями отсутствующие сезоны
+        values = {}
+        for tick in ticks:
+            values[tick] = 0
+
+        for season, count in db_result:
+            # SQLite может вернуть месяц как 1.0 (float)
+            season_int = int(season)
+            if season_int in values:
+                values[season_int] = count
+
+        return values, ticks

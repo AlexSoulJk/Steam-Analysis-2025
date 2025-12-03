@@ -18,6 +18,21 @@ class GamesByCategories(AbstractGameBy_):
     ticks: list[str]
 
 
+class GamesByGenres(GamesByCategories):
+    values: dict[str, int]
+    ticks: list[str]
+
+
 class GamesByCountCategoriesWithSubs(AbstractGameBy_):
     values: dict[int, dict[str, int]]
     ticks: list[int]
+
+
+class GamesReleaseBySeason(AbstractGameBy_):
+    values: dict[str, int]
+    ticks: list[str]
+
+
+class GamesReleaseBySeasonByGenre(AbstractGameBy_):
+    values: dict[str, dict[str, int]]
+    ticks: list[str]
