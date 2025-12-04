@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Optional
 
 from steam_analysis.database.facade import get_db
@@ -5,10 +6,32 @@ from steam_analysis.database.repositories import GameRepository
 from steam_analysis.database.repositories.game.type import TypeRepository
 from steam_analysis.database.repositories.game.category import CategoryRepository
 
-from steam_analysis.proccessors.schemas.games import GamesByTypes, GamesByCategories, GamesByCountCategoriesWithSubs
+from steam_analysis.proccessors.schemas.games import GamesByTypes, GamesByCategories, GamesByCountCategoriesWithSubs, \
+    GamesByGenres, GamesReleaseBySeason
 
+
+class SeasonMode(str, Enum):
+    monthly = "monthly"
+    quarter = "quarter"
+
+
+LABELS = {
+
+        "monthly": {
+                1: "Январь", 2: "Февраль", 3: "Март", 4: "Апрель",
+                5: "Май", 6: "Июнь", 7: "Июль", 8: "Август",
+                9: "Сентябрь", 10: "Октябрь", 11: "Ноябрь", 12: "Декабрь"
+        },
+
+        "quarter": {
+                1: "Q1 (Янв-Мар)", 2: "Q2 (Апр-Июн)",
+                3: "Q3 (Июл-Сен)", 4: "Q4 (Окт-Дек)"
+        }
+    }
 
 class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С БАЗОЙ И СОБРАЛ ДАННЫЕ ДЛЯ КЛАСТЕРИЗАЦИИ И ОТДАЛ В ПРОВАЙДЕР (ФАСАД)
+
+
 
     def __init__(self):
         self.game_repo = GameRepository()
@@ -26,6 +49,18 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
                                values=values)
         return ret
 
+    def get_games_by_genres(self) -> Optional[GamesByGenres]:
+        ret = None
+        with get_db() as session:
+            genres = self.categories.get_multi(session=session)
+            genres_dict = {genre.id: genre.description for genre in genres}
+            ticks = list(map(lambda x: x.description, genres))
+            values = self.game_repo.count_games_by_genres_for_type(session=session)
+            values = {genres_dict[value[0]]: value[1] for value in values}
+            ret = GamesByGenres(ticks=ticks,
+                                    values=values)
+        return ret
+
     def get_games_by_categories(self) -> Optional[GamesByCategories]:
         ret = None
         with get_db() as session:
@@ -39,11 +74,17 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
         return ret
 
     def get_games_by_categories_count(self) -> Optional[GamesByCountCategoriesWithSubs]:
+        values = None
+        with get_db() as session:
+            values = self.game_repo.get_games_by_category_combinations_sql(session=session, max_category_count=15)
+        return values
 
+    def get_games_release_by_season(self, code: SeasonMode = SeasonMode.monthly) -> Optional[GamesReleaseBySeason]:
         values = None
 
         with get_db() as session:
-            values = self.game_repo.get_games_by_category_combinations_sql(session=session, max_category_count=15)
-
-        return values
-
+            values, ticks = self.game_repo.get_games_release_by_season(session=session,
+                                                                        season_mode=code)
+            values = {LABELS[code][int(value[0])]: value[1] for value in values.items()}
+            ticks = list(map(lambda tick: LABELS[code][int(tick)], ticks))
+        return GamesReleaseBySeason(values=values, ticks=ticks)

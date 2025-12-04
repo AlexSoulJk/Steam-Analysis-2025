@@ -15,10 +15,14 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
     def get_games_by_categories(self):
         return self.clustering_game_proccesor.get_games_by_categories()
 
+    def get_games_release_by_season(self, mode):
+        return self.clustering_game_proccesor.get_games_release_by_season(mode)
+
+    def get_games_by_genres(self):
+        return self.clustering_game_proccesor.get_games_by_genres()
+
     def get_games_by_categories_count(self):
         return self.clustering_game_proccesor.get_games_by_categories_count()
-    def get_games_by_genres(self):
-        pass
 
     # endregion
 
