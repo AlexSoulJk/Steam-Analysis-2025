@@ -44,7 +44,7 @@ class PlayerRepository(BaseRepository):
 
     def get_by_ids(self, steam_ids: list[str], **kwargs) -> Optional[List[Any]]:
         """Получить информацию по списку SteamID игроков"""
-        butch_size = 30
+        butch_size = 100
         all_amount = len(steam_ids)
         len_butches = max(1, all_amount // butch_size)
         players = []
@@ -323,12 +323,6 @@ class PlayerRepository(BaseRepository):
         """
         Получение данных пользователя по схеме (аналог get_by_schema для игр)
         """
-        if user_for_response.status == "null_state":
-            return None, UserAnalysisUpdate.from_response_schema(
-                response=user_for_response,
-                status=user_for_response.status,
-                error_log=""
-            )
 
         steam_id = str(user_for_response.steam_id)
         error_log_message = ""
