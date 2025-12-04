@@ -40,9 +40,9 @@ class RequestsWithDelayClient(HTTPClient):
     """Синхронный клиент с rate limiting"""
     ## 5 мин = 200 запросов ??
     count_of_request = 0
-    MAX_REQUEST = 200
+    MAX_REQUEST = 500
     last_request_time = 0
-    interval_time = 300
+    interval_time = 180
     def __init__(self, delay: float = 0.1):
         self.session = requests.Session()
         self.session.headers.update({
@@ -60,13 +60,14 @@ class RequestsWithDelayClient(HTTPClient):
         elif RequestsWithDelayClient.count_of_request - 1 == RequestsWithDelayClient.MAX_REQUEST:
             delay = current_time - RequestsWithDelayClient.last_request_time
             logger.info(f"Now we will sleep {RequestsWithDelayClient.interval_time - delay}")
-            time.sleep(RequestsWithDelayClient.interval_time - delay)
+            delta = max(RequestsWithDelayClient.interval_time - delay, 0)
+            time.sleep(delta)
             RequestsWithDelayClient.last_request_time = time.time()
             RequestsWithDelayClient.count_of_request = 0
 
         RequestsWithDelayClient.count_of_request += 1
 
-        if RequestsWithDelayClient.count_of_request % 20:
+        if RequestsWithDelayClient.count_of_request % 20 == 0:
             logger.info(f"Count of requests {RequestsWithDelayClient.count_of_request}")
 
     def get(self, url: str, params: dict = None, headers: dict = None) -> Dict[str, Any]:
