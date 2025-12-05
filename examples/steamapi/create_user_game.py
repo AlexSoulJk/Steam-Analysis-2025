@@ -10,7 +10,8 @@ def main():
     app = AppMediator(steam_api_key=api_key,
                       processor_name="AlexSoulJK")
     # app.create_user()
-    app.create_user_game()
+    for i in range(10):
+        app.create_user_game()
 
 
 if __name__ == "__main__":

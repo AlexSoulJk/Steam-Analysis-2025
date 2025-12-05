@@ -11,7 +11,7 @@ def main():
     app = AppMediator(steam_api_key=api_key,
                       processor_name="AlexSoulJK")
     # sleep(180)
-    for i in range(1, 1000):
+    for i in range(2000):
         app.create_user()
 
     # app.create_user_game()

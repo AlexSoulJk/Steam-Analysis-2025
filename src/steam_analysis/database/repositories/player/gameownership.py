@@ -104,17 +104,38 @@ class PlayerGameOwnershipRepository(BaseDBRepository[UserGameOwnership, Ownershi
         if not ownership_pairs:
             return {}
 
-        conditions = []
-        for user_id, game_id in ownership_pairs:
-            conditions.append(
-                and_(UserGameOwnership.user_id == user_id, UserGameOwnership.game_id == game_id)
-            )
+        result_dict = {}
+        batch_size = 100
 
-        query = select(UserGameOwnership).where(or_(*conditions))
-        result = session.execute(query)
-        existing = result.scalars().all()
+        for i in range(0, len(ownership_pairs), batch_size):
+            batch = ownership_pairs[i:i + batch_size]
 
-        return {(own.user_id, own.game_id): own for own in existing}
+            conditions = []
+            for user_id, game_id in batch:
+                conditions.append(
+                    and_(UserGameOwnership.user_id == user_id, UserGameOwnership.game_id == game_id)
+                )
+
+            query = select(UserGameOwnership).where(or_(*conditions))
+            batch_result = session.execute(query)
+            batch_existing = batch_result.scalars().all()
+
+            for own in batch_existing:
+                result_dict[(own.user_id, own.game_id)] = own
+
+        return result_dict
+
+        # conditions = []
+        # for user_id, game_id in ownership_pairs:
+        #     conditions.append(
+        #         and_(UserGameOwnership.user_id == user_id, UserGameOwnership.game_id == game_id)
+        #     )
+        #
+        # query = select(UserGameOwnership).where(or_(*conditions))
+        # result = session.execute(query)
+        # existing = result.scalars().all()
+        #
+        # return {(own.user_id, own.game_id): own for own in existing}
 
     def get_owned_games_count(self, session: Session, user_id: int) -> int:
         """Получить количество игр пользователя"""
