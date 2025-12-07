@@ -157,23 +157,23 @@ class GameRepository(BaseRepository):
 
         return apps
 
-
-    def get_add_info(self, game: GameAnalysisResponse)-> Tuple[
-        Optional[AddInfo], GameAnalysisUpdate]:
+    def get_add_info(self, game: GameAnalysisResponse)-> \
+            Tuple[Optional[AddInfo], GameAnalysisUpdate]:
         add_details, details_error_log_message, details_status, details_add_status = self.get_add_details(game)
         schema, schema_error_log_message, schema_status, schema_add_status = self.get_schema(game)
-        achiev_persentage, achiev_error_log_message, achiev_status = self.get_achiev_persentage(game)
-        reviews, reviews_error_log_message, reviews_status = self.get_reviews(game)
+        achiev_persentage, achiev_error_log_message, achiev_status = self.get_achiev_persentage(game.app_id)
+        reviews, reviews_error_log_message, reviews_status = self.get_reviews(game.app_id)
 
         request_model = AddInfo(
-            game_id = game.app_id,
-            add_details = add_details, 
-            schema = schema, 
-            achiev_persentage = achiev_persentage, 
-            review_info = reviews
+            game_id=game.app_id,
+            add_details=add_details,
+            schema=schema,
+            achiev_persentage=achiev_persentage,
+            review_info=reviews
         )
 
-        error_log_message = details_error_log_message + " // " + schema_error_log_message + " // " + achiev_error_log_message + " // " + reviews_error_log_message
+        error_log_message = details_error_log_message + " // " + schema_error_log_message \
+                            + " // " + achiev_error_log_message + " // " + reviews_error_log_message
         
         status = "details_" + details_status
         if details_add_status:
@@ -189,13 +189,13 @@ class GameRepository(BaseRepository):
                                                                       error_log=error_log_message,
                                                                       status=status)
 
-
-    def get_add_details(self, game: GameAnalysisResponse, lang=None) -> Optional[AddDetails]:
+    def get_add_details(self, game: GameAnalysisResponse, lang=None) -> Tuple[Optional[AddDetails], str, str, str]:
         url = f"{GameRepository.STORE_URL}/api/appdetails"
         params = {'appids': game.app_id}
 
         error_log_message = ""
         status = ""  # TODO: REFACTOR DEFAULT STATUS
+        add_status = ""
         request_model = None
 
         if lang:
@@ -289,16 +289,17 @@ class GameRepository(BaseRepository):
             if not news_data:
                 logger.warning(f"\n ❗️ News for dame {app_id} not found or failed to load")
                 return None
-            return self._parse_news_data(app_id, news_data)
+            return self._parse_news_data(app_id, data)
 
         except Exception as e:
             logger.error(f"\n ❗️ Error getting news for game {app_id}: {e}")
             return None
 
-    def get_achiev_persentage(self, app_id: int) -> Optional[AchievDataAnalysisCreate]:
+    def get_achiev_persentage(self, app_id: int) -> Tuple[Optional[AchievDataAnalysisCreate], str, str]:
         """Получить глобальные проценты выполнения достижений для определённой игры"""
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetGlobalAchievementPercentagesForApp/v2"
         params = {'gameid': app_id}
+        error_log_message = ""
 
         try:
             data = self.http_client.get(url, params=params)
@@ -310,7 +311,7 @@ class GameRepository(BaseRepository):
                 status = "failed"
                 return None
             status = "success"
-            request_model = self._parse_achiev_data(app_id, achiev_data)
+            request_model = self._parse_achiev_data(app_id, data)
 
         except Exception as e:
             error_log_message = f"Error getting global achievement percentages for game {app_id}: {e}"
@@ -322,7 +323,7 @@ class GameRepository(BaseRepository):
     # TODO: дописать схему
     # 1) я так и не поняла, как тут отправить в запросе больше одной статистики :(
     # 2) у меня не получилось получить норм ответ без ошибки
-    def get_global_stats(self, app_id: int, count: int, names: List[str]) -> List[Dict[str, Any]]:
+    def get_global_stats(self, app_id: int, count: int, names: List[str]) -> Optional[List[Dict[str, Any]]]:
         """Получить проценты глобальной статистики для определённой игры"""
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetGlobalStatsForGame/v1"
         params = {'appid': app_id,
@@ -362,13 +363,14 @@ class GameRepository(BaseRepository):
             if not player_data:
                 logger.warning(f"\n ❗️ Number of players for game {app_id} not found or failed to load")
                 return None
-            return self._parse_players_data(app_id, player_data)
+
+            return self._parse_players_data(app_id, data)
 
         except Exception as e:
             logger.error(f"\n ❗️ Error getting global stats for game {app_id}: {e}")
             return None
 
-    def get_reviews(self, app_id: int, limit: int = 100) -> Optional[ReviewsDataAnalysisCreate]:
+    def get_reviews(self, app_id: int, limit: int = 100) -> Tuple[Optional[ReviewsDataAnalysisCreate], str, str]:
         """Получить отзывы об игре"""
         url = f"{self.STORE_URL}/appreviews/{app_id}"
         params = {
@@ -378,6 +380,7 @@ class GameRepository(BaseRepository):
             'purchase_type': 'all',
             'num_per_page': limit
         }
+        error_log_message = ""
 
         try:
             data = self.http_client.get(url, params=params)
@@ -385,15 +388,16 @@ class GameRepository(BaseRepository):
                 status = "failed"
                 error_log_message = f"Reviews for dame {app_id} not found or failed to load"
                 logger.warning(f"\n ❗️ {error_log_message}")
-                return None
+                return None, error_log_message, status
             
             status = "success"
             request_model = self._parse_reviews_data(app_id, data)
 
         except Exception as e:
+            status = "failed"
             error_log_message = f"Error getting reviews for game {app_id}: {e}"
             logger.error(f"\n ❗️{error_log_message}")
-            return None
+            return None, error_log_message, status
         
         return request_model, error_log_message, status
 

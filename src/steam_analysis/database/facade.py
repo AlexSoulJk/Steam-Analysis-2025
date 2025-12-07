@@ -3,7 +3,8 @@ from operator import or_
 from typing import Dict, List, Optional
 
 from steam_analysis.config import db_path
-from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate, SchemaCreate
+from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, SchemaCreate, AddInfo, \
+    UserDataAnalysisCreate
 from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate
 
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
@@ -78,6 +79,12 @@ class DbFacade:
         with get_db() as session:
             schemas, prep_info, dict_without_nons = self.schema_creation.create_chunk_schemas(schemas_chunk,
                                                                      session)
+
+    def add_info_games(self, games_info_chunk: List[Optional[AddInfo]]):
+        with get_db() as session:
+            games, prep_info, dict_without_nons = self.schema_creation.create_chunk_add_schemas(games_info_chunk,
+                                                                     session)
+
 
     # TODO: Дописать начатое!
     # def create_users(self, users_info_chunk: List[Optional[PlayerDataAnalysisCreate]]):

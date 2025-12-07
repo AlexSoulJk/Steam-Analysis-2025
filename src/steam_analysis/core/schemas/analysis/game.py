@@ -46,13 +46,13 @@ class GameAnalysisCreate(GameAnalysisBase):
 class GameAnalysisResponse(BaseSchema):
     id: int = Field(..., ge=1)
     app_id: int
-    status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle|null_state)$")
+    status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle|null_state|details_.*)$")
 
 
 class GameAnalysisUpdate(BaseSchema):
     """Обновление игры (только меняемые поля)"""
     id: int = Field(..., ge=1)
-    status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle|null_state)$")
+    status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle|null_state|details_.*)$")
     error_log: Optional[str] = None
     # processed: Optional[bool] = None
 

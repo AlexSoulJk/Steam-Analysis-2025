@@ -4,7 +4,7 @@ from ..repositories.game_repository import GameRepository
 from ..schemas import GameCreate
 from ..schemas.analysis.game import GameAnalysisChunkForResponse, GameAnalysisChunkForRequest, GameAnalysisChunkUpdate
 from ..schemas.game.service import TypeAnalysesSchema, FillGameAnalysisChunk, \
-    FillTypeSchemaChunk, FillSchemaChunk
+    FillTypeSchemaChunk, FillSchemaChunk, FillAddSchemaChunk
 from ...resourcemanager.manager import resource_manager
 from ...resourcemanager.resources.codes import ResourceCodes
 
@@ -39,8 +39,8 @@ class GameService:
         return FillGameAnalysisChunk(data_for_analysis_db=GameAnalysisChunkForRequest(chunk=chunk_request_part,
                                                                                       chunk_games=requested_games),
                                      data_chunk=list(map(lambda x: x[0], data_chunk)))
-    
-    def get_add_game_info(self, chunk: GameAnalysisChunkForResponse) -> FillSchemaChunk:
+
+    def get_add_game_info(self, chunk: GameAnalysisChunkForResponse) -> FillAddSchemaChunk:
         start_time = datetime.datetime.now()
 
         # data_chunk = []
@@ -62,9 +62,9 @@ class GameService:
                                                                           error_log=chunk_error_log,
                                                                           status="success")
 
-        return FillSchemaChunk(data_for_analysis_db=GameAnalysisChunkForRequest(chunk=chunk_request_part,
-                                                                                      chunk_games=requested_games),
-                                                                    data_chunk=list(map(lambda x: x[0], data_chunk)))
+        return FillAddSchemaChunk(data_for_analysis_db=GameAnalysisChunkForRequest(chunk=chunk_request_part,
+                                                                                chunk_games=requested_games),
+                                  data_chunk=list(map(lambda x: x[0], data_chunk)))
 
     def get_game_timed_data(self, app_ids: list[int]) -> FillTypeSchemaChunk:
         start_time = datetime.datetime.now()
@@ -77,7 +77,7 @@ class GameService:
             # global_stats = self.game_repo.get_global_stats(app_id, ..)
             number_of_players = self.game_repo.get_number_of_players(app_id)
             reviews = self.game_repo.get_reviews(app_id, limit=50)
-            if news != None or achiev_persentage != None or number_of_players != None or reviews != None:
+            if news is not None or achiev_persentage is not None or number_of_players is not None or reviews is not None:
                 success_count += 1
 
             data = TypeAnalysesSchema(
