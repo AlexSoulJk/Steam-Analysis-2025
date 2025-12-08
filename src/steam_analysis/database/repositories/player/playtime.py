@@ -38,17 +38,43 @@ class PlayerPlaytimeRepository(BaseDBRepository[UserPlaytime, PlaytimeCreate, An
         if not playtime_pairs:
             return {}
 
-        conditions = []
-        for user_id, game_id in playtime_pairs:
-            conditions.append(
-                and_(UserPlaytime.user_id == user_id, UserPlaytime.game_id == game_id)
-            )
+        # conditions = []
+        # for user_id, game_id in playtime_pairs:
+        #     conditions.append(
+        #         and_(UserPlaytime.user_id == user_id, UserPlaytime.game_id == game_id)
+        #     )
+        #
+        # query = select(UserPlaytime).where(or_(*conditions))
+        # result = session.execute(query)
+        # existing_playtimes = result.scalars().all()
+        #
+        # return {(pt.user_id, pt.game_id): pt for pt in existing_playtimes}
 
-        query = select(UserPlaytime).where(or_(*conditions))
-        result = session.execute(query)
-        existing_playtimes = result.scalars().all()
+        result_dict = {}
+        batch_size = 100
 
-        return {(pt.user_id, pt.game_id): pt for pt in existing_playtimes}
+        for i in range(0, len(playtime_pairs), batch_size):
+            batch = playtime_pairs[i:i + batch_size]
+
+            conditions = []
+            for user_id, game_id in batch:
+                conditions.append(
+                    and_(UserPlaytime.user_id == user_id, UserPlaytime.game_id == game_id)
+                )
+
+            # Если в пакете только один элемент, используем and_ без or_
+            if len(conditions) == 1:
+                query = select(UserPlaytime).where(conditions[0])
+            else:
+                query = select(UserPlaytime).where(or_(*conditions))
+
+            batch_result = session.execute(query)
+            batch_existing = batch_result.scalars().all()
+
+            for pt in batch_existing:
+                result_dict[(pt.user_id, pt.game_id)] = pt
+
+        return result_dict
 
     def create_or_update_playtime(self, session: Session,
                                   playtime_create: PlaytimeCreate) -> UserPlaytime:

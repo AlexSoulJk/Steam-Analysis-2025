@@ -116,7 +116,7 @@ class AppMediator:
         chunk_for_create = self.analysis_service.get_next_user_part_chunk_by_service(self.processor_name)
         fill_user_butch = self.steam_facade.get_player_game_data_bunch(chunk_for_create)
 
-        default_saver.save_fill_player_game_butch(fill_user_butch)
+        # default_saver.save_fill_player_game_butch(fill_user_butch)
         # Тут можешь коментить первые 2 строчки и вытаскивать сериализованный чанк. Только путь поменяй к json на тот что у тебя получится
         # fill_user_butch = default_loader.load_fill_user_game_batch(filename="players_game_20251129_25.json")
         # users_ids = self.database_facade.create_users(fill_butch.data_chunk)
