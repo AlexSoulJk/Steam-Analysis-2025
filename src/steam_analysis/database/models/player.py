@@ -75,7 +75,6 @@ class Friend(BaseModel):
     friend_steamid = Column(String(500))
 
     __table_args__ = (
-        UniqueConstraint('user_id', 'friend_id', name='uq_friends_pair'),
         Index('idx_friends_user', 'user_id'),
         Index('idx_friends_friend', 'friend_id'),
     )

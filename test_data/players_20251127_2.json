@@ -1,0 +1,56 @@
+{
+  "data_for_analysis_db": {
+    "chunk_users": [
+      {
+        "id": 1,
+        "status": "particle",
+        "error_log": ""
+      },
+      {
+        "id": 2,
+        "status": "particle",
+        "error_log": ""
+      }
+    ],
+    "chunk": {
+      "id": 1,
+      "status": "particle_success",
+      "response_time": 1.316071,
+      "error_log": "",
+      "started_at": "2025-11-27 22:04:12.708396",
+      "finished_at": "2025-11-27 22:04:14.024467"
+    }
+  },
+  "data_chunk": [
+    {
+      "player": {
+        "steam_id": "76561197960265740",
+        "persona_name": "johnc",
+        "profile_url": "https://steamcommunity.com/id/johnc/",
+        "time_created": null,
+        "community_visibility_state": 2,
+        "steam_level": null,
+        "loccountrycode": null,
+        "locstatecode": null,
+        "loccityid": null,
+        "last_logoff": null
+      },
+      "friends": []
+    },
+    {
+      "player": {
+        "steam_id": "76561197960265749",
+        "persona_name": "EricS",
+        "profile_url": "https://steamcommunity.com/id/paintrain/",
+        "time_created": "2003-09-11 04:29:16",
+        "community_visibility_state": 3,
+        "steam_level": 132,
+        "loccountrycode": "US",
+        "locstatecode": "WA",
+        "loccityid": 3961,
+        "last_logoff": null
+      },
+      "friends": []
+    }
+  ]
+}

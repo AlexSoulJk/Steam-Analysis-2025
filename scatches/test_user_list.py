@@ -31,7 +31,7 @@ def check_player_list_creator():
     plc = PlayerListCreator(api_key)
 
     for _ in range(30):
-        plc.fill_current_list()
+        plc.fill_current_list(resource_manager.get_resource(ResourceCodes.USER_LIST))
         sleep(30)
 
 

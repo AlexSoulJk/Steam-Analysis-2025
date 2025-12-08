@@ -24,6 +24,8 @@ class Game(BaseModel):
     categories = relationship("GameCategory", back_populates="game", cascade="all, delete-orphan")
     platforms = relationship("GamePlatform", back_populates="game", cascade="all, delete-orphan")
 
+    ratings = relationship("Rating", back_populates="game", cascade="all, delete-orphan")
+
     reviews = relationship("Review", back_populates="game", cascade="all, delete-orphan")
     news = relationship("News", back_populates="game", cascade="all, delete-orphan")
     achievements = relationship("Achievement", back_populates="game", cascade="all, delete-orphan")
@@ -205,3 +207,34 @@ class Achievement(BaseModel):
         Index('idx_achievements_game', 'game_id'),
         Index('idx_achievements_name', 'name'),
     )
+
+
+class RatingNames(DictionaryModel):
+    __tablename__ = "rating_names"
+
+    ratings = relationship("Rating", back_populates="rating_name", cascade="all, delete-orphan")
+
+
+class Rating(BaseModel):
+    __tablename__ = "ratings"
+    game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
+    rating_name_id = Column(Integer, ForeignKey('rating_names.id', ondelete='CASCADE'), nullable=False)
+    rating = Column(Integer)
+    req_age = Column(Integer)
+    banned = Column(Boolean, default=False)
+
+    game = relationship("Game", back_populates="ratings")
+    rating_name = relationship("RatingNames", back_populates="ratings")
+
+    __table_args__ = (
+        UniqueConstraint('game_id', 'rating_name_id', name='uq_game_rating_org'),
+        Index('idx_ratings_game', 'game_id'),
+        Index('idx_ratings_name', 'rating_name_id'),
+        Index('idx_ratings_rating', 'rating'),
+        Index('idx_ratings_banned', 'banned'),
+    )
+
+
+
+
+
