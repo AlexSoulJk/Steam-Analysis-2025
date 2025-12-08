@@ -82,8 +82,16 @@ class DbFacade:
 
     def add_info_games(self, games_info_chunk: List[Optional[AddInfo]]):
         with get_db() as session:
-            games, prep_info, dict_without_nons = self.schema_creation.create_chunk_add_schemas(games_info_chunk,
-                                                                     session)
+            valid_games_add_data = [data for data in games_info_chunk if data is not None]
+            if not valid_games_add_data:
+                return
+
+            prep_add_data = [data.add_details for data in valid_games_add_data]
+            prep_info = self.schema_creation.prepare_relations(prep_add_data, session)
+            session.flush()
+
+            games, prep_info, dict_without_nons = self.schema_creation.\
+                create_chunk_add_schemas(prep_info, valid_games_add_data, session)
 
 
     # TODO: Дописать начатое!

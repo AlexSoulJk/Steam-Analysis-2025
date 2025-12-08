@@ -28,8 +28,9 @@ class AchievementBase(BaseSchema):
     unlock_timestamp: Optional[int] = Field(None, ge=0)
 
 
-class ReviewBase(BaseSchema):
+class ReviewCore(BaseSchema):
     """Базовая модель отзыва"""
+    steam_id: str = Field(..., max_length=20)
     language: Optional[str] = Field(None, max_length=20)
     review: Optional[str] = Field(None)
     voted_up: Optional[bool] = Field(None)
@@ -38,4 +39,21 @@ class ReviewBase(BaseSchema):
     weighted_vote_score: Optional[float] = Field(None)
     timestamp_created: Optional[int] = Field(None)
     timestamp_updated: Optional[int] = Field(None)
+    comment_count: int = Field(0, ge=0)
+    steam_purchase: bool = Field(False)
+    received_for_free: bool = Field(False)
     written_during_early_access: bool = Field(False)
+    primarily_steam_deck: bool = Field(False)
+
+
+class ReviewBase(ReviewCore):
+    """Базовая модель отзыва"""
+    game_id: int
+    user_id: Optional[int] = Field(None)
+    recommendation_id: str = Field(..., max_length=100)
+
+
+class ReviewCreate(ReviewBase):
+    """DTO для создания отзыва"""
+    pass
+
