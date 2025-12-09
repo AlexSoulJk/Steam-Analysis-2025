@@ -1,6 +1,6 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 
-from sqlalchemy import select
+from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import joinedload, Session
 
 from steam_analysis.core.schemas.game.service import SchemaCreate
@@ -27,90 +27,126 @@ class AchievRepository(DictionaryRepository[Achievement, AchievCreateDB, AchievU
         if not names:
             return {}
 
-        stmt = select(self.model).where(
-            self.model.game_id == game_id,
-            self.model.name.in_(names)
-        )
-        result = session.execute(stmt)
-        existing_achievements = result.scalars().all()
+        result_dict: Dict[str, Achievement] = {}
 
-        return {achievement.name: achievement for achievement in existing_achievements}
+        # Разбиваем names на батчи
+        for i in range(0, len(names), 500):
+            batch = names[i:i + 500]
 
-    def create_bulk(self, objects_in: List[AchievCreateDB], session: Session) -> List[Achievement]:
+            stmt = select(self.model).where(
+                self.model.game_id == game_id,
+                self.model.name.in_(batch) if len(batch) > 1 else self.model.name == batch[0]
+            )
+            result = session.execute(stmt)
+            batch_achievements = result.scalars().all()
+
+            # Добавляем в общий словарь
+            for achievement in batch_achievements:
+                result_dict[achievement.name] = achievement
+
+        return result_dict
+
+    def get_existing_pairs(self, session: Session, pairs: List[Tuple[int, str]],
+                           batch_size: int = 500) -> List[Achievement]:
         """
-        Массовое создание достижений
+        Получить существующие достижения по парам (game_id, name) с батчингом
 
         Args:
-            objects_in: Список объектов AchievCreateDB
             session: Сессия SQLAlchemy
+            pairs: Список кортежей (game_id, name)
+            batch_size: Размер батча (если None, используется self._batch_size)
+
+        Returns:
+            Список существующих достижений
+        """
+        if not pairs:
+            return []
+
+        all_existing = []
+
+        # Обрабатываем пары батчами
+        for i in range(0, len(pairs), batch_size):
+            batch = pairs[i:i + batch_size]
+
+            # Создаем OR-условия для текущего батча
+            conditions = []
+            for game_id, name in batch:
+                conditions.append(
+                    and_(
+                        self.model.game_id == game_id,
+                        self.model.name == name
+                    )
+                )
+
+            # Выполняем запрос для текущего батча
+            if conditions:
+                stmt = select(self.model).where(or_(*conditions))
+                result = session.execute(stmt)
+                batch_existing = list(result.scalars().all())
+                all_existing.extend(batch_existing)
+
+        return all_existing
+
+    def create_bulk(self, schemas: List[AchievCreateDB], session: Session) -> List[Achievement]:
+        """
+        Массовое создание достижений с проверкой по парам
+
+        Args:
+            session: Сессия SQLAlchemy
+            schemas: Список Pydantic схем AchievCreateDB
+            query_batch_size: Размер батча для проверки существующих
+            insert_batch_size: Размер батча для вставки новых
 
         Returns:
             Список созданных и существующих достижений
         """
-        if not objects_in:
+        if not schemas:
             return []
 
-        # Шаг 1: Группируем достижения по game_id
-        achievements_by_game: Dict[int, List[AchievCreateDB]] = {}
+        pairs = [(schema.game_id, schema.name) for schema in schemas]
 
-        for achiev in objects_in:
-            game_id = achiev.game_id
-            if game_id not in achievements_by_game:
-                achievements_by_game[game_id] = []
-            achievements_by_game[game_id].append(achiev)
+        existing_achievements = self.get_existing_pairs(session, pairs)
 
-        # Шаг 2: Получаем существующие достижения для каждой игры
-        all_achievements: List[Achievement] = []
-        new_db_objects: List[Achievement] = []
+        existing_pairs_set = {
+            (achievement.game_id, achievement.name) for achievement in existing_achievements
+        }
 
-        for game_id, achievements in achievements_by_game.items():
-            # Получаем имена всех достижений для этой игры
-            names = [achiev.name for achiev in achievements]
+        new_schemas = []
+        for schema in schemas:
+            pair_key = (schema.game_id, schema.name)
+            if pair_key not in existing_pairs_set:
+                new_schemas.append(schema)
 
-            # Получаем существующие достижения
-            existing_achievements = self.get_existing_by_game_names(game_id, names, session)
+        if not new_schemas:
+            return existing_achievements
 
-            # Фильтруем новые достижения
-            new_achievements = [
-                achiev for achiev in achievements
-                if achiev.name not in existing_achievements
-            ]
+        new_achievements = []
+        for schema in new_schemas:
+            try:
+                # Преобразуем схему в словарь
+                if hasattr(schema, 'model_dump'):
+                    obj_data = schema.model_dump()
+                else:
+                    obj_data = schema.dict()
 
-            # Добавляем существующие достижения в общий список
-            all_achievements.extend(existing_achievements.values())
+                # Создаем объект ORM
+                achievement = Achievement(
+                    game_id=schema.game_id,
+                    name=obj_data.get('name', ''),
+                    display_name=obj_data.get('displayName', ''),
+                    hidden=bool(obj_data.get('hidden', 0))
+                )
+                new_achievements.append(achievement)
 
-            if not new_achievements:
+            except Exception as e:
+                print(f"Ошибка при создании достижения {schema.name} для игры {schema.game_id}: {e}")
                 continue
 
-            # Шаг 3: Создаем новые достижения
-            for achiev_data in new_achievements:
-                try:
-                    # Преобразуем Pydantic модель в словарь
-                    if hasattr(achiev_data, 'model_dump'):
-                        obj_data = achiev_data.model_dump()
-                    else:
-                        obj_data = achiev_data.dict()
+        if not new_achievements:
+            return existing_achievements
 
-                    db_obj = self.model(
-                        game_id=game_id,
-                        name=obj_data.get('name', ''),
-                        display_name=obj_data.get('displayName', ''),
-                        hidden=bool(obj_data.get('hidden', 0))
-                    )
-                    new_db_objects.append(db_obj)
+        session.add_all(new_achievements)
 
-                except Exception as e:
-                    print(f"Ошибка при создании достижения {achiev_data.name} для игры {game_id}: {e}")
-                    continue
-
-        if not new_db_objects:
-            return all_achievements
-
-        session.add_all(new_db_objects)
-
-        all_achievements.extend(new_db_objects)
-
-        return all_achievements
-
-
+        # Шаг 4: Возвращаем все достижения (существующие + новые)
+        return existing_achievements + new_achievements
 

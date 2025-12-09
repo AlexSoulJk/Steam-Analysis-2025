@@ -6,7 +6,7 @@ from typing import List, Optional, Dict, Any, Tuple
 
 from ..codes.steamservices import SteamServices
 from ..parsers.json.steamapi.game import GameParser
-from ..schemas import GameShortInfo, GameCategory
+from ..schemas import GameShortInfo, GameCategory, RatingHttp
 from ..schemas.analysis.game import GameAnalysisUpdate, GameAnalysisResponse
 from ..schemas.game.service import SchemaCreate, AchievDataAnalysisCreate, \
     UserDataAnalysisCreate, AchievDataAnalysisCreate, \
@@ -217,9 +217,11 @@ class GameRepository(BaseRepository):
                 developers = data.get('developers', [])
                 publishers = data.get('publishers', [])
                 price_overview_data = data.get('price_overview', None)
+                ratings = data.get('ratings', {})
                 add_dev = ""
                 add_pub = ""
                 add_price = ""
+                add_ratings = ""
                 if not developers:
                     status = "particle"
                     add_dev = " developers"
@@ -229,9 +231,13 @@ class GameRepository(BaseRepository):
                 if not price_overview_data:
                     status = "particle"
                     add_price = " price"
-                add_status = add_dev + add_pub + add_price
+                if not ratings:
+                    status = "particle"
+                    add_ratings = " ratings"
+                add_status = add_dev + add_pub + add_price + add_ratings
 
-                request_model = self._parse_add_details_data(game.app_id, developers, publishers, price_overview_data)
+                request_model = self._parse_add_details_data(game.app_id, developers, publishers,
+                                                             price_overview_data, ratings)
 
         except Exception as e:
             status = "failed"
@@ -423,7 +429,8 @@ class GameRepository(BaseRepository):
         )
 
     def _parse_add_details_data(self, app_id: int, developers: List[Any], publishers: List[Any],
-                                price_overview_data: Dict[str, Any]) -> AddDetails:
+                                price_overview_data: Dict[str, Any],
+                                ratings_data: Dict[str, Any]) -> AddDetails:
 
         if price_overview_data:
             price_overview = Price(
@@ -435,11 +442,25 @@ class GameRepository(BaseRepository):
         else:
             price_overview = None
 
+        ratings_list = []
+        if ratings_data:
+            for name in ratings_data.keys():
+                rating_info = ratings_data[name]
+                ratings_list.append(
+                    RatingHttp(
+                        rating_name=name,
+                        rating=self._safe_int_convert(rating_info.get("rating", 0)),
+                        req_age=self._safe_int_convert(rating_info.get("required_age", 0)),
+                        banned=rating_info.get("banned", False)
+                    )
+                )
+
         return AddDetails(
             game_id=app_id,
             developers=developers,
             publishers=publishers,
-            price_overview=price_overview
+            price_overview=price_overview,
+            ratings=ratings_list
         )
 
     def _parse_schema_data(self, app_id: int, game_version: int, stats: List[Any], achievs: List[Any]) -> SchemaCreate:
@@ -489,6 +510,38 @@ class GameRepository(BaseRepository):
             game_id=app_id,
             news=news
         )
+
+    @staticmethod
+    def _safe_int_convert(value, default=0):
+        """Безопасное преобразование в int с обработкой строк с буквами"""
+        if value is None:
+            return default
+
+        # Если уже число
+        if isinstance(value, int):
+            return value
+
+        # Если строка, очищаем от нецифровых символов (кроме минуса)
+        if isinstance(value, str):
+            # Удаляем все символы, кроме цифр и минуса
+            cleaned = ''.join(c for c in value if c.isdigit() or c == '-')
+
+            # Частые опечатки: 'l' -> '1', 'O' -> '0'
+            if not cleaned and len(value) == 1:
+                common_errors = {'l': '1', 'L': '1', 'o': '0', 'O': '0', 's': '5', 'S': '5'}
+                cleaned = common_errors.get(value, '')
+
+            # Пробуем преобразовать
+            try:
+                return int(cleaned) if cleaned else default
+            except (ValueError, TypeError):
+                return default
+
+        # Для других типов
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            return default
 
     @staticmethod
     def _extract_content_info(data: Dict[str, Any]) -> Dict[str, Any]:

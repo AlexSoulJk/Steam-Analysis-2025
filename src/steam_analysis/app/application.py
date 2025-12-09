@@ -63,11 +63,11 @@ class AppMediator:
         # Получаем данные через Steam API
         # print(f"{chunk_to_fill=}")
         fill_butch = self.steam_facade.get_add_game_list(chunk_to_fill)
-        # print(f"{fill_butch=}")
-        # Сохранение chunk игр в JSON
-        # default_saver.save_fill_game_batch(fill_butch)
+        # # print(f"{fill_butch=}")
+        # # Сохранение chunk игр в JSON
+        # default_saver.save_fill_add_info_game_batch(fill_butch)
         # Load chunk from JSON
-        # fill_butch = default_loader.load_fill_schema_batch(filename="games_chunk_2025110306.json")
+        # fill_butch = default_loader.load_fill_schema_batch(filename="games_add_info_chunk_2025120931.json")
         self.database_facade.add_info_games(fill_butch.data_chunk)
         # Завершаем чанк
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)

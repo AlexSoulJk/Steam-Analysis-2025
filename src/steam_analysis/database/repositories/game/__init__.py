@@ -7,6 +7,9 @@ from steam_analysis.database.repositories.game.achiev import AchievRepository
 from steam_analysis.database.repositories.game.review import ReviewRepository
 from steam_analysis.database.repositories.game.pricehistory import PriceHistoryRepository
 from steam_analysis.database.repositories.game.reviewhistory import ReviewHistoryRepository
+from steam_analysis.database.repositories.game.achievhistory import AchievementHistoryRepository
+from steam_analysis.database.repositories.game.rating import RatingRepository
+from steam_analysis.database.repositories.game.ratingname import RatingNameRepository
 # from steam_analysis.database.repositories.game.rating import
 
 __all__ = [
@@ -18,5 +21,8 @@ __all__ = [
     "AchievRepository",
     "ReviewRepository",
     "PriceHistoryRepository",
-    "ReviewHistoryRepository"
+    "ReviewHistoryRepository",
+    "AchievementHistoryRepository",
+    "RatingRepository",
+    "RatingNameRepository"
 ]

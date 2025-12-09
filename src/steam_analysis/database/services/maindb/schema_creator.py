@@ -2,7 +2,7 @@ from typing import Optional, List, Tuple, Dict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from steam_analysis.core.schemas.game.dictionaries import AchievCreateDB
+from steam_analysis.core.schemas.game.dictionaries import AchievCreateDB, AchievPercentCreateDB
 from steam_analysis.core.schemas.game.service import SchemaCreate, AddInfo, AddDetails
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.repositories import \
@@ -14,13 +14,17 @@ from steam_analysis.database.repositories import \
      GameDeveloperRepository,
      ReviewRepository,
      DeveloperRepository,
-     ReviewHistoryRepository)
+     ReviewHistoryRepository,
+     AchievementHistoryRepository,
+     RatingRepository,
+     RatingNameRepository)
 
-from steam_analysis.database.models import Developer, Publisher, User
+from steam_analysis.database.models import Developer, Publisher, RatingNames
 from steam_analysis.core.schemas.game.developer import DeveloperCreate, PublisherCreate,\
     GameDeveloperCreate, GamePublisherCreate
 from steam_analysis.core.schemas.game.pricehistory import PriceHistoryCreate
 from steam_analysis.core.schemas.game.reviewhistory import ReviewHistoryCreate
+from steam_analysis.core.schemas.game.ratings import RatingCreate, RatingNameCreate
 from steam_analysis.database.support_models.schema_creation import PreparedForSchemaCreation
 from steam_analysis.core.schemas.player.playergame import ReviewCreate
 
@@ -37,6 +41,9 @@ class SchemaCreationService:
         self.review = ReviewRepository()
         self.review_history = ReviewHistoryRepository()
         self.price = PriceHistoryRepository()
+        self.achievs_history = AchievementHistoryRepository()
+        self.rating = RatingRepository()
+        self.ratingname = RatingNameRepository()
         # self.stats = StatsRepository()x
 
     # def create_chunk_schemas(self, schemas_chunk: List[Optional[SchemaCreate]],
@@ -50,8 +57,10 @@ class SchemaCreationService:
     #                                         session=session)
 
     def prepare_relations(self, data_without_none: List[AddDetails],
-                          session: Session) -> Tuple[List[Developer], List[Publisher]]:
+                          session: Session) -> Tuple[List[Developer], List[Publisher], List[RatingNames]]:
         developers = []
+        publishers = []
+        ratings_names = []
         for data in data_without_none:
             if data is None:
                 continue
@@ -63,10 +72,6 @@ class SchemaCreationService:
                     continue
                 developers.append(dev)
 
-        publishers = []
-        for data in data_without_none:
-            if data is None:
-                continue
             pubs = data.publishers
             if not pubs:
                 continue
@@ -74,6 +79,14 @@ class SchemaCreationService:
                 if pub in publishers:
                     continue
                 publishers.append(pub)
+
+            ratings = data.ratings
+            if not ratings:
+                continue
+            for rating in ratings:
+                if rating.rating_name in ratings_names:
+                    continue
+                ratings_names.append(rating.rating_name)
 
         devCreates = []
         for dev in developers:
@@ -83,9 +96,19 @@ class SchemaCreationService:
         for pub in publishers:
             pubCreates.append(PublisherCreate(name=pub, description="", website=""))
 
+        ratingNameCreate = []
+        for rating_name in ratings_names:
+            ratingNameCreate.append(
+                RatingNameCreate
+                (
+                    description=rating_name
+                )
+            )
+
         developers = self.developer.create_bulk(devCreates, session)
         publisher = self.publisher.create_bulk(pubCreates, session)
-        return developers, publisher
+        ratingnames = self.ratingname.create_bulk(ratingNameCreate, session)
+        return developers, publisher, ratingnames
 
     def __check_game_created(self, data_list, session) -> \
             Tuple[Dict[int, int], List[int]]:
@@ -115,7 +138,7 @@ class SchemaCreationService:
         return dev_dict, pub_dict
 
     def create_chunk_add_schemas(self,
-                                 prep_info: Tuple[List[Developer], List[Publisher]],
+                                 prep_info: Tuple[List[Developer], List[Publisher], List[RatingNames]],
                                  schemas_chunk: List[AddInfo],
                                  session: Session):
         all_details = []
@@ -126,10 +149,14 @@ class SchemaCreationService:
 
         games_ids, no_created_games = self.__check_game_created(all_details, session)
 
-        prep_developers, prep_publishers = self.__prepare_developer_publisher(prep_info)
+        prep_developers = {dev.name: dev.id for dev in prep_info[0]}
+        prep_publishers = {pub.name: pub.id for pub in prep_info[1]}
+        prep_rating_names = {ratingname.description: ratingname.id for ratingname in prep_info[2]}
+
         game_developers = []
         game_publishers = []
         prices = []
+        all_ratings = []
         for detail in all_details:
             game_id = games_ids.get(detail.game_id)
             if game_id is None:
@@ -165,7 +192,21 @@ class SchemaCreationService:
                     initial=price.initial
                 )
             )
-            # TODO: add ratings
+
+            ratings = detail.ratings
+            for rating in ratings:
+                rating_name_id = prep_rating_names.get(rating.rating_name)
+                if rating_name_id is None:
+                    continue
+                all_ratings.append(
+                    RatingCreate(
+                        game_id=game_id,
+                        rating_name_id=rating_name_id,
+                        rating=rating.rating,
+                        req_age=rating.req_age,
+                        banned=rating.banned
+                    )
+                )
 
 
         all_reviews_info = []
@@ -229,33 +270,56 @@ class SchemaCreationService:
             #
             #     all_reviews.append(ReviewCreate(**review_data))
 
-        # all_achives = []
-        # for data in schemas_chunk:
-        #     if data.schema_data is None:
-        #         continue
-        #
-        #     game_id = games_ids.get(data.schema_data.game_id)
-        #     if game_id is None:
-        #         continue
-        #
-        #     achives = data.schema_data.achievs
-        #     for ach in achives:
-        #         all_achives.append(
-        #             AchievCreateDB(
-        #                 game_id=game_id,
-        #                 name=ach.name,
-        #                 hidden=ach.hidden,
-        #                 displayName=ach.displayName,
-        #                 defaultvalue=ach.defaultvalue
-        #             )
-        #         )
+        all_achives = []
+        for data in schemas_chunk:
+            if data.schema_data is None:
+                continue
 
-        # created_achievements = self.achievs.create_bulk(all_achives, session=session)
-        # session.flush()
+            game_id = games_ids.get(data.schema_data.game_id)
+            if game_id is None:
+                continue
+
+            achives = data.schema_data.achievs
+            for ach in achives:
+                all_achives.append(
+                    AchievCreateDB(
+                        game_id=game_id,
+                        name=ach.name,
+                        hidden=ach.hidden,
+                        displayName=ach.displayName,
+                        defaultvalue=ach.defaultvalue
+                    )
+                )
+
+        created_achievements = self.achievs.create_bulk(all_achives, session=session)
+        session.flush()
+
+        achieves_ids = {ach.name: ach.id for ach in created_achievements}
+        achives_histories = []
+        for data in schemas_chunk:
+            data_ach = data.achiev_persentage
+            if data_ach is None:
+                continue
+            game_id = games_ids.get(data_ach.game_id)
+            if game_id is None:
+                continue
+            achiv_percents = data_ach.achievs
+            for ach in achiv_percents:
+                ach_id = achieves_ids.get(ach.achievement_name)
+                achives_histories.append(
+                    AchievPercentCreateDB
+                    (
+                        achievement_id=ach_id,
+                        percent=ach.percent
+                    )
+                )
+
+        self.achievs_history.create_bulk(achives_histories, session)
 
         self.gameDev.create_bulk(session, game_developers)
-        self.gamePub.create_bulk(session, game_publishers)
-        self.price.create_bulk(session, prices)
-        self.review_history.create_bulk(session, review_histories)
+        self.gamePub.create_bulk(game_publishers, session)
+        self.price.create_bulk(prices, session)
+        self.review_history.create_bulk(review_histories, session)
+        self.rating.create_bulk(all_ratings, session)
         # self.review.create_bulk(session, all_reviews)
 

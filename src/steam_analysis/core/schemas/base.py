@@ -46,7 +46,6 @@ class AchievMixin(BaseSchema):
 
 class AchievPercentMixin(BaseSchema):
     """Миксин для Achiev"""
-    achievement_name: str = Field(..., description="Название достижения", alias="name")
     percent: float = Field(..., description="Процент игроков с достижением", ge=0, le=100)
 
 

@@ -432,8 +432,9 @@ class ReviewHistoryRepository(BaseDBRepository[ReviewHistory, ReviewHistoryCreat
             'positive_ratio': (total_positive / total_reviews * 100) if total_reviews > 0 else 0.0
         }
 
-    def create_bulk(self, session: Session,
-                    review_histories: List[ReviewHistoryCreate]) -> List[ReviewHistory]:
+    def create_bulk(self,
+                    review_histories: List[ReviewHistoryCreate],
+                    session: Session) -> List[ReviewHistory]:
         """
         Массовое создание записей истории отзывов
         """

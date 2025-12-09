@@ -33,7 +33,7 @@ class GamePublisherRepository(BaseDBRepository[GamePublisher, GamePublisherCreat
         result = session.execute(query)
         return list(result.scalars().all())
 
-    def create_bulk(self, session: Session, schemas: List[GamePublisherCreate]) -> List[GamePublisher]:
+    def create_bulk(self, schemas: List[GamePublisherCreate], session: Session) -> List[GamePublisher]:
         """
         Массовое создание связей игр с издателями
         """

@@ -158,8 +158,9 @@ class PriceHistoryRepository(BaseDBRepository[PriceHistory, PriceHistoryCreate, 
         result = session.execute(query)
         return result.scalar_one_or_none()
 
-    def create_bulk(self, session: Session,
-                    price_histories: List[PriceHistoryCreate]) -> List[PriceHistory]:
+    def create_bulk(self,
+                    price_histories: List[PriceHistoryCreate],
+                    session: Session) -> List[PriceHistory]:
         """
         Массовое создание записей истории цен
 

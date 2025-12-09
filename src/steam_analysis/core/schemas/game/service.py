@@ -6,6 +6,7 @@ from steam_analysis.core.schemas.base import BaseSchema
 from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, StatsCreate, \
     AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
 from steam_analysis.core.schemas.game.game import GameCreate, GameFromHttp
+from steam_analysis.core.schemas.game.ratings import RatingHttp
 
 class GameCreateReportInfo(BaseSchema):
     start_app_id: int
@@ -74,6 +75,7 @@ class AddDetails(BaseSchema):
     developers: List[str]
     publishers: List[str]
     price_overview: Optional[Price]
+    ratings: List[RatingHttp]
 
 
 class AddInfo(BaseSchema):
@@ -81,8 +83,6 @@ class AddInfo(BaseSchema):
     schema_data: Optional[SchemaCreate]
     achiev_persentage: Optional[AchievDataAnalysisCreate]
     review_info: Optional[ReviewsDataAnalysisCreate]
-
-
 
 
 # region FillChunk schemas

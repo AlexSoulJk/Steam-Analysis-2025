@@ -1,6 +1,6 @@
 import datetime
 from typing import List, Dict, Any, Optional
-from ..repositories.game_repository import GameRepository
+from ..repositories.game_repository import GameRepository, logger
 from ..schemas import GameCreate
 from ..schemas.analysis.game import GameAnalysisChunkForResponse, GameAnalysisChunkForRequest, GameAnalysisChunkUpdate
 from ..schemas.game.service import TypeAnalysesSchema, FillGameAnalysisChunk, \
@@ -41,8 +41,10 @@ class GameService:
                                      data_chunk=list(map(lambda x: x[0], data_chunk)))
 
     def get_add_game_info(self, chunk: GameAnalysisChunkForResponse) -> FillAddSchemaChunk:
-        start_time = datetime.datetime.now()
+        logger.info(
+            f"\nℹ️ Starting processing chunk games with id = {chunk.id}")
 
+        start_time = datetime.datetime.now()
         # data_chunk = []
         # for game in chunk.games:
         #     tmp_request = self.game_repo.get_by_schema(game)

@@ -3,10 +3,10 @@ from steam_analysis.database.models.playergame import UserGameOwnership, UserAch
 from steam_analysis.database.models.gamedeveloper import GameDeveloper, GamePublisher
 from steam_analysis.database.models.developer import Developer, Publisher
 from steam_analysis.database.models.playergame import Review
-from steam_analysis.database.models.game import Game, GameGenre, GameType, GameCategory, GamePlatform, Achievement
+from steam_analysis.database.models.game import Game, GameGenre, GameType, GameCategory, GamePlatform, \
+    Achievement, Rating, RatingNames
 from steam_analysis.database.models.timeseries import ReviewHistory, PlayerCountHistory, \
     ReviewHistory, AchievementHistory, PriceHistory
-
 
 
 __all__ = [
@@ -31,5 +31,7 @@ __all__ = [
     "GameType",
     "GameCategory",
     "GamePlatform",
-    "PriceHistory"
+    "PriceHistory",
+    "Rating",
+    "RatingNames"
 ]
