@@ -5,7 +5,7 @@ from pathlib import Path
 from steam_analysis.config import test_data_path
 from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillTypeSchemaChunk
-from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, FillPlayerSchemaChunk
+from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, FillPlayerGameSchemaChunk
 
 
 class SaveTestData:
@@ -66,12 +66,12 @@ class SaveTestData:
             print(f"❌ Ошибка сохранения: {e}")
             return None
 
-    def save_fill_player_butch(self, fill_model: FillPlayerAnalysisChunk) -> bool:
+    def save_fill_player_butch(self, fill_model: FillPlayerAnalysisChunk):
         """Сохраняет батч данных без информации по играм в JSON файл"""
         try:
             # Создаем имя файла с timestamp и диапазоном app_id
             timestamp = datetime.now().strftime("%Y%m%d")
-            filename = f"players_{timestamp}_{fill_model.success_count}.json"
+            filename = f"players_{timestamp}_{len(fill_model.data_chunk)}.json"
             filepath = self.dir_to_save / Path(filename)
 
             # Конвертируем в словарь с обработкой специальных типов
@@ -83,23 +83,21 @@ class SaveTestData:
 
             print(f"✅ Данные сохранены в: {filepath}")
             print(f"📊 Статистика:")
-            print(f"   - Диапазон steam_id: {fill_model.start_steam_id} - {fill_model.end_steam_id}")
-            print(f"   - Пользователей в батче: {fill_model.processed_count}")
-            print(f"   - Успешных парсингов: {fill_model.success_count}")
-            print(f"   - Время выполнения: {fill_model.response_time}")
+            print(f"   - Пользователей в батче: {len(fill_model.data_chunk)}")
+            print(f"   - Время выполнения: {fill_model.data_for_analysis_db.chunk.response_time}")
 
-            return True
+            return filepath
 
         except Exception as e:
             print(f"❌ Ошибка сохранения: {e}")
             return
 
-    def save_fill_player_game_butch(self, fill_model: FillPlayerSchemaChunk) -> bool:
-        """Сохраняет батч данных с информацией по играм в JSON файл"""
+    def save_fill_player_game_butch(self, fill_model: FillPlayerGameSchemaChunk):
+        """Сохраняет батч данных без информации по играм в JSON файл"""
         try:
             # Создаем имя файла с timestamp и диапазоном app_id
             timestamp = datetime.now().strftime("%Y%m%d")
-            filename = f"players_game_{timestamp}_{fill_model.success_count}.json"
+            filename = f"players_game_{timestamp}_{len(fill_model.data_chunk)}.json"
             filepath = self.dir_to_save / Path(filename)
 
             # Конвертируем в словарь с обработкой специальных типов
@@ -111,16 +109,15 @@ class SaveTestData:
 
             print(f"✅ Данные сохранены в: {filepath}")
             print(f"📊 Статистика:")
-            print(f"   - Диапазон steam_id: {fill_model.steam_ids[0]} - {fill_model.steam_ids[-1]}")
             print(f"   - Пользователей в батче: {len(fill_model.data_chunk)}")
-            print(f"   - Успешных парсингов: {fill_model.success_count}")
-            print(f"   - Время выполнения: {fill_model.response_time}")
+            print(f"   - Время выполнения (с учетом времени заполнения информации по пользователям): "
+                  f"{fill_model.data_for_analysis_db.chunk.response_time}")
 
-            return True
+            return filepath
 
         except Exception as e:
             print(f"❌ Ошибка сохранения: {e}")
-            return False
+            return
 
     def save_fill_game_analysis_butch_chunck(self, data_for_create:
                                                     tuple[list[GameAnalysisChunkCreate], list[list[GameAnalysisFromJson]]]):

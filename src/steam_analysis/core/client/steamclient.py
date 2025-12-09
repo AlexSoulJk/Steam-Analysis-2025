@@ -15,7 +15,7 @@ class SteamAnalysisFacade:
 
     def __init__(self, api_key: str):
         # Инициализация репозиториев
-        self.player_repo = PlayerRepository(RequestsClient(), api_key)
+        self.player_repo = PlayerRepository(RequestsWithDelayClient(delay=0.5), api_key)
         self.game_repo = GameRepository(RequestsWithDelayClient(delay=0.5), api_key)
 
         # Инициализация сервисов
@@ -51,11 +51,21 @@ class SteamAnalysisFacade:
     def analyze_player(self, steam_id: str) -> Optional[Dict[str, Any]]:
         return self.player_service.analyze_gaming_preferences(steam_id)
 
-    def get_player_data_bunch(self, chunk_procession: UserAnalysisChunkForResponse):
-        return self.player_service.get_player_data_analysis(chunk_procession)
+    def get_player_data_bunch(self, chunk_procession: UserAnalysisChunkForResponse, flag: bool):
+        return self.player_service.get_player_data_analysis(chunk_procession, flag)
 
-    def get_player_time_data_bunch(self, steam_ids: list[str]):
-        return self.player_service.get_player_game_data(steam_ids)
+    def get_player_for_steam_analys_filling(self, players_id: list[str]):
+        if not players_id:
+            return None
+        tmp = list(set(players_id))
+        if len(players_id) != len(tmp): print("Ouch steam_id for players has some duplicates")
+        return self.player_service.get_player_for_steam_analys_filling(tmp)
+
+    def get_player_game_data_bunch(self, chunk_procession: UserAnalysisChunkForResponse):
+        return self.player_service.get_player_game_data_analysis(chunk_procession)
+
+    # def get_player_time_data_bunch(self, steam_ids: list[str]):
+    #     return self.player_service.get_player_game_data(steam_ids)
 
     # Game methods
     # def get_game(self, app_id: int, lang = None) -> Optional[Dict[str, Any]]:

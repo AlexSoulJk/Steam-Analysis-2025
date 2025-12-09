@@ -69,8 +69,7 @@ class AnalysisUserChunk(AnalysisBaseModel):
 
     @property
     def partial_success_users(self):
-        return self.users.filter(UserDataAnalysis.status == "partial_success ").all()
-
+        return list(filter(lambda users: users.status == "particle", self.users))
     # endregion
 
     # region counts props

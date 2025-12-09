@@ -12,13 +12,14 @@ from ..schemas.game.service import SchemaCreate, AchievDataAnalysisCreate, \
     UserDataAnalysisCreate, AchievDataAnalysisCreate, \
     PlayersDataAnalysisCreate, ReviewsDataAnalysisCreate, NewsDataAnalysisCreate, \
     AddInfo, AddDetails, Price
+from ..services.fastlogger import setup_logger
 from ...core.dependencies.basehttp import HTTPClient
 
 import logging
 
 from ...resourcemanager.resources.codes import ResourceCodes
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("game_http_client")
 
 
 class GameRepository(BaseRepository):
