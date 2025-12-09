@@ -75,6 +75,7 @@ class GameAnalysisChunkForResponse(BaseSchema):
     id: int = Field(..., ge=1)
     status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle_success)$") # TODO: Возможно тут можно сделать логику того, что валиадация по стейтам защищается и проверяется на уровне схемы
     games: List[GameAnalysisResponse]
+    response_time: Optional[float] = None
 
     @property
     def get_chunk_app_ids(self) -> List[int]:

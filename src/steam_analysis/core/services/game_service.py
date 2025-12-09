@@ -55,13 +55,13 @@ class GameService:
         finished_at = datetime.datetime.now()
         response_time = finished_at - start_time
         requested_games = list(map(lambda x: x[1], data_chunk))
-        chunk_error_log = "\n".join(list(map(lambda x: x.error_log, requested_games)))
+        # chunk_error_log = "\n".join(list(map(lambda x: x.error_log, requested_games)))
 
         chunk_request_part = GameAnalysisChunkUpdate.from_response_schema(response=chunk,
-                                                                          response_time=response_time.total_seconds(),
+                                                                          response_time=chunk.response_time + response_time.total_seconds(),
                                                                           started_at=start_time,
                                                                           finished_at=finished_at,
-                                                                          error_log=chunk_error_log,
+                                                                          error_log="",
                                                                           status="success")
 
         return FillAddSchemaChunk(data_for_analysis_db=GameAnalysisChunkForRequest(chunk=chunk_request_part,
