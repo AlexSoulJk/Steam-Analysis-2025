@@ -107,3 +107,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
         return session.query(Game). \
             order_by(Game.app_id.desc()). \
             first()
+
+    def get_games_ids(self, session: Session):
+        return session.query(Game.app_id, Game.id).all()
