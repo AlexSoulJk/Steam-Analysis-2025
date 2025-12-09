@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any, List
 
 from ..schemas.analysis.game import GameAnalysisChunkForResponse
 from ..schemas.analysis.user import UserAnalysisChunkForResponse
-from ..schemas.game.service import FillGameAnalysisChunk
+from ..schemas.game.service import FillGameAnalysisChunk, FillAddSchemaChunk
 from ...core.dependencies.basehttp import RequestsClient, RequestsWithDelayClient
 from ..repositories.player_repository import PlayerRepository
 from ..repositories.game_repository import GameRepository
@@ -95,8 +95,8 @@ class SteamAnalysisFacade:
     def get_game_analysis_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillGameAnalysisChunk:
         return self.game_service.get_game_analysis_list(chunk_procession)
     
-    def get_schema_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillGameAnalysisChunk:
-        return self.game_service.get_schema_list(chunk_procession)
+    def get_add_game_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillAddSchemaChunk:
+        return self.game_service.get_add_game_info(chunk_procession)
 
     def get_game_timed_data(self, app_ids: list[int]):
         return self.game_service.get_game_timed_data(app_ids)

@@ -1,4 +1,3 @@
-import logging
 import os
 from operator import or_
 from typing import Dict, List, Optional
@@ -8,6 +7,9 @@ from steam_analysis.config import db_path
 from steam_analysis.core.schemas.player.playergame import OwnershipHttp, AchievementHttp, ReviewHttp, PlaytimeHttp
 
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate, SchemaCreate
+from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, SchemaCreate, AddInfo, \
+    UserDataAnalysisCreate
+from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, PlayerDataAnalysisCreate
 
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, UserDataAnalysisCreate
 from steam_analysis.core.schemas.player.service import PlayerDataAnalysisCreate, PlayerGameDataAnalysisCreate
@@ -95,6 +97,33 @@ class DbFacade:
         with get_db() as session:
             schemas, prep_info, dict_without_nons = self.schema_creation.create_chunk_schemas(schemas_chunk,
                                                                                               session)
+
+    def add_info_games(self, games_info_chunk: List[Optional[AddInfo]]):
+        with get_db() as session:
+            valid_games_add_data = [data for data in games_info_chunk if data is not None]
+            if not valid_games_add_data:
+                return
+
+            prep_add_data = [data.add_details for data in valid_games_add_data]
+            prep_info = self.schema_creation.prepare_relations(prep_add_data, session)
+            session.flush()
+
+            self.schema_creation.create_chunk_add_schemas(prep_info, valid_games_add_data, session)
+            session.flush()
+
+
+    # TODO: Дописать начатое!
+    # def create_users(self, users_info_chunk: List[Optional[PlayerDataAnalysisCreate]]):
+    #     data_without_none = list(filter(lambda x: x is not None, users_info_chunk))
+    #
+    #     users_to_create = SchemaMorpher.game_create_from_http_to_database(
+    #         users=list(map(lambda x: x.user, data_without_none)))
+    #
+    #     with get_db() as session:
+    #         users = self.game_repos.create_bulk(users_to_create, session=session)
+    #         dict_without_nons = {data_analys_schema.game.app_id: data_analys_schema for data_analys_schema in data_without_none}
+    #         self._create_connections(dict_without_none=dict_without_nons,
+    #                                  users=users, session=session)
 
     def get_last_upploaded_game(self):
         with get_db() as session:
