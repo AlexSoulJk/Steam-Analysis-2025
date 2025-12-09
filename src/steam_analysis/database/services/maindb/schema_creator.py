@@ -2,6 +2,7 @@ from typing import Optional, List, Tuple, Dict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from steam_analysis.core.schemas.game.dictionaries import AchievCreateDB
 from steam_analysis.core.schemas.game.service import SchemaCreate, AddInfo, AddDetails
 from steam_analysis.core.services.schema_morpher import SchemaMorpher
 from steam_analysis.database.repositories import \
@@ -50,24 +51,45 @@ class SchemaCreationService:
 
     def prepare_relations(self, data_without_none: List[AddDetails],
                           session: Session) -> Tuple[List[Developer], List[Publisher]]:
-        developers = list(map(lambda x: x.developers, data_without_none))
-        publishers = list(map(lambda x: x.publishers, data_without_none))
+        developers = []
+        for data in data_without_none:
+            if data is None:
+                continue
+            devs = data.developers
+            if not devs:
+                continue
+            for dev in devs:
+                if dev in developers:
+                    continue
+                developers.append(dev)
+
+        publishers = []
+        for data in data_without_none:
+            if data is None:
+                continue
+            pubs = data.publishers
+            if not pubs:
+                continue
+            for pub in pubs:
+                if pub in publishers:
+                    continue
+                publishers.append(pub)
 
         devCreates = []
         for dev in developers:
-            devCreates.append(DeveloperCreate(name=dev))
+            devCreates.append(DeveloperCreate(name=dev, description="", website=""))
 
         pubCreates = []
         for pub in publishers:
-            pubCreates.append(PublisherCreate(name=pub))
+            pubCreates.append(PublisherCreate(name=pub, description="", website=""))
 
         developers = self.developer.create_bulk(devCreates, session)
         publisher = self.publisher.create_bulk(pubCreates, session)
         return developers, publisher
 
     def __check_game_created(self, data_list, session) -> \
-            Tuple[Dict[str, int], List[str]]:
-        unique_app_ids = list({data.app_id for data in data_list})
+            Tuple[Dict[int, int], List[int]]:
+        unique_app_ids = list({data.game_id for data in data_list})
 
         no_created_games = []
         games_id = {}
@@ -98,10 +120,9 @@ class SchemaCreationService:
                                  session: Session):
         all_details = []
         for data in schemas_chunk:
-            for detail in data.add_details:
-                if detail is None:
-                    continue
-                all_details.append(detail)
+            if data.add_details is None:
+                continue
+            all_details.append(data.add_details)
 
         games_ids, no_created_games = self.__check_game_created(all_details, session)
 
@@ -110,7 +131,7 @@ class SchemaCreationService:
         game_publishers = []
         prices = []
         for detail in all_details:
-            game_id = games_ids.get(str(detail.game_id))
+            game_id = games_ids.get(detail.game_id)
             if game_id is None:
                 continue
 
@@ -149,79 +170,92 @@ class SchemaCreationService:
 
         all_reviews_info = []
         for data in schemas_chunk:
-            for review in data.review_info:
-                if review is None:
-                    continue
-                all_reviews_info.append(review)
+            if data.review_info is None:
+                continue
+            all_reviews_info.append(data.review_info)
 
         review_histories = []
         all_reviews = []
         for review_info in all_reviews_info:
-            game_id = games_ids.get(str(review_info.game_id))
+            game_id = games_ids.get(review_info.game_id)
             if game_id is None:
                 continue
             review_histories.append(
                 ReviewHistoryCreate(
                     game_id=game_id,
-                    review_score=review_info.review_score,
-                    review_count=review_info.num_reviews,
+                    review_score=review_info.review_score / 10,
+                    review_count=review_info.total_reviews,
                     positive_reviews=review_info.total_positive,
                     negative_reviews=review_info.total_negative
                 )
             )
-            reviews = review_info.reviews
-            for review in review_info.reviews:
-                author = review.author
-                steam_id = author.steam_id
+            # reviews = review_info.reviews
+            # for review in review_info.reviews:
+            #     author = review.author
+            #     steam_id = author.steam_id
+            #
+            #     # Ищем пользователя в нашей системе
+            #     user_id = None
+            #     if session:
+            #         query = select(User).where(User.steam_id == steam_id)
+            #         result = session.execute(query)
+            #         user = result.scalar_one_or_none()
+            #         if user:
+            #             user_id = user.id
+            #
+            #     if user_id is None:
+            #         return
+            #
+            #     # Собираем данные
+            #     review_data = {
+            #         "game_id": game_id,
+            #         "recommendation_id": review.recommendation_id,
+            #         "steam_id": steam_id,
+            #         "user_id": user_id,
+            #         "language": review.language,
+            #         "review": review.review,
+            #         "timestamp_created": review.timestamp_created,
+            #         "timestamp_updated": review.timestamp_updated,
+            #         "voted_up": review.voted_up,
+            #         "votes_up": review.votes_up,
+            #         "votes_funny": review.votes_funny,
+            #         "weighted_vote_score": review.weighted_vote_score,
+            #         "comment_count": review.comment_count,
+            #         "steam_purchase": False,
+            #         "received_for_free": review.received_for_free,
+            #         "written_during_early_access": review.written_during_early_access,
+            #         "primarily_steam_deck": False
+            #     }
+            #
+            #     all_reviews.append(ReviewCreate(**review_data))
 
-                # Ищем пользователя в нашей системе
-                user_id = None
-                if session:
-                    query = select(User).where(User.steam_id == steam_id)
-                    result = session.execute(query)
-                    user = result.scalar_one_or_none()
-                    if user:
-                        user_id = user.id
+        # all_achives = []
+        # for data in schemas_chunk:
+        #     if data.schema_data is None:
+        #         continue
+        #
+        #     game_id = games_ids.get(data.schema_data.game_id)
+        #     if game_id is None:
+        #         continue
+        #
+        #     achives = data.schema_data.achievs
+        #     for ach in achives:
+        #         all_achives.append(
+        #             AchievCreateDB(
+        #                 game_id=game_id,
+        #                 name=ach.name,
+        #                 hidden=ach.hidden,
+        #                 displayName=ach.displayName,
+        #                 defaultvalue=ach.defaultvalue
+        #             )
+        #         )
 
-                if user_id is None:
-                    return
-
-                # Собираем данные
-                review_data = {
-                    "game_id": game_id,
-                    "recommendation_id": review.recommendation_id,
-                    "steam_id": steam_id,
-                    "user_id": user_id,
-                    "language": review.language,
-                    "review": review.review,
-                    "timestamp_created": review.timestamp_created,
-                    "timestamp_updated": review.timestamp_updated,
-                    "voted_up": review.voted_up,
-                    "votes_up": review.votes_up,
-                    "votes_funny": review.votes_funny,
-                    "weighted_vote_score": review.weighted_vote_score,
-                    "comment_count": review.comment_count,
-                    "steam_purchase": False,
-                    "received_for_free": review.received_for_free,
-                    "written_during_early_access": review.written_during_early_access,
-                    "primarily_steam_deck": False
-                }
-
-                all_reviews.append(ReviewCreate(**review_data))
-
-        all_achives = []
-        for data in schemas_chunk:
-            if data.schema is not None:
-                game_id = games_ids.get(str(data.schema.game_id))
-                if game_id is None:
-                    continue
-                data.schema.game_id = game_id
-                all_achives.append(data.schema)
+        # created_achievements = self.achievs.create_bulk(all_achives, session=session)
+        # session.flush()
 
         self.gameDev.create_bulk(session, game_developers)
         self.gamePub.create_bulk(session, game_publishers)
         self.price.create_bulk(session, prices)
         self.review_history.create_bulk(session, review_histories)
-        self.review.create_bulk(session, all_reviews)
-        created_achievements = self.achievs.create_bulk(all_achives, session=session)
+        # self.review.create_bulk(session, all_reviews)
 

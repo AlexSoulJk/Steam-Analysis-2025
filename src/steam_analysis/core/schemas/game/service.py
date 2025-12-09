@@ -78,7 +78,7 @@ class AddDetails(BaseSchema):
 
 class AddInfo(BaseSchema):
     add_details: Optional[AddDetails]
-    schema: Optional[SchemaCreate]
+    schema_data: Optional[SchemaCreate]
     achiev_persentage: Optional[AchievDataAnalysisCreate]
     review_info: Optional[ReviewsDataAnalysisCreate]
 

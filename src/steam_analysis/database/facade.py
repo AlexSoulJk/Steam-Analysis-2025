@@ -90,8 +90,8 @@ class DbFacade:
             prep_info = self.schema_creation.prepare_relations(prep_add_data, session)
             session.flush()
 
-            games, prep_info, dict_without_nons = self.schema_creation.\
-                create_chunk_add_schemas(prep_info, valid_games_add_data, session)
+            self.schema_creation.create_chunk_add_schemas(prep_info, valid_games_add_data, session)
+            session.flush()
 
 
     # TODO: Дописать начатое!

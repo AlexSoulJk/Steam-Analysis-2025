@@ -37,12 +37,12 @@ class GameParser:
         return list(map(lambda x: PlatformCreate(description=x[0]), filter(lambda x: x[1], data.items())))
     
     @staticmethod
-    def extract_stats(raw_data: Dict[str, Any]) -> List[StatsCreate]:
-        return list(map(lambda x: StatsCreate(**x), raw_data.get('stats', [])))
+    def extract_stats(raw_data: List[Any]) -> List[StatsCreate]:
+        return list(map(lambda x: StatsCreate(**x), raw_data))
 
     @staticmethod
-    def extract_achievs(raw_data: Dict[str, Any]) -> List[AchievCreate]:
-        return list(map(lambda x: AchievCreate(**x), raw_data.get('achievements', [])))
+    def extract_achievs(raw_data: List[Any]) -> List[AchievCreate]:
+        return list(map(lambda x: AchievCreate(**x), raw_data))
 
     @staticmethod
     def extract_achievs_percent(raw_data: Dict[str, Any]) -> List[AchievPercentCreate]:

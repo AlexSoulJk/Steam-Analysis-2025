@@ -73,6 +73,9 @@ class AchievBase(AchievMixin):
 class AchievCreate(AchievBase):
     pass
 
+class AchievCreateDB(AchievBase):
+    game_id: int
+
 class AchievUpdate(BaseSchema):
     description: Optional[str] = None
 

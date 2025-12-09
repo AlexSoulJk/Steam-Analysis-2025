@@ -49,6 +49,6 @@ class GamePublisherBase(BaseSchema):
     publisher_id: int
 
 
-class GamePublisherCreate(GameDeveloperBase):
+class GamePublisherCreate(GamePublisherBase):
     """Схема для создания связи игры и разработчика"""
     pass

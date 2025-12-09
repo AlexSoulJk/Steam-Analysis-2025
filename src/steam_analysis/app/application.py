@@ -69,7 +69,7 @@ class AppMediator:
         # fill_butch = default_loader.load_fill_schema_batch(filename="games_chunk_2025110306.json")
         self.database_facade.add_info_games(fill_butch.data_chunk)
         # Завершаем чанк
-        # self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+        self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
     def create_user(self,
                     chunk_size: int = 25):

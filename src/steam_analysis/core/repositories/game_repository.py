@@ -9,7 +9,7 @@ from ..parsers.json.steamapi.game import GameParser
 from ..schemas import GameShortInfo, GameCategory
 from ..schemas.analysis.game import GameAnalysisUpdate, GameAnalysisResponse
 from ..schemas.game.service import SchemaCreate, AchievDataAnalysisCreate, \
-      UserDataAnalysisCreate, AchievDataAnalysisCreate, \
+    UserDataAnalysisCreate, AchievDataAnalysisCreate, \
     PlayersDataAnalysisCreate, ReviewsDataAnalysisCreate, NewsDataAnalysisCreate, \
     AddInfo, AddDetails, Price
 from ...core.dependencies.basehttp import HTTPClient
@@ -45,7 +45,7 @@ class GameRepository(BaseRepository):
 
         try:
             data = self.http_client.get(url, params=params)
-            game_data = data.get(str(game_for_response.app_id), {'success': False})
+            game_data = data.get(str(game_for_response.app_id)) or {'success': False}
             # TODO: Handle error !!
 
             if not game_data.get('success'):
@@ -157,7 +157,7 @@ class GameRepository(BaseRepository):
 
         return apps
 
-    def get_add_info(self, game: GameAnalysisResponse)-> \
+    def get_add_info(self, game: GameAnalysisResponse) -> \
             Tuple[Optional[AddInfo], GameAnalysisUpdate]:
         add_details, details_error_log_message, details_status, details_add_status = self.get_add_details(game)
         schema, schema_error_log_message, schema_status, schema_add_status = self.get_schema(game)
@@ -167,14 +167,14 @@ class GameRepository(BaseRepository):
         request_model = AddInfo(
             game_id=game.app_id,
             add_details=add_details,
-            schema=schema,
+            schema_data=schema,
             achiev_persentage=achiev_persentage,
             review_info=reviews
         )
 
         error_log_message = details_error_log_message + " // " + schema_error_log_message \
                             + " // " + achiev_error_log_message + " // " + reviews_error_log_message
-        
+
         status = "details_" + details_status
         if details_add_status:
             status += " without" + details_add_status + " // "
@@ -239,11 +239,11 @@ class GameRepository(BaseRepository):
 
         return request_model, error_log_message, status, add_status
 
-    def get_schema(self, game: GameAnalysisResponse) -> Optional[SchemaCreate]:
+    def get_schema(self, game: GameAnalysisResponse) -> Tuple[Optional[SchemaCreate], str, str, str]:
         url = f"{GameRepository.API_STEAMPOWERED_URL}/{SteamServices.ISteamUserStats}/GetSchemaForGame/v2/"
         params = {'key': self.api_key,
                   'appid': game.app_id}
-        
+
         error_log_message = ""
         status = "particle"  # TODO: REFACTOR DEFAULT STATUS
         add_status = ""
@@ -251,13 +251,13 @@ class GameRepository(BaseRepository):
 
         try:
             data = self.http_client.get(url, params=params)
-            schema_data = data.get('game', [])
+            schema_data = data.get('game', {})
             if not schema_data:
-                error_log_message = f"Schema for dame {game.app_id} not found or failed to load"
+                error_log_message = f"Schema for game {game.app_id} not found or failed to load"
                 status = "failed"
                 add_status = " schema"
                 logger.warning(f"\n ❗️ {error_log_message}")
-                return None
+                return None, error_log_message, status, add_status
             else:
                 stats = schema_data['availableGameStats'].get('stats', [])
                 achievs = schema_data['availableGameStats'].get('achievements', [])
@@ -271,10 +271,10 @@ class GameRepository(BaseRepository):
                 request_model = self._parse_schema_data(game.app_id, schema_data['gameVersion'], stats, achievs)
 
         except Exception as e:
-            status = "failed" 
+            status = "failed"
             logger.error(f"\n ❗️ Error getting schema for game {game.app_id}: {e}")
-            return None
-        
+            return None, error_log_message, status, add_status
+
         return request_model, error_log_message, status, add_status
 
     def get_news(self, app_id: int) -> Optional[NewsDataAnalysisCreate]:
@@ -309,15 +309,15 @@ class GameRepository(BaseRepository):
                 error_log_message = f"Global achievement percentages for dame {app_id} not found or failed to load"
                 logger.warning(f"\n ❗️ {error_log_message}")
                 status = "failed"
-                return None
+                return None, error_log_message, status
             status = "success"
             request_model = self._parse_achiev_data(app_id, data)
 
         except Exception as e:
             error_log_message = f"Error getting global achievement percentages for game {app_id}: {e}"
             logger.error(f"\n ❗️ {error_log_message}")
-            return None
-        
+            return None, error_log_message, "failed"
+
         return request_model, error_log_message, status
 
     # TODO: дописать схему
@@ -389,7 +389,7 @@ class GameRepository(BaseRepository):
                 error_log_message = f"Reviews for dame {app_id} not found or failed to load"
                 logger.warning(f"\n ❗️ {error_log_message}")
                 return None, error_log_message, status
-            
+
             status = "success"
             request_model = self._parse_reviews_data(app_id, data)
 
@@ -398,7 +398,7 @@ class GameRepository(BaseRepository):
             error_log_message = f"Error getting reviews for game {app_id}: {e}"
             logger.error(f"\n ❗️{error_log_message}")
             return None, error_log_message, status
-        
+
         return request_model, error_log_message, status
 
     def get_category_list(self) -> List[GameCategory]:
@@ -420,26 +420,26 @@ class GameRepository(BaseRepository):
             categories=categories,
             platforms=platforms,
         )
-    
+
     def _parse_add_details_data(self, app_id: int, developers: List[Any], publishers: List[Any],
                                 price_overview_data: Dict[str, Any]) -> AddDetails:
 
         if price_overview_data:
-            price_overview = Price(currency=price_overview_data['currency'],
-                                    initial=price_overview_data['initial'],
-                                    final=price_overview_data['final'],
-                                    discount_percent=price_overview_data['discount_percent'])
+            price_overview = Price(
+                game_id=app_id,
+                currency=price_overview_data['currency'],
+                initial=price_overview_data['initial'],
+                final=price_overview_data['final'],
+                discount_percent=price_overview_data['discount_percent'])
         else:
             price_overview = None
 
         return AddDetails(
             game_id=app_id,
-            developers = developers,
-            publishers = publishers, 
-            price_overview = price_overview
+            developers=developers,
+            publishers=publishers,
+            price_overview=price_overview
         )
-    
-    
 
     def _parse_schema_data(self, app_id: int, game_version: int, stats: List[Any], achievs: List[Any]) -> SchemaCreate:
         stats = GameParser.extract_stats(stats)

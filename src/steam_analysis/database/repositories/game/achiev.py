@@ -4,87 +4,113 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload, Session
 
 from steam_analysis.core.schemas.game.service import SchemaCreate
-from steam_analysis.core.schemas.game.dictionaries import AchievCreate, AchievUpdate
+from steam_analysis.core.schemas.game.dictionaries import AchievCreateDB, AchievUpdate
 from steam_analysis.database.models.game import Achievement
 from steam_analysis.database.repositories.base import DictionaryRepository
-from steam_analysis.database.repositories import GameRepository
+from .game import GameRepository
 
 from steam_analysis.database.repositories.base.base import ModelType, CreateSchemaType, UpdateSchemaType, \
     BaseDBRepository
 
 
-class AchievRepository(DictionaryRepository[Achievement, AchievCreate, AchievUpdate]):
+class AchievRepository(DictionaryRepository[Achievement, AchievCreateDB, AchievUpdate]):
 
     def __init__(self):
         super().__init__(Achievement)
         self.game_repos = GameRepository()
 
-    def create_bulk(self, objects_in: List[SchemaCreate], session: Session) -> List[Achievement]:
+    def get_existing_by_game_names(self, game_id: int, names: List[str], session: Session) -> Dict[str, Achievement]:
         """
-        Массовое создание объектов
+        Получить существующие достижения для конкретной игры по списку names
+        Возвращает словарь {name: achievement_object}
+        """
+        if not names:
+            return {}
+
+        stmt = select(self.model).where(
+            self.model.game_id == game_id,
+            self.model.name.in_(names)
+        )
+        result = session.execute(stmt)
+        existing_achievements = result.scalars().all()
+
+        return {achievement.name: achievement for achievement in existing_achievements}
+
+    def create_bulk(self, objects_in: List[AchievCreateDB], session: Session) -> List[Achievement]:
+        """
+        Массовое создание достижений
 
         Args:
-            objects_in: Список Pydantic схем
+            objects_in: Список объектов AchievCreateDB
+            session: Сессия SQLAlchemy
 
         Returns:
-            Список созданных объектов
+            Список созданных и существующих достижений
         """
+        if not objects_in:
+            return []
 
-        created_achievements = []
+        # Шаг 1: Группируем достижения по game_id
+        achievements_by_game: Dict[int, List[AchievCreateDB]] = {}
 
-        app_ids = list(objects_in.keys())
-        existing_games_map = self.game_repos.get_existing_by_app_ids(app_ids, session)
+        for achiev in objects_in:
+            game_id = achiev.game_id
+            if game_id not in achievements_by_game:
+                achievements_by_game[game_id] = []
+            achievements_by_game[game_id].append(achiev)
 
-        for schema in objects_in.values():
-            # Проверяем, существует ли игра
-            if schema.game_id not in existing_games_map:
-                print(f"Игра с app_id {schema.game_id} не найдена в базе")
+        # Шаг 2: Получаем существующие достижения для каждой игры
+        all_achievements: List[Achievement] = []
+        new_db_objects: List[Achievement] = []
+
+        for game_id, achievements in achievements_by_game.items():
+            # Получаем имена всех достижений для этой игры
+            names = [achiev.name for achiev in achievements]
+
+            # Получаем существующие достижения
+            existing_achievements = self.get_existing_by_game_names(game_id, names, session)
+
+            # Фильтруем новые достижения
+            new_achievements = [
+                achiev for achiev in achievements
+                if achiev.name not in existing_achievements
+            ]
+
+            # Добавляем существующие достижения в общий список
+            all_achievements.extend(existing_achievements.values())
+
+            if not new_achievements:
                 continue
 
-            for achiev_data in schema.achievs:
+            # Шаг 3: Создаем новые достижения
+            for achiev_data in new_achievements:
                 try:
-                    # Проверяем, существует ли уже такое достижение
-                    existing_achievement = session.query(Achievement).filter(
-                        Achievement.game_id == schema.game_id,
-                        Achievement.name == achiev_data.name
-                    ).first()
-                    
-                    if existing_achievement:
-                        print(f"Достижение {achiev_data.name} для игры {schema.game_id} уже существует")
-                        continue
+                    # Преобразуем Pydantic модель в словарь
+                    if hasattr(achiev_data, 'model_dump'):
+                        obj_data = achiev_data.model_dump()
+                    else:
+                        obj_data = achiev_data.dict()
 
-                    # Создаем новое достижение
-                    achievement = Achievement(
-                        game_id=schema.game_id,
-                        name=achiev_data.name,
-                        display_name=achiev_data.display_name,
-                        # description=None,
-                        # icon_url=achiev_data.icon,
-                        # icon_gray_url=achiev_data.icon_gray,
-                        # achieved=False,
-                        # unlock_time=None,
-                        # global_achievement_rate=0.0,
-                        # api_name=achiev_data.name,
-                        hidden=bool(achiev_data.hidden)
+                    db_obj = self.model(
+                        game_id=game_id,
+                        name=obj_data.get('name', ''),
+                        display_name=obj_data.get('displayName', ''),
+                        hidden=bool(obj_data.get('hidden', 0))
                     )
-                    
-                    session.add(achievement)
-                    created_achievements.append(achievement)
-                    
+                    new_db_objects.append(db_obj)
+
                 except Exception as e:
-                    print(f"Ошибка при создании достижения {achiev_data.name}: {e}")
+                    print(f"Ошибка при создании достижения {achiev_data.name} для игры {game_id}: {e}")
                     continue
-        try:
-            session.commit()
-            # Обновляем объекты, чтобы получить их с ID
-            for achievement in created_achievements:
-                session.refresh(achievement)
-            return created_achievements
-        
-        except Exception as e:
-            print(f"Ошибка при коммите: {e}")
-            session.rollback()
-            return []
+
+        if not new_db_objects:
+            return all_achievements
+
+        session.add_all(new_db_objects)
+
+        all_achievements.extend(new_db_objects)
+
+        return all_achievements
 
 
 
