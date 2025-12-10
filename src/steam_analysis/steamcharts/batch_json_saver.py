@@ -105,11 +105,6 @@ class BatchJsonSaver:
         """Безопасный запрос с повторными попытками, возвращает HTML"""
         for attempt in range(retries):
             try:
-                # Случайная задержка
-                delay = random.uniform(self.DELAY_MIN, self.DELAY_MAX)
-                print(f"  Ждем {delay:.1f} сек...")
-                time.sleep(delay)
-
                 response = requests.get(url, headers=self.HEADERS, timeout=60)
 
                 # Проверяем статус
@@ -289,6 +284,11 @@ class BatchJsonSaver:
 
         if not html:
             print(f"❌ Не удалось скачать app_id {app_id}")
+            # Случайная задержка
+            delay = random.uniform(self.DELAY_MIN, self.DELAY_MAX)
+            print(f"  Ждем {delay:.1f} сек...")
+            time.sleep(delay)
+
             return False
 
         # Подготавливаем метаданные
