@@ -40,9 +40,9 @@ class RequestsWithDelayClient(HTTPClient):
     """Синхронный клиент с rate limiting"""
     ## 5 мин = 200 запросов ??
     count_of_request = 0
-    MAX_REQUEST = 500
+    MAX_REQUEST = 700
     last_request_time = 0
-    interval_time = 180
+    interval_time = 300
     def __init__(self, delay: float = 0.1):
         self.session = requests.Session()
         self.session.headers.update({
@@ -69,6 +69,46 @@ class RequestsWithDelayClient(HTTPClient):
 
         if RequestsWithDelayClient.count_of_request % 20 == 0:
             logger.info(f"Count of requests {RequestsWithDelayClient.count_of_request}")
+
+    def _execute_request(self, url, method='GET', **kwargs):
+        """Выполняет запрос с обработкой 429"""
+        max_retries = 3
+
+        for attempt in range(max_retries + 1):
+            self._ensure_delay()
+
+            try:
+                if method == 'GET':
+                    response = self.session.get(url, **kwargs)
+                else:
+                    response = self.session.post(url, **kwargs)
+
+                # Обрабатываем 429
+                if response.status_code == 429:
+                    if attempt == max_retries:
+                        response.raise_for_status()
+
+                    # Получаем время ожидания
+                    retry_after = response.headers.get('Retry-After', '60')
+                    try:
+                        wait_time = int(retry_after)
+                    except:
+                        wait_time = 60 * (attempt + 1)
+
+                    logger.warning(f"429! Ждем {wait_time}с (попытка {attempt + 1})")
+                    time.sleep(wait_time)
+                    continue
+
+                # Проверяем другие ошибки
+                response.raise_for_status()
+                return response.json()
+
+            except requests.exceptions.RequestException as e:
+                if attempt == max_retries:
+                    raise
+
+                logger.warning(f"Ошибка, ретрай {attempt + 1}: {e}")
+                time.sleep(2 ** attempt)  # Экспоненциальная задержка
 
     def get(self, url: str, params: dict = None, headers: dict = None) -> Dict[str, Any]:
         self._ensure_delay()

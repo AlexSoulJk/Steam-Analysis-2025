@@ -4,7 +4,7 @@ from pathlib import Path
 
 from steam_analysis.config import test_data_path
 from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson
-from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillTypeSchemaChunk
+from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillTypeSchemaChunk, FillAddSchemaChunk
 from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, FillPlayerGameSchemaChunk
 
 
@@ -19,6 +19,34 @@ class SaveTestData:
             # Создаем имя файла с timestamp и диапазоном app_id
             timestamp = datetime.now().strftime("%Y%m%d%M")
             filename = f"games_chunk_{timestamp}.json"
+            filepath = self.dir_to_save / Path(filename)
+
+            # Конвертируем в словарь с обработкой специальных типов
+            data_dict = fill_model.model_dump()
+
+            # Сохраняем в JSON с красивым форматированием
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(data_dict, f, indent=2, ensure_ascii=False, default=str)
+
+            print(f"✅ Данные сохранены в: {filepath}")
+            print(f"📊 Статистика:")
+            # print(f"   - Диапазон app_id: {fill_model.start_app_id} - {fill_model.end_app_id}")
+            print(f"   - Игр в батче: {len(fill_model.data_chunk)}")
+            # print(f"   - Успешных парсингов: {sum(1 for item in fill_model.data_chunk if item is not None)}")
+            print(f"   - Время выполнения: {fill_model.data_for_analysis_db.chunk.response_time}")
+
+            return filepath
+
+        except Exception as e:
+            print(f"❌ Ошибка сохранения: {e}")
+            return None
+
+    def save_fill_add_info_game_batch(self, fill_model: FillAddSchemaChunk):
+        """Сохраняет батч данных в JSON файл"""
+        try:
+            # Создаем имя файла с timestamp и диапазоном app_id
+            timestamp = datetime.now().strftime("%Y%m%d%M")
+            filename = f"games_add_info_chunk_{timestamp}.json"
             filepath = self.dir_to_save / Path(filename)
 
             # Конвертируем в словарь с обработкой специальных типов

@@ -117,11 +117,10 @@ class AnalysisDbFacade:
                 session=session)
 
             # Создаем схему только с нужными полями
-            return GameAnalysisChunkForResponse(
-                id=updated_chunk.id,
-                status=updated_chunk.status,
-                games=updated_chunk.in_progress_games
-            )
+            return GameAnalysisChunkForResponse(id=updated_chunk.id,
+                                                status=updated_chunk.status,
+                                                games=updated_chunk.in_progress_games,
+                                                response_time=updated_chunk.response_time)
 
     def get_next_user_part_chunk_by_service(self, processor_name: str) -> Optional[UserAnalysisChunkForResponse]:
         """Получаем следующий чанк для обработки"""
