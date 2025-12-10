@@ -63,6 +63,7 @@ class Application:
     def generate_distribution_by_category(self, columns_num: int = 10):
 
         path_for_type_pic = self.folder_clustering / Path("distribution_by_categories.png")
+        path_for_type_plot = self.folder_clustering / Path("distribution_by_categories_plot.png")
         path_for_type_json = self.folder_clustering / Path("dist_by_categories.json")
         data_for_response = self.data_provider.get_games_by_categories()
 
@@ -74,6 +75,11 @@ class Application:
                                                                               title_name=self.TITLES["Clustering"][
                                                                                   "ByType"],
                                                                               path_to_save=path_for_type_pic,
+                                                                              columns_num=columns_num)
+            generate_clustering_task_picture.generate_line_plot(data=data_for_response,
+                                                                              title_name=self.TITLES["Clustering"][
+                                                                                  "ByType"],
+                                                                              path_to_save=path_for_type_plot,
                                                                               columns_num=columns_num)
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
