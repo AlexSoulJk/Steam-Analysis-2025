@@ -108,5 +108,15 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             order_by(Game.app_id.desc()). \
             first()
 
-    def get_games_ids(self, session: Session):
-        return session.query(Game.app_id, Game.id).all()
+    def get_games_ids(self, session: Session, start_id: int = None, limit: int = None):
+        query = session.query(Game.app_id, Game.id)
+
+        # Фильтр по начальному ID
+        if start_id is not None:
+            query = query.filter(Game.id >= start_id)
+
+        # Ограничение количества
+        if limit is not None:
+            query = query.limit(limit)
+
+        return query.all()

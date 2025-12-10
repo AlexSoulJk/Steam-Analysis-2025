@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 import requests
 from bs4 import BeautifulSoup
+from steam_analysis.core.dependencies.basehttp import RequestsClient, RequestsWithDelayClient
 
 
 class BatchJsonSaver:
@@ -14,7 +15,7 @@ class BatchJsonSaver:
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0',
     ]
 
-    def __init__(self, batch_file="pages\steam_pages.json", max_pages_per_file=100):
+    def __init__(self,  batch_file="pages\steam_pages_1.json", max_pages_per_file=1000):
         """
         Сохраняет страницы в формате:
         {
@@ -32,13 +33,16 @@ class BatchJsonSaver:
         """
         self.batch_file = batch_file
         self.max_pages = max_pages_per_file
-        self.DELAY_MIN = 1
-        self.DELAY_MAX = 2
+        self.DELAY_MIN = 0.5
+        self.DELAY_MAX = 1
         self.HEADERS = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
             'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate'}
+
+        # self.http_client = http_client
+        # self.http_client.session.headers.update(self.HEADERS)
 
         # Инициализируем или загружаем существующий файл
         self.current_data = self._load_or_init_file()
@@ -74,7 +78,7 @@ class BatchJsonSaver:
         count = 1
 
         while True:
-            new_name = f"{base_name}_{timestamp}_{count}.json"
+            new_name = f"{base_name}_{count}.json"
             if not os.path.exists(new_name):
                 return new_name
             count += 1
@@ -181,8 +185,19 @@ class BatchJsonSaver:
                     # Преобразуем Gain
                     gain = data["Gain"].replace('+', '').replace(',', '')
                     gain = gain.replace('−', '-').replace('–', '-')
-                    if '.' in gain and gain != '-':
-                        data["Gain"] = float(gain)
+
+                    if not gain or gain == '-':
+                        data["Gain"] = 0
+                    elif 'inf' in gain.lower():
+                        if gain.lower().startswith('-'):
+                            data["Gain"] = "-inf"
+                        else:
+                            data["Gain"] = "inf"
+                    elif '.' in gain and gain != '-':
+                        try:
+                            data["Gain"] = float(gain)
+                        except ValueError:
+                            data["Gain"] = 0
                     elif gain.isdigit() or (gain.startswith('-') and gain[1:].isdigit()):
                         data["Gain"] = int(gain)
                     else:
@@ -191,10 +206,21 @@ class BatchJsonSaver:
                     # Преобразуем % Gain
                     percent = data["% Gain"].replace('+', '').replace('%', '')
                     percent = percent.replace('−', '-').replace('–', '-')
-                    if percent and percent != '-':
-                        data["% Gain"] = float(percent)
-                    else:
+
+                    if not percent or percent == '-':
                         data["% Gain"] = 0.0
+                    elif 'inf' in percent.lower():
+                        if percent.lower().startswith('-'):
+                            data["% Gain"] = "-inf"
+                        else:
+                            data["% Gain"] = "inf"
+                    elif 'nan' in percent.lower():
+                        data["% Gain"] = "nan"
+                    else:
+                        try:
+                            data["% Gain"] = float(percent)
+                        except ValueError:
+                            data["% Gain"] = 0.0
 
                     result["months"][date] = data
 
