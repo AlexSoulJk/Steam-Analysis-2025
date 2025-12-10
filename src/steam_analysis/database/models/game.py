@@ -17,6 +17,7 @@ class Game(BaseModel):
     coming_soon = Column(Boolean, default=False)
     controller_support = Column(String(50))
     is_free = Column(Boolean, default=False)
+    all_time_peak =  Column(Integer)
 
     game_type = relationship("GameType")
     metrics = relationship("GameMetrics", back_populates="game", uselist=False, cascade="all, delete-orphan")
