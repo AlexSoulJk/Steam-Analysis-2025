@@ -15,7 +15,7 @@ class BatchJsonSaver:
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0',
     ]
 
-    def __init__(self,  batch_file="pages\steam_pages_1.json", max_pages_per_file=1000):
+    def __init__(self,  batch_file="pages\steam_pages_2.json", max_pages_per_file=1000):
         """
         Сохраняет страницы в формате:
         {
@@ -33,8 +33,8 @@ class BatchJsonSaver:
         """
         self.batch_file = batch_file
         self.max_pages = max_pages_per_file
-        self.DELAY_MIN = 0.5
-        self.DELAY_MAX = 1
+        self.DELAY_MIN = 0.2
+        self.DELAY_MAX = 0.7
         self.HEADERS = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
@@ -74,7 +74,6 @@ class BatchJsonSaver:
     def _create_new_filename(self) -> str:
         """Создает имя для нового файла"""
         base_name = os.path.splitext(self.batch_file)[0]
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         count = 1
 
         while True:
@@ -279,16 +278,16 @@ class BatchJsonSaver:
             print(f"⚠️  app_id {app_id} уже есть в файле, пропускаем")
             return True
 
+        delay = random.uniform(self.DELAY_MIN, self.DELAY_MAX)
+        print(f"  Ждем {delay:.1f} сек...")
+        time.sleep(delay)
+
         # Скачиваем
         html = self.make_request(url)
 
         if not html:
             print(f"❌ Не удалось скачать app_id {app_id}")
             # Случайная задержка
-            delay = random.uniform(self.DELAY_MIN, self.DELAY_MAX)
-            print(f"  Ждем {delay:.1f} сек...")
-            time.sleep(delay)
-
             return False
 
         # Подготавливаем метаданные
