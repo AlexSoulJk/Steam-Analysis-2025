@@ -6,7 +6,7 @@ def test_part_fill_games():
     api_key = load_api_key()
     app = AppMediator(steam_api_key=api_key,
                       processor_name="AlexSoulJK")
-    for _ in range(50):
+    for _ in range(2500):
         app.add_schema()
 
 
