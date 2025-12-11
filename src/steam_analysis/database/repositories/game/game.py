@@ -21,7 +21,7 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                                  app_id,
                                  session=session)
 
-    def get_existing_by_app_ids(self, app_ids: List[int], session: Session) -> Dict[int, Game]:
+    def get_existing_by_app_ids(self, app_ids: List[int], session: Session, batch_size: int = 500) -> Dict[int, Game]:
         """
         Получить существующие игры по списку app_ids одним запросом
         Возвращает словарь {app_id: game_object}
@@ -29,11 +29,19 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
         if not app_ids:
             return {}
 
-        query = select(self.model).where(self.model.app_id.in_(app_ids))
-        result = session.execute(query)
-        existing_games = result.scalars().all()
+        result_dict = {}
 
-        return {game.app_id: game for game in existing_games}
+        # Обрабатываем батчи
+        for i in range(0, len(app_ids), batch_size):
+            batch = app_ids[i:i + batch_size]
+            query = select(self.model).where(self.model.app_id.in_(batch))
+            result = session.execute(query)
+            existing_games = result.scalars().all()
+
+            result_dict.update({game.app_id: game for game in existing_games})
+
+        return result_dict
+
 
     def create_bulk(self, objects_in: List[GameCreate], session: Session) -> List[Game]:
         """

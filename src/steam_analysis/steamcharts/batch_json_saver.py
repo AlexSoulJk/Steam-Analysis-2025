@@ -15,7 +15,7 @@ class BatchJsonSaver:
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0',
     ]
 
-    def __init__(self,  batch_file="pages\steam_pages_2.json", max_pages_per_file=1000):
+    def __init__(self,  batch_file="pages\steam_pages_2_1.json", max_pages_per_file=1000):
         """
         Сохраняет страницы в формате:
         {
