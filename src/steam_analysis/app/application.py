@@ -10,7 +10,7 @@ from steam_analysis.database.facade import DbFacade
 from steam_analysis.loader_test_data import default_loader
 from steam_analysis.resourcemanager.manager import ResourceManager
 from steam_analysis.resourcemanager.resources.codes import ResourceCodes
-from steam_analysis.saver_test_data import default_saver
+from steam_analysis.saver_test_data import default_saver, save_add_info_games
 
 
 class AppMediator:
@@ -63,11 +63,11 @@ class AppMediator:
         # Получаем данные через Steam API
         # print(f"{chunk_to_fill=}")
         fill_butch = self.steam_facade.get_add_game_list(chunk_to_fill)
-        # # print(f"{fill_butch=}")
-        # # Сохранение chunk игр в JSON
+        # # # print(f"{fill_butch=}")
+        # # # Сохранение chunk игр в JSON
         # default_saver.save_fill_add_info_game_batch(fill_butch)
         # Load chunk from JSON
-        # fill_butch = default_loader.load_fill_schema_batch(filename="games_add_info_chunk_2025120931.json")
+        # fill_butch = default_loader.load_fill_schema_batch(filename="games_add_info_chunk_2025121158.json")
         self.database_facade.add_info_games(fill_butch.data_chunk)
         # Завершаем чанк
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
@@ -123,6 +123,27 @@ class AppMediator:
         # Метод возвращает список не созданных игр
         response = self.database_facade.create_players_game_relations(fill_user_butch.data_chunk)
         self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
+
+    def add_schema_to_json(self, chunk_size: int = 10):
+        chunk_to_fill = self.analysis_service.get_next_part_chunk_by_service(self.processor_name)
+        # Получаем данные через Steam API
+        # print(f"{chunk_to_fill=}")
+        fill_butch = self.steam_facade.get_add_game_list(chunk_to_fill)
+        # # # Сохранение chunk игр в JSON
+        save_add_info_games.batch_save_data_simple(fill_butch)
+        self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+
+    def loads_data_from_jsons(self, folder="add_info_games"):
+        json_files = default_loader.read_jsons(folder)
+        for json_file in json_files:
+            schema_batchs = default_loader.load_add_schema_batchs(json_file)
+            if not schema_batchs:
+                continue
+
+            for fill_butch in schema_batchs:
+                self.database_facade.add_info_games(fill_butch.data_chunk)
+                # Завершаем чанк
+                self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
     # def create_player_butch(self, steam_ids: List[str]):
     #     fill_butch = self.steam_facade.get_player_data_bunch(steam_ids)

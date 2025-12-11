@@ -1,0 +1,1005 @@
+{
+  "15": {
+    "data_for_analysis_db": {
+      "chunk_games": [
+        {
+          "id": 352,
+          "status": "details_particle without publishers price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3382 not found or failed to load // Error getting global achievement percentages for game 3382: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3382 //"
+        },
+        {
+          "id": 354,
+          "status": "details_particle without publishers price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3392 not found or failed to load // Error getting global achievement percentages for game 3392: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3392 //"
+        },
+        {
+          "id": 355,
+          "status": "details_particle without price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3400 not found or failed to load // Error getting global achievement percentages for game 3400: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3400 //"
+        },
+        {
+          "id": 358,
+          "status": "details_particle without publishers price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3412 not found or failed to load // Error getting global achievement percentages for game 3412: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3412 //"
+        },
+        {
+          "id": 360,
+          "status": "details_particle without publishers price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3422 not found or failed to load // Error getting global achievement percentages for game 3422: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3422 //"
+        },
+        {
+          "id": 362,
+          "status": "details_particle without publishers price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3432 not found or failed to load // Error getting global achievement percentages for game 3432: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3432 //"
+        },
+        {
+          "id": 365,
+          "status": "details_particle without publishers price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3452 not found or failed to load // Error getting global achievement percentages for game 3452: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3452 //"
+        },
+        {
+          "id": 367,
+          "status": "details_particle without publishers price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3462 not found or failed to load // Error getting global achievement percentages for game 3462: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3462 //"
+        },
+        {
+          "id": 371,
+          "status": "details_particle without publishers price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3482 not found or failed to load // Error getting global achievement percentages for game 3482: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3482 //"
+        },
+        {
+          "id": 372,
+          "status": "details_particle without price // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3483 not found or failed to load // Error getting global achievement percentages for game 3483: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3483 //"
+        },
+        {
+          "id": 373,
+          "status": "details_particle without price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 3490 not found or failed to load // Error getting global achievement percentages for game 3490: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=3490 //"
+        }
+      ],
+      "chunk": {
+        "id": 15,
+        "status": "success",
+        "response_time": 26.280546,
+        "error_log": "",
+        "started_at": "2025-12-11 15:57:31.876046",
+        "finished_at": "2025-12-11 15:57:45.820191"
+      }
+    },
+    "data_chunk": [
+      {
+        "add_details": {
+          "game_id": 3382,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3382,
+          "num_reviews": 1,
+          "review_score": 0,
+          "review_score_desc": "1 user reviews",
+          "total_positive": 1,
+          "total_negative": 0,
+          "total_reviews": 1
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3392,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3392,
+          "num_reviews": 1,
+          "review_score": 0,
+          "review_score_desc": "1 user reviews",
+          "total_positive": 1,
+          "total_negative": 0,
+          "total_reviews": 1
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3400,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [
+            "PopCap Games, Inc."
+          ],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3400,
+          "num_reviews": 62,
+          "review_score": 8,
+          "review_score_desc": "Very Positive",
+          "total_positive": 56,
+          "total_negative": 6,
+          "total_reviews": 62
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3412,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3412,
+          "num_reviews": 1,
+          "review_score": 0,
+          "review_score_desc": "1 user reviews",
+          "total_positive": 1,
+          "total_negative": 0,
+          "total_reviews": 1
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3422,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3422,
+          "num_reviews": 1,
+          "review_score": 0,
+          "review_score_desc": "1 user reviews",
+          "total_positive": 1,
+          "total_negative": 0,
+          "total_reviews": 1
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3432,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3432,
+          "num_reviews": 2,
+          "review_score": 0,
+          "review_score_desc": "2 user reviews",
+          "total_positive": 1,
+          "total_negative": 1,
+          "total_reviews": 2
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3452,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3452,
+          "num_reviews": 6,
+          "review_score": 0,
+          "review_score_desc": "6 user reviews",
+          "total_positive": 5,
+          "total_negative": 1,
+          "total_reviews": 6
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3462,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3462,
+          "num_reviews": 1,
+          "review_score": 0,
+          "review_score_desc": "1 user reviews",
+          "total_positive": 1,
+          "total_negative": 0,
+          "total_reviews": 1
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3482,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3482,
+          "num_reviews": 10,
+          "review_score": 7,
+          "review_score_desc": "Positive",
+          "total_positive": 10,
+          "total_negative": 0,
+          "total_reviews": 10
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3483,
+          "developers": [
+            "PopCap Games, Inc."
+          ],
+          "publishers": [
+            "Electronic Arts"
+          ],
+          "price_overview": null,
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "esrb"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3483,
+          "num_reviews": 100,
+          "review_score": 8,
+          "review_score_desc": "Very Positive",
+          "total_positive": 2486,
+          "total_negative": 139,
+          "total_reviews": 2625
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 3490,
+          "developers": [
+            "Retro64, Inc."
+          ],
+          "publishers": [
+            "PopCap Games, Inc."
+          ],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 3490,
+          "num_reviews": 21,
+          "review_score": 7,
+          "review_score_desc": "Positive",
+          "total_positive": 18,
+          "total_negative": 3,
+          "total_reviews": 21
+        }
+      }
+    ]
+  },
+  "19": {
+    "data_for_analysis_db": {
+      "chunk_games": [
+        {
+          "id": 452,
+          "status": "details_successschema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4460 not found or failed to load // Error getting global achievement percentages for game 4460: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4460 //"
+        },
+        {
+          "id": 453,
+          "status": "details_successschema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4470 not found or failed to load // Error getting global achievement percentages for game 4470: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4470 //"
+        },
+        {
+          "id": 456,
+          "status": "details_successschema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4520 not found or failed to load // Error getting global achievement percentages for game 4520: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4520 //"
+        },
+        {
+          "id": 457,
+          "status": "details_successschema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4530 not found or failed to load // Error getting global achievement percentages for game 4530: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4530 //"
+        },
+        {
+          "id": 460,
+          "status": "details_successschema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4560 not found or failed to load // Error getting global achievement percentages for game 4560: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4560 //"
+        },
+        {
+          "id": 461,
+          "status": "details_successschema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4570 not found or failed to load // Error getting global achievement percentages for game 4570: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4570 //"
+        },
+        {
+          "id": 462,
+          "status": "details_particle without price // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4580 not found or failed to load // Error getting global achievement percentages for game 4580: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4580 //"
+        },
+        {
+          "id": 464,
+          "status": "details_particle without publishers price ratings // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4600 not found or failed to load // Error getting global achievement percentages for game 4600: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4600 //"
+        },
+        {
+          "id": 466,
+          "status": "details_particle without price // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4700 not found or failed to load // Error getting global achievement percentages for game 4700: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4700 //"
+        },
+        {
+          "id": 467,
+          "status": "details_particle without publishers price // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4710 not found or failed to load // Error getting global achievement percentages for game 4710: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4710 //"
+        },
+        {
+          "id": 468,
+          "status": "details_particle without price // schema_failed without schema // achiev_failed // review_success",
+          "error_log": "// Schema for game 4720 not found or failed to load // Error getting global achievement percentages for game 4720: 403 Client Error: Forbidden for url: https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2?gameid=4720 //"
+        }
+      ],
+      "chunk": {
+        "id": 19,
+        "status": "success",
+        "response_time": 25.685952,
+        "error_log": "",
+        "started_at": "2025-12-11 15:57:45.900195",
+        "finished_at": "2025-12-11 15:57:59.241945"
+      }
+    },
+    "data_chunk": [
+      {
+        "add_details": {
+          "game_id": 4460,
+          "developers": [
+            "Monte Cristo"
+          ],
+          "publishers": [
+            "Focus Entertainment"
+          ],
+          "price_overview": {
+            "game_id": 4460,
+            "currency": "RUB",
+            "initial": 59900,
+            "final": 59900,
+            "discount_percent": 0
+          },
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "esrb"
+            },
+            {
+              "rating": 7,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "pegi"
+            },
+            {
+              "rating": 0,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "usk"
+            },
+            {
+              "rating": 1,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "dejus"
+            },
+            {
+              "rating": 0,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "steam_germany"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4460,
+          "num_reviews": 100,
+          "review_score": 8,
+          "review_score_desc": "Very Positive",
+          "total_positive": 189,
+          "total_negative": 47,
+          "total_reviews": 236
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4470,
+          "developers": [
+            "Monte Cristo"
+          ],
+          "publishers": [
+            "Focus Entertainment"
+          ],
+          "price_overview": {
+            "game_id": 4470,
+            "currency": "RUB",
+            "initial": 27900,
+            "final": 27900,
+            "discount_percent": 0
+          },
+          "ratings": [
+            {
+              "rating": 14,
+              "req_age": 14,
+              "banned": false,
+              "rating_name": "dejus"
+            },
+            {
+              "rating": 16,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "steam_germany"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4470,
+          "num_reviews": 99,
+          "review_score": 5,
+          "review_score_desc": "Mixed",
+          "total_positive": 68,
+          "total_negative": 31,
+          "total_reviews": 99
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4520,
+          "developers": [
+            "Pandemic Studios"
+          ],
+          "publishers": [
+            "THQ Nordic"
+          ],
+          "price_overview": {
+            "game_id": 4520,
+            "currency": "RUB",
+            "initial": 19900,
+            "final": 19900,
+            "discount_percent": 0
+          },
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "esrb"
+            },
+            {
+              "rating": 16,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "pegi"
+            },
+            {
+              "rating": 16,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "usk"
+            },
+            {
+              "rating": 14,
+              "req_age": 14,
+              "banned": false,
+              "rating_name": "dejus"
+            },
+            {
+              "rating": 16,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "steam_germany"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4520,
+          "num_reviews": 100,
+          "review_score": 6,
+          "review_score_desc": "Mostly Positive",
+          "total_positive": 228,
+          "total_negative": 87,
+          "total_reviews": 315
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4530,
+          "developers": [
+            "Pandemic Studios"
+          ],
+          "publishers": [
+            "THQ Nordic"
+          ],
+          "price_overview": {
+            "game_id": 4530,
+            "currency": "RUB",
+            "initial": 19900,
+            "final": 19900,
+            "discount_percent": 0
+          },
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "esrb"
+            },
+            {
+              "rating": 18,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "pegi"
+            },
+            {
+              "rating": 16,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "usk"
+            },
+            {
+              "rating": 16,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "dejus"
+            },
+            {
+              "rating": 18,
+              "req_age": 18,
+              "banned": false,
+              "rating_name": "steam_germany"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4530,
+          "num_reviews": 100,
+          "review_score": 6,
+          "review_score_desc": "Mostly Positive",
+          "total_positive": 168,
+          "total_negative": 61,
+          "total_reviews": 229
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4560,
+          "developers": [
+            "Relic Entertainment"
+          ],
+          "publishers": [
+            "SEGA"
+          ],
+          "price_overview": {
+            "game_id": 4560,
+            "currency": "RUB",
+            "initial": 149900,
+            "final": 149900,
+            "discount_percent": 0
+          },
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 17,
+              "banned": false,
+              "rating_name": "esrb"
+            },
+            {
+              "rating": 0,
+              "req_age": 18,
+              "banned": false,
+              "rating_name": "pegi"
+            },
+            {
+              "rating": 0,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "usk"
+            },
+            {
+              "rating": 0,
+              "req_age": 15,
+              "banned": false,
+              "rating_name": "oflc"
+            },
+            {
+              "rating": 0,
+              "req_age": 15,
+              "banned": false,
+              "rating_name": "nzoflc"
+            },
+            {
+              "rating": 14,
+              "req_age": 14,
+              "banned": false,
+              "rating_name": "dejus"
+            },
+            {
+              "rating": 16,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "steam_germany"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4560,
+          "num_reviews": 100,
+          "review_score": 8,
+          "review_score_desc": "Very Positive",
+          "total_positive": 6642,
+          "total_negative": 467,
+          "total_reviews": 7109
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4570,
+          "developers": [
+            "Relic Entertainment"
+          ],
+          "publishers": [
+            "Relic Entertainment"
+          ],
+          "price_overview": {
+            "game_id": 4570,
+            "currency": "RUB",
+            "initial": 63900,
+            "final": 42100,
+            "discount_percent": 34
+          },
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 17,
+              "banned": false,
+              "rating_name": "esrb"
+            },
+            {
+              "rating": 0,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "pegi"
+            },
+            {
+              "rating": 0,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "usk"
+            },
+            {
+              "rating": 0,
+              "req_age": 15,
+              "banned": false,
+              "rating_name": "oflc"
+            },
+            {
+              "rating": 0,
+              "req_age": 15,
+              "banned": false,
+              "rating_name": "nzoflc"
+            },
+            {
+              "rating": 18,
+              "req_age": 18,
+              "banned": false,
+              "rating_name": "dejus"
+            },
+            {
+              "rating": 18,
+              "req_age": 18,
+              "banned": false,
+              "rating_name": "steam_germany"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4570,
+          "num_reviews": 100,
+          "review_score": 8,
+          "review_score_desc": "Very Positive",
+          "total_positive": 10982,
+          "total_negative": 615,
+          "total_reviews": 11597
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4580,
+          "developers": [
+            "Relic Entertainment"
+          ],
+          "publishers": [
+            "SEGA"
+          ],
+          "price_overview": null,
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 17,
+              "banned": false,
+              "rating_name": "esrb"
+            },
+            {
+              "rating": 0,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "pegi"
+            },
+            {
+              "rating": 0,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "usk"
+            },
+            {
+              "rating": 0,
+              "req_age": 15,
+              "banned": false,
+              "rating_name": "oflc"
+            },
+            {
+              "rating": 0,
+              "req_age": 15,
+              "banned": false,
+              "rating_name": "nzoflc"
+            },
+            {
+              "rating": 18,
+              "req_age": 18,
+              "banned": false,
+              "rating_name": "dejus"
+            },
+            {
+              "rating": 18,
+              "req_age": 18,
+              "banned": false,
+              "rating_name": "steam_germany"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4580,
+          "num_reviews": 100,
+          "review_score": 9,
+          "review_score_desc": "Overwhelmingly Positive",
+          "total_positive": 8909,
+          "total_negative": 338,
+          "total_reviews": 9247
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4600,
+          "developers": [
+            "PipeStudio"
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": []
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4600,
+          "num_reviews": 6,
+          "review_score": 0,
+          "review_score_desc": "6 user reviews",
+          "total_positive": 5,
+          "total_negative": 1,
+          "total_reviews": 6
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4700,
+          "developers": [
+            "CREATIVE ASSEMBLY",
+            "Feral Interactive (Mac)",
+            "Feral Interactive (Linux)"
+          ],
+          "publishers": [
+            "SEGA",
+            "Feral Interactive (Mac)",
+            "Feral Interactive (Linux)"
+          ],
+          "price_overview": null,
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "esrb"
+            },
+            {
+              "rating": 16,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "pegi"
+            },
+            {
+              "rating": 14,
+              "req_age": 14,
+              "banned": false,
+              "rating_name": "dejus"
+            },
+            {
+              "rating": 16,
+              "req_age": 16,
+              "banned": false,
+              "rating_name": "steam_germany"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4700,
+          "num_reviews": 100,
+          "review_score": 9,
+          "review_score_desc": "Overwhelmingly Positive",
+          "total_positive": 33190,
+          "total_negative": 1498,
+          "total_reviews": 34688
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4710,
+          "developers": [
+            "The Creative Assembly"
+          ],
+          "publishers": [],
+          "price_overview": null,
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 0,
+              "banned": false,
+              "rating_name": "esrb"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4710,
+          "num_reviews": 16,
+          "review_score": 7,
+          "review_score_desc": "Positive",
+          "total_positive": 14,
+          "total_negative": 2,
+          "total_reviews": 16
+        }
+      },
+      {
+        "add_details": {
+          "game_id": 4720,
+          "developers": [
+            "Monolith"
+          ],
+          "publishers": [
+            "SEGA"
+          ],
+          "price_overview": null,
+          "ratings": [
+            {
+              "rating": 0,
+              "req_age": 17,
+              "banned": false,
+              "rating_name": "esrb"
+            },
+            {
+              "rating": 18,
+              "req_age": 18,
+              "banned": false,
+              "rating_name": "pegi"
+            },
+            {
+              "rating": 18,
+              "req_age": 18,
+              "banned": false,
+              "rating_name": "bbfc"
+            },
+            {
+              "rating": 15,
+              "req_age": 15,
+              "banned": false,
+              "rating_name": "oflc"
+            }
+          ]
+        },
+        "schema_data": null,
+        "achiev_persentage": null,
+        "review_info": {
+          "game_id": 4720,
+          "num_reviews": 100,
+          "review_score": 8,
+          "review_score_desc": "Very Positive",
+          "total_positive": 3666,
+          "total_negative": 541,
+          "total_reviews": 4207
+        }
+      }
+    ]
+  },
+  "21": {
+    "data_for_analysis_db": {
+      "chunk_games": [],
+      "chunk": {
+        "id": 21,
+        "status": "success",
+        "response_time": 12.34845,
+        "error_log": "",
+        "started_at": "2025-12-11 15:57:59.329904",
+        "finished_at": "2025-12-11 15:57:59.329904"
+      }
+    },
+    "data_chunk": []
+  }
+}
