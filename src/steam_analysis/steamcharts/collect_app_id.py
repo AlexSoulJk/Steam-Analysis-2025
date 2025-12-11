@@ -14,13 +14,19 @@ class SteamAppIdCollector:
     Собирает ID игр с топ страниц и сохраняет в JSON.
     """
 
-    BASE_URL = "https://steamcharts.com/top"
+    # BASE_URL = "https://steamcharts.com/top"
 
-    def __init__(self, output_file: str = "steam_app_ids.json"):
+    def __init__(self,
+                 output_file: str = "steam_app_ids.json",
+                 base_url: str = "https://steamcharts.com/top",
+                 page_ident: str = "/p."
+                 ):
         """
         Args:
             output_file: Путь к файлу для сохранения app_id
         """
+        self.BASE_URL = base_url
+        self.PAGE_URL = f"{self.BASE_URL}{page_ident}"
         self.output_file = output_file
         self.DELAY_MIN = 0.5
         self.DELAY_MAX = 1
@@ -105,6 +111,26 @@ class SteamAppIdCollector:
 
         return app_ids
 
+    def _extract_app_ids_v2(self, html: str):
+        """For steamplayercount"""
+        soup = BeautifulSoup(html, 'html.parser')
+
+        # Найти все ссылки, содержащие /app/ и извлечь app_id
+        app_ids = []
+        for link in soup.find_all('a', href=True):
+            if '/app/' in link['href']:
+                # Извлекаем число после /app/
+                parts = link['href'].split('/app/')
+                if len(parts) > 1 and parts[1].strip():
+                    app_id = parts[1].strip()
+                    if app_id.isdigit():  # Проверяем, что это число
+                        app_ids.append(app_id)
+
+        # Удаляем дубликаты
+        unique_app_ids = list(set(app_ids))
+        print(f"Найдено {len(unique_app_ids)} уникальных app_id:")
+        return unique_app_ids
+
     def _get_page_html(self, page_num: int) -> Optional[str]:
         """
         Скачивает HTML страницу.
@@ -118,7 +144,7 @@ class SteamAppIdCollector:
         if page_num == 1:
             url = self.BASE_URL
         else:
-            url = f"{self.BASE_URL}/p.{page_num}"
+            url = f"{self.PAGE_URL}{page_num}"
 
         try:
             delay = random.uniform(self.DELAY_MIN, self.DELAY_MAX)
@@ -149,7 +175,8 @@ class SteamAppIdCollector:
             return False
 
         # Извлекаем app_id
-        found_ids = self._extract_app_ids(html)
+        # found_ids = self._extract_app_ids(html)
+        found_ids = self._extract_app_ids_v2(html)
 
         if not found_ids:
             print("не найдено app_id")
@@ -273,6 +300,16 @@ class SteamAppIdCollector:
 
 
 if __name__ == "__main__":
-    collector = SteamAppIdCollector("steam_app_ids.json")
-    collector.collect_pages(start_page=501, end_page=517)
-    collector.print_stats()
+    # steam charts
+    # collector = SteamAppIdCollector("steam_app_ids.json")
+    # collector_popular = SteamAppIdCollector("steamplayer_app_ids.json",
+    #                                         "https://steamplayercount.com/popular",
+    #                                         "?page=")
+    # collector_popular.collect_pages(start_page=1, end_page=81)
+    # collector_popular.print_stats()
+
+    collector_trend = SteamAppIdCollector("steamplayer_app_ids_trends.json",
+                                          "https://steamplayercount.com/trending",
+                                          "?page=")
+    collector_trend.collect_pages(start_page=1, end_page=52)
+    collector_trend.print_stats()
