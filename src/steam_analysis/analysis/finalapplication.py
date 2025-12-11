@@ -27,6 +27,7 @@ class Application:
 
         path_for_type_pic = self.folder_clustering / Path("distribution_by_types.png")
         path_for_type_json = self.folder_clustering / Path("dist_by_types.json")
+        path_for_type_pic_clustering = self.folder_clustering / Path("dist_by_types.json")
         data_for_response = self.data_provider.get_games_by_types()
 
         default_saver.save_data(data_for_response, filepath=path_for_type_json)
@@ -37,6 +38,10 @@ class Application:
                                                                               title_name=self.TITLES["Clustering"][
                                                                                   "ByType"],
                                                                               path_to_save=path_for_type_pic)
+            generate_clustering_task_picture.generate_scatter_clusters(data=data_for_response,
+                                                                              title_name=self.TITLES["Clustering"][
+                                                                                  "ByType"],
+                                                                              path_to_save=path_for_type_pic_clustering)
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
 
