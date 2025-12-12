@@ -10,8 +10,9 @@ def main():
     app = AppMediator(steam_api_key=api_key,
                       processor_name="Lo-Lap")
     # app.create_user()
-    for i in range(3):
+    for i in range(1367):
         # app.create_game()
+        print(f"Processed count chunk = {i}")
         app.add_game_to_json()
 
     # api_keys = load_api_keys()

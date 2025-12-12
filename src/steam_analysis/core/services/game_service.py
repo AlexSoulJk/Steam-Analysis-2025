@@ -16,7 +16,8 @@ class GameService:
 
     def get_game_analysis_list(self, chunk: GameAnalysisChunkForResponse) -> FillGameAnalysisChunk:
         start_time = datetime.datetime.now()
-
+        logger.info(
+            f"\nℹ️ Starting processing chunk games with id = {chunk.id}")
         # data_chunk = []
         # for game in chunk.games:
         #     tmp_request = self.game_repo.get_by_schema(game)
