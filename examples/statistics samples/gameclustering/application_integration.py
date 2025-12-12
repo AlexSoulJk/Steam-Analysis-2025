@@ -1,0 +1,28 @@
+from steam_analysis.analysis.finalapplication import Application
+from steam_analysis.config import examples_statistics_images_path
+
+
+def main():
+    app = Application(path_to_save_work=examples_statistics_images_path)
+    app.generate_distribution_by_type()
+
+
+def categories():
+    app = Application(path_to_save_work=examples_statistics_images_path)
+    app.generate_distribution_by_category(20)
+
+
+def categories_count():
+    app = Application(path_to_save_work=examples_statistics_images_path)
+    app.generate_distribution_by_count_category(15)
+
+
+def release_by_season():
+    app = Application(path_to_save_work=examples_statistics_images_path)
+    app.generate_distribution_for_release_by_season("quarter")
+
+
+if __name__ == "__main__":
+    # categories()
+    # categories_count()
+    release_by_season()
