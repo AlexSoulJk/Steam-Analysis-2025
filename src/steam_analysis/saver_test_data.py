@@ -16,6 +16,13 @@ class SaveTestData:
         self.current_batch_count = 0
         self.current_file_data = {}
 
+    def save_data(self, fill_model, filepath):
+        data_dict = fill_model.model_dump()
+
+        # Сохраняем в JSON с красивым форматированием
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data_dict, f, indent=2, ensure_ascii=False, default=str)
+
     def save_fill_game_batch(self, fill_model: FillGameAnalysisChunk):
         """Сохраняет батч данных в JSON файл"""
         try:

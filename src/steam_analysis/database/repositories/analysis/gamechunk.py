@@ -13,7 +13,7 @@ class GameChunkRepository(BaseAnalysisRepository[AnalysisChunk, GameAnalysisChun
     """Репозиторий для работы с играми"""
 
     def __init__(self):
-        super().__init__(model=AnalysisChunk)
+        super().__init__(model=AnalysisChunk) # ыыыыыы
 
     def _get_next_chunk_by_status_and_name(self, status: str, processor_name: str, session: Session) -> Optional[
         AnalysisChunk]:

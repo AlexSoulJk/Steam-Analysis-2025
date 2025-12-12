@@ -2,19 +2,29 @@ from steam_analysis.database.facade import DbFacade
 from steam_analysis.proccessors.clustering_game_proccessor import ClusteringGameProcessor
 
 
-class ProcessedDataProvider:
+class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, РЕШАЮЩИЕ ЗАДАЧИ
 
     def __init__(self):
-        self.database_facade = DbFacade()
+        # Services that process data
         self.clustering_game_proccesor = ClusteringGameProcessor()
 
     # region Providing data for simple-visualisation
+    def get_games_by_types(self):
+        return self.clustering_game_proccesor.get_games_by_types()
+
     def get_games_by_categories(self):
-        data = self.database_facade.get_games_by_categories()
-        return data
+        return self.clustering_game_proccesor.get_games_by_categories()
+
+    def get_games_release_by_season(self, mode):
+        return self.clustering_game_proccesor.get_games_release_by_season(mode)
 
     def get_games_by_genres(self):
-        data = self.database_facade.get_games_by_genres()
-        return data
+        return self.clustering_game_proccesor.get_games_by_genres()
+
+    def get_games_by_categories_count(self):
+        return self.clustering_game_proccesor.get_games_by_categories_count()
 
     # endregion
+
+
+
