@@ -136,10 +136,11 @@ class AppMediator:
     def loads_data_from_jsons(self, folder="add_info_games"):
         json_files = default_loader.read_jsons(folder)
         for json_file in json_files:
+            print(f"\nОбработка файла: {json_file}....")
             schema_batchs = default_loader.load_add_schema_batchs(json_file)
             if not schema_batchs:
                 continue
-
+            print(f"Загружены бачи: {len(schema_batchs)}....")
             for fill_butch in schema_batchs:
                 self.database_facade.add_info_games(fill_butch.data_chunk)
                 # Завершаем чанк
