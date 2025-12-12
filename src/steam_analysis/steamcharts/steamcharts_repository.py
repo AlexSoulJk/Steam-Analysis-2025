@@ -79,9 +79,12 @@ class SteamChartsRepository:
             app_ids = [int(app_id) for app_id in games.keys()]
             exist_games = self.game_repo.get_existing_by_app_ids(app_ids, session)
 
-            game_ids = {str(app_id): game.id for app_id, game in exist_games.values()}
+            game_ids = {str(app_id): game.id for app_id, game in exist_games.items()}
             all_tables = []
             for app_id in games.keys():
+                if exist_games.get(int(app_id), None) is None:
+                    continue
+
                 game = games[app_id]
                 exist_games[int(app_id)].all_time_peak = game.get("all-time peak", 0)
 
@@ -102,8 +105,8 @@ class SteamChartsRepository:
                         PlayerCountHistory(
                             game_id=game_ids[app_id],
                             player_count=table[month].get("Peak Players", 0),
-                            month=month,
-                            avg_players=table.get("Avg. Players", 0.0),
+                            date=month,
+                            avg_players=table[month].get("Avg. Players", 0.0),
                             percent_gain=percent_gain,
                             gain=gain
                         )
@@ -135,8 +138,8 @@ class SteamChartsRepository:
                 if not games:
                     continue
 
-                print(f"\nℹ️ Файл {len(json_file)} успешно прочитан")
-                print(f"ℹ️ Добавляем файл {len(json_file)} в БД.....")
+                print(f"\nℹ️ Файл {json_file} успешно прочитан")
+                print(f"ℹ️ Добавляем файл {json_file} в БД.....")
                 self.add_one_file_to_db(games)
 
             except json.JSONDecodeError as e:

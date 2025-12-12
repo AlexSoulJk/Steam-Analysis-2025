@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from steam_analysis.config import test_data_path, test_data_add_game_path
+from steam_analysis.config import test_data_path, test_data_add_game_path, test_game_path
 from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillTypeSchemaChunk, FillAddSchemaChunk
 from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, FillPlayerGameSchemaChunk
@@ -182,7 +182,7 @@ class SaveTestData:
             print(f"❌ Ошибка сохранения: {e}")
             return False
 
-    def batch_save_data_simple(self, fill_model: 'FillAddSchemaChunk'):
+    def batch_save_data_simple(self, fill_model, file_name="games_add_info_chunk"):
         """Упрощенная версия с последовательным сохранением"""
         try:
             chunk_id = fill_model.data_for_analysis_db.chunk.id
@@ -194,7 +194,7 @@ class SaveTestData:
                     not self.current_file.exists()):
                 # Создаем новый файл
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"games_add_info_chunk_{timestamp}.json"
+                filename = f"{file_name}_{timestamp}.json"
                 self.current_file = self.dir_to_save / filename
                 self.current_batch_count = 0
                 self.current_file_data = {}
@@ -224,3 +224,4 @@ class SaveTestData:
 
 default_saver = SaveTestData(test_data_path)
 save_add_info_games = SaveTestData(test_data_add_game_path)
+save_games = SaveTestData(test_game_path)
