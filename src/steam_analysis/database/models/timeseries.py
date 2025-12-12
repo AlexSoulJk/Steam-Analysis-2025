@@ -12,7 +12,7 @@ class PlayerCountHistory(BaseModel):
 
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
     player_count = Column(Integer, nullable=False)
-    month =  Column(String(10))
+    date = Column(String(20))
     avg_players = Column(Float)
     percent_gain = Column(Float)
     gain = Column(Float)

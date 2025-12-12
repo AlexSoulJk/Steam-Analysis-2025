@@ -490,7 +490,7 @@ class GameRepository(BaseRepository):
 
     def _parse_reviews_data(self, app_id: int, raw_data: Dict[str, Any]) -> ReviewsDataAnalysisCreate:
         query_summary = raw_data['query_summary']
-        reviews = GameParser.extract_reviews(raw_data)
+        # reviews = GameParser.extract_reviews(raw_data)
 
         return ReviewsDataAnalysisCreate(
             game_id=app_id,
@@ -500,7 +500,7 @@ class GameRepository(BaseRepository):
             total_positive=query_summary['total_positive'],
             total_negative=query_summary['total_negative'],
             total_reviews=query_summary['total_reviews'],
-            reviews=reviews
+            # reviews=reviews
         )
 
     def _parse_news_data(self, app_id: int, raw_data: Dict[str, Any]) -> NewsDataAnalysisCreate:

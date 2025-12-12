@@ -46,7 +46,7 @@ class ReviewsDataAnalysisCreate(BaseSchema):
     total_positive: int
     total_negative: int
     total_reviews: int
-    reviews: List[ReviewCreate]
+    # reviews: List[ReviewCreate]
 
 
 class NewsDataAnalysisCreate(BaseSchema):

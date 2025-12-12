@@ -32,8 +32,8 @@ class SteamEntityMixin(BaseSchema):
 class StatsMixin(BaseSchema):
     """Миксин для Stats&Achiev"""
     name: str = Field(..., description="Название статистики", alias="name")
-    default_value: int = Field(..., description="Значение по умолчанию", alias="defaultvalue")
-    display_name: str = Field(..., description="Отображаемое имя", alias="displayName")
+    default_value: int = Field(..., description="Значение по умолчанию", alias="default_value")
+    display_name: str = Field(..., description="Отображаемое имя", alias="display_name")
 
 class AchievMixin(BaseSchema):
     """Миксин для Stats&Achiev"""
