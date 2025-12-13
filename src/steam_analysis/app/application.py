@@ -11,11 +11,13 @@ from steam_analysis.loader_test_data import default_loader
 from steam_analysis.resourcemanager.manager import ResourceManager
 from steam_analysis.resourcemanager.resources.codes import ResourceCodes
 from steam_analysis.saver_test_data import default_saver, save_add_info_games, save_games
+from steam_analysis.steamcharts.steamcharts import SteamChartsPipeline
+from ....distribution.pathmanager import DEFAULT_FILENAME_GAMES, DEFAULT_FILENAME_ADD_INFO_GAMES
 
 
 class AppMediator:
 
-    def __init__(self, steam_api_key: str,
+    def __init__(self, steam_api_key: str = "",
                  processor_name: str = "Test"):
         self.processor_name = processor_name
         self.steam_facade = SteamAnalysisFacade(steam_api_key)
@@ -124,29 +126,42 @@ class AppMediator:
         response = self.database_facade.create_players_game_relations(fill_user_butch.data_chunk)
         self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
 
-    def add_game_to_json(self, chunk_size: int = 10):
+    def add_game_to_json(self, filename: str = None, chunk_size: int = 10):
         chunk_for_create = self.analysis_service.get_next_pending_chunk_by_service(self.processor_name)
+        if chunk_for_create is None:
+            print(f"\nНе найдены чанки со статусом pending")
+            return
         # Получаем данные через Steam API
         # print(f"{chunk_to_fill=}")
         fill_butch = self.steam_facade.get_game_analysis_list(chunk_for_create)
         # # # Сохранение chunk игр в JSON
-        save_games.batch_save_data_simple(fill_butch, file_name="games")
+        if filename is None:
+            save_games.batch_save_data_simple(fill_butch, file_name=DEFAULT_FILENAME_GAMES)
+        else:
+            save_games.batch_save_data_simple(fill_butch, file_name=filename)
+
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
-    def add_schema_to_json(self, chunk_size: int = 10):
+    def add_schema_to_json(self, filename: str = None, chunk_size: int = 10):
         chunk_to_fill = self.analysis_service.get_next_part_chunk_by_service(self.processor_name)
+        if chunk_to_fill is None:
+            print(f"\nНе найдены чанки со статусом particle_sucess")
+            return
         # Получаем данные через Steam API
         # print(f"{chunk_to_fill=}")
         fill_butch = self.steam_facade.get_add_game_list(chunk_to_fill)
         # # # Сохранение chunk игр в JSON
-        save_add_info_games.batch_save_data_simple(fill_butch)
+        if filename is None:
+            save_add_info_games.batch_save_data_simple(fill_butch, file_name=DEFAULT_FILENAME_ADD_INFO_GAMES)
+        else:
+            save_add_info_games.batch_save_data_simple(fill_butch, file_name=filename)
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
-    def loads_data_from_jsons(self, folder="add_info_games"):
-        json_files = default_loader.read_jsons(folder)
+    def loads_add_data_game_from_jsons(self, loader = default_loader, folder="add_info_games"):
+        json_files = loader.read_jsons(folder)
         for json_file in json_files:
             print(f"\nОбработка файла: {json_file}....")
-            schema_batchs = default_loader.load_add_schema_batchs(json_file)
+            schema_batchs = loader.load_add_schema_batchs(json_file)
             if not schema_batchs:
                 continue
             print(f"Загружены бачи: {len(schema_batchs)}....")
@@ -155,11 +170,11 @@ class AppMediator:
                 # Завершаем чанк
                 self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
-    def loads_games_from_jsons(self, folder="games"):
-        json_files = default_loader.read_jsons(folder)
+    def loads_games_from_jsons(self, loader = default_loader, folder="games"):
+        json_files = loader.read_jsons(folder)
         for json_file in json_files:
             print(f"\nОбработка файла: {json_file}....")
-            games_batchs = default_loader.load_games_batchs(json_file)
+            games_batchs = loader.load_games_batchs(json_file)
             if not games_batchs:
                 continue
             print(f"Загружены бачи: {len(games_batchs)}....")

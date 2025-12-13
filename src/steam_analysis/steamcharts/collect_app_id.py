@@ -175,8 +175,8 @@ class SteamAppIdCollector:
             return False
 
         # Извлекаем app_id
-        # found_ids = self._extract_app_ids(html)
-        found_ids = self._extract_app_ids_v2(html)
+        found_ids = self._extract_app_ids(html)
+        # found_ids = self._extract_app_ids_v2(html)
 
         if not found_ids:
             print("не найдено app_id")

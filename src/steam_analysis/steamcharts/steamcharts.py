@@ -16,9 +16,12 @@ from collect_app_id import SteamAppIdCollector
 
 
 class SteamChartsPipeline:
-    def __init__(self, read=False):
+    def __init__(self, games = {}):
         super().__init__()
-        self.read_games = self.read_batch_file(filename="games.json")
+        if not games:
+            self.read_games = self.read_batch_file(filename="games.json")
+        else:
+            self.read_games = games
         self.jsonSaver = BatchJsonSaver()
         self.batch_id = self.read_last_batch()
 
@@ -165,6 +168,25 @@ class SteamChartsPipeline:
 
     def save_last_batch_id(self):
         self.save_last_batch(self.batch_id)
+
+    def processed_batches(self):
+        count_bathes = len(self.read_games)
+        for _ in range(count_bathes):
+            start_time = time.perf_counter()
+            print(f"\nINFO: start batch {self.batch_id}...")
+            self.scraping()
+
+            print(f"\nINFO: start batch {self.batch_id}...")
+            self.scraping()
+            end_time = time.perf_counter()
+            elapsed = end_time - start_time
+
+            self.save_last_batch_id()
+            print(f"⏱️  reaponse_time {elapsed:.3f} сек...")
+            if elapsed < 60:
+                pause = 60 - elapsed
+                print(f"⏸️  Пауза {pause:.1f} сек...")
+                time.sleep(pause)
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ def test_part_fill_games():
                       processor_name="Lo-Lap")
     for _ in range(1000):
         # app.add_schema()
-        app.add_schema_to_json()
+        app.add_schema_to_json(filename="games_add_info_chunk")
 
 
 if __name__ == "__main__":
