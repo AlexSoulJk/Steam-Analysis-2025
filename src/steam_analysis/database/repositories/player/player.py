@@ -1,12 +1,17 @@
-from typing import Optional, List, Dict, Tuple, Any
-from sqlalchemy import select, and_, or_
+from typing import Optional, List, Dict, Tuple, Any, Callable, Type
+from sqlalchemy import select, and_, or_, over
 from sqlalchemy.orm import Session, joinedload, selectinload
 from datetime import datetime
 
+from steam_analysis.core.schemas.base import BaseSchema
 from ..base.base import BaseDBRepository
-from ...models import User, UserPlaytime, Friend, UserLogoffHistory
+from ...models import User, UserPlaytime, Friend, UserLogoffHistory, Game, UserGameOwnership
 from steam_analysis.core.schemas.player.player import PlayerCreate, PlayerUpdate
 from steam_analysis.core.schemas.player.playergame import LogoffHistoryCreate
+from sqlalchemy import func, distinct
+
+
+
 
 
 class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
@@ -18,6 +23,94 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
     def get_by_steam_id(self, steam_id: str, session: Session) -> Optional[User]:
         """Получить пользователя по Steam ID"""
         return self.get_by_field("steam_id", steam_id, session=session)
+
+    def get_country_game_stats(
+            self,
+            session: Session,
+            *,
+            with_geo: bool = True,
+            min_count: int = 1,
+            top_n: int = 3,
+            count_expr_factory: Callable[[], Any],
+            result_schema: Type[BaseSchema],
+    ):
+        """
+        Получить топ-N игр по количеству пользователей в разрезе стран
+        """
+
+        count_expr = count_expr_factory().label("player_count")
+
+        # === БАЗОВАЯ АГРЕГАЦИЯ: страна + игра ===
+        base_query = (
+            select(
+                User.loccountrycode.label("country_code"),
+                Game.name.label("game_name"),
+                count_expr,
+            )
+            .select_from(User)
+            .join(UserGameOwnership, UserGameOwnership.user_id == User.id)
+            .join(Game, UserGameOwnership.game_id == Game.id)
+        )
+
+        # --- фильтр по гео ---
+        geo_expr = func.coalesce(func.nullif(User.loccountrycode, ""), None)
+
+        if with_geo:
+            base_query = base_query.where(geo_expr.isnot(None))
+        else:
+            base_query = base_query.where(geo_expr.is_(None))
+
+        base_subq = (
+            base_query
+            .group_by(User.loccountrycode, Game.id, Game.name)
+            .having(count_expr >= min_count)
+            .subquery()
+        )
+
+        # === RANKING (ROW_NUMBER) ===
+        ranked_subq = (
+            select(
+                base_subq.c.country_code,
+                base_subq.c.game_name,
+                base_subq.c.player_count,
+                func.row_number()
+                .over(
+                    partition_by=base_subq.c.country_code,
+                    order_by=base_subq.c.player_count.desc()
+                )
+                .label("rank"),
+            )
+            .select_from(base_subq)
+            .subquery()
+        )
+
+        # === ФИНАЛЬНЫЙ ЗАПРОС ===
+        final_query = (
+            select(
+                ranked_subq.c.country_code,
+                ranked_subq.c.game_name,
+                ranked_subq.c.player_count,
+            )
+            .where(ranked_subq.c.rank <= top_n)
+            .order_by(
+                ranked_subq.c.country_code,
+                ranked_subq.c.player_count.desc(),
+            )
+        )
+
+        rows = session.execute(final_query).all()
+
+        # === МАППИНГ В СХЕМУ ===
+        return [
+            result_schema(
+                country_code=row.country_code,
+                game_name=row.game_name,
+                player_count=row.player_count,
+            )
+            for row in rows
+        ]
+
+
 
     def get_existing_by_steam_ids(self, steam_ids: List[str], session: Session, batch_size=500) -> Dict[str, User]:
         """

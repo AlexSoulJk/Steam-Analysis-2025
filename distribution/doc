@@ -1,0 +1,62 @@
+
+# Формирование стратегии:
+# Создание новых сущностей:
+# # .exe -- create_strategy
+# Суть: Создаем запись в служебной бд,
+# ставим ей статус pending
+# Содержание config:
+# Сущность: subject: str = [Player, Game]
+# Путь к JSON с новыми играми: path_to_data: str = "" (Default )
+
+# Обновление существующих сущностей:
+# # .exe update_strategy -g config_path
+# Суть: Берем существующую сущность в служебной бд
+# и обновляем ее статус на pending
+# Содержание config:
+# Сущность: subject: str = [Player, Game]
+# Путь к JSON с новыми сущностям: path_to_data: str = "" (Default ?)
+
+
+# Сбор данных:
+# # .exe --collect_data
+# Суть: Берем все сущности со статусом pending/partial
+# и собираем для них данные
+# Содержание config:
+# Сущность: subject: str = [Player, Game]
+# Номер stage: int = [0,1]
+# Имя процессора: str = (default) "FullSuccesser"
+# Путь к папке, куда будут сохраняться JSON-ы: path_to_save: str = "" (Default ?)
+# (Добавляется дополнительная папка внутри)
+
+# Добавление данных в АБД:
+# # .exe --fill_analys_db config_path
+
+# Содержание config:
+# Сущность: subject: str = [Player, Game]
+# Номер stage: int = [0,1]
+# Путь к папке, откуда будут подгружаются сохраненные JSON-ы: path_to_load: str = "" (Default ?)
+
+# Решение аналитической задачи:
+# # .exe --calculate config_path
+
+# Содержание config:
+# Номер таски: task: Union[List[int], str] = [0 ... 4] (по умолчанию "all")
+# Номер графика: graph Union[List[int], str] [0, 1 ..] = (по умолчанию "all")
+# Путь к папке, куда будут сохраняться JSON-ы: path_to_save: str = "" (Default ?)
+# (Добавляется дополнительная папка внутри)
+
+# Выгрузка данных для графиков в google таблицу:
+# # .exe --google_load config_path
+# Содержание config:
+# Номер таски: task: Union[List[int], str] = [0 ... 4] (по умолчанию "all")
+# Номер графика: graph: Union[List[int], str]= [0, 1 ..] (по умолчанию "all")
+
+
+# Визуализация графиков:
+# # .exe --visualize config_path
+# Содержание config:
+# Номер таски: task: Union[List[int], str] = [0 ... 4] (по умолчанию "all")
+# Номер графика: Union[List[int], str] = graph [0, 1 ..] (по умолчанию "all")
+# Путь к папке, куда будут сохраняться Картиночки: path_to_save: str = "" (Default ?)
+# (Добавляется дополнительная папка внутри)
+# Путь к папке, откуда подгружаются данные для визуализации: path_to_data: str "" (Default ?)

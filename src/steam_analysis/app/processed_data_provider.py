@@ -1,6 +1,7 @@
 from steam_analysis.database.facade import DbFacade
 from steam_analysis.proccessors.clustering_game_proccessor import ClusteringGameProcessor
 from steam_analysis.proccessors.clustering_game_proccessor_external import ClusteringGameProcessorForFlourish
+from steam_analysis.proccessors.geo_game_proccesor import GeoProccessor
 
 
 class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, РЕШАЮЩИЕ ЗАДАЧИ
@@ -9,6 +10,7 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
         # Services that process data
         self.clustering_game_proccesor = ClusteringGameProcessor()
         self.clustering_game_proccesor_for_external = ClusteringGameProcessorForFlourish()
+        self.geo_coordinate_proccessor = GeoProccessor()
 
     # region Providing data for simple-visualisation
     def get_games_by_types(self):
@@ -30,5 +32,8 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
 
     def get_games_by_types_for_flurish(self):
         return self.clustering_game_proccesor_for_external.get_games_by_types()
+
+    def get_geo_games(self, game_limit):
+        return self.geo_coordinate_proccessor.get_games_by_geo(game_limit)
 
 

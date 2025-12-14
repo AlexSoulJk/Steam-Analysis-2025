@@ -15,17 +15,17 @@ from distribution.visualization import visualization_handler
 
 ROUTE_MAP: Dict[str, Any] = {
     "create_strategy": {
-        "Player": user_create_strategy,
+        "Player": create_strategy_player,
         "Game": create_games_for_strategy
     },
     "update_strategy": {
-        "Player": user_update_strategy,
+        "Player": update_strategy_player,
         "Game": games_update_strategy
     },
     "collect_data": {
         "Player": {
-            0: user_create_to_json,
-            1: user_games_create_to_json
+            0: user_games_create_to_json,
+            1: games_create_add_info_json,
         },
         "Game": {
             0: games_create_games_json,
@@ -37,7 +37,7 @@ ROUTE_MAP: Dict[str, Any] = {
     "fill_analys_db": {
         "Player": {
             0: user_create_fill_database,
-            1: user_create_games_fill_database
+            1: user_create_games_fill_database,
         },
         "Game": {
             0: games_create_fill_database,
