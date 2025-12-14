@@ -24,6 +24,14 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
     def get_games_by_categories_count(self):
         return self.clustering_game_proccesor.get_games_by_categories_count()
 
+
+    # только для кластеризации
+
+    def get_game_clustering_data(self):
+        return self.clustering_game_proccesor.get_game_clustering_data()
+
+    def get_2d_hist_data(self):
+        return self.clustering_game_proccesor.get_2d_hist_data()
     # endregion
 
 

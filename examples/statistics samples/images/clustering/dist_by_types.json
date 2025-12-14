@@ -1,15 +1,15 @@
 {
   "values": {
-    "game": 93963,
-    "advertising": 237,
-    "demo": 14053,
-    "dlc": 31196,
-    "mod": 100,
-    "music": 5177,
-    "video": 517,
+    "game": 124656,
+    "advertising": 242,
+    "demo": 19703,
+    "dlc": 39992,
+    "mod": 115,
+    "music": 6999,
+    "video": 570,
     "hardware": 3,
-    "series": 54,
-    "episode": 867
+    "series": 57,
+    "episode": 923
   },
   "ticks": [
     "game",

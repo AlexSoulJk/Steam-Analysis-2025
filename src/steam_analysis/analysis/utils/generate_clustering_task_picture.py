@@ -1,9 +1,13 @@
-from typing import Tuple, List
+from typing import Tuple, List, Any, Optional, Dict
 
 from steam_analysis.proccessors.schemas.games import (AbstractGameBy_, GamesClusteringData,
-                                                      ClusteringResult, ClusterInfo,
-                                                      CorrelationHeatmapData, TwoDHistogramData, GamesReleaseBySeason,
-                                                      HistogramAnalysisResult, GroupedHistogramData, EnhancedHistogramData)
+                                                      TwoDHistogramData, GamesReleaseBySeason,
+                                                      EnhancedHistogramData,
+                                                      GameFeatureVector)
+from steam_analysis.analysis.response_schemas.clustering import ClusteringResult, ClusterInfo
+from steam_analysis.analysis.response_schemas.graphics import CorrelationHeatmapData, GroupedHistogramData, HistogramAnalysisResult
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -12,9 +16,12 @@ import matplotlib.cm as cm
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 
 from scipy import stats
 import warnings
+
+import pandas as pd
 
 
 
@@ -67,9 +74,9 @@ def create_data_columns(data: AbstractGameBy_, columns_num: int) -> Tuple[List[s
     if len(ticks) > columns_num:
         combined = list(zip(ticks, values))
         combined.sort(key=lambda x: x[1], reverse=True)
-        top_ticks = [t[0] for t in combined[:columns_num-1]]
-        top_values = [t[1] for t in combined[:columns_num-1]]
-        others_sum = sum(t[1] for t in combined[columns_num-1:])
+        top_ticks = [t[0] for t in combined[:columns_num - 1]]
+        top_values = [t[1] for t in combined[:columns_num - 1]]
+        others_sum = sum(t[1] for t in combined[columns_num - 1:])
         ticks = top_ticks + ["Others"]
         values = top_values + [others_sum]
     else:
@@ -78,16 +85,20 @@ def create_data_columns(data: AbstractGameBy_, columns_num: int) -> Tuple[List[s
 
 
 def generate_distribution_by_feature(data: AbstractGameBy_, title_name: str,
-                                     path_to_save: str, columns_num: int) -> None:
+                                     path_to_save: str, columns_num: int,
+                                     num_highlited_bins: int = 3) -> None:
     ticks, values = create_data_columns(data, columns_num)
     x_positions = np.arange(len(ticks))
 
     fig, ax = plt.subplots(figsize=(12, 6))
     bars = ax.bar(x_positions, values, color='skyblue', edgecolor='black', alpha=0.7)
 
-    for i in range(min(3, len(bars))):
-        bars[i].set_color('crimson')
-        bars[i].set_edgecolor('black')
+    if num_highlited_bins > 0:
+        max_indices = np.argpartition(values, -num_highlited_bins)[-num_highlited_bins:]
+
+        for idx in max_indices:
+            bars[idx].set_color('crimson')
+            bars[idx].set_edgecolor('black')
 
     ax.set_title(title_name, fontsize=16, fontweight='bold', pad=20)
     ax.set_xticks(x_positions)
@@ -106,11 +117,9 @@ def generate_distribution_by_feature(data: AbstractGameBy_, title_name: str,
         )
 
     plt.tight_layout()
-
     ax.yaxis.grid(True, linestyle='--', alpha=0.7)
     plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
     plt.close(fig)
-
 
 def generate_pie_by_feature(data: AbstractGameBy_, title_name: str,
                             path_to_save: str, sections_num: int, max_to_color: int) -> None:
@@ -1385,4 +1394,365 @@ def generate_grouped_histogram(
 
     print(f"✅ Группированная гистограмма сохранена: {path_to_save}")
     print(f"   Группы: {list(valid_groups.keys())}")
+
+
+def generate_scatter_clusters(
+        data: GamesClusteringData,
+        title_name: str,
+        path_to_save: str,
+        method: str = "kmeans",
+        n_clusters: int = 5,
+        reduction_method: str = "pca",
+        point_size: int = 50,
+        alpha: float = 0.7,
+        figsize: Tuple[int, int] = (16, 12),
+        show_examples: bool = True,
+        max_examples_per_cluster: int = 3
+) -> ClusteringResult:
+    """
+    Генерирует scatter plot с кластеризацией игр.
+
+    Args:
+        data: Данные для кластеризации (GamesClusteringData)
+        title_name: Заголовок графика
+        path_to_save: Путь для сохранения
+        method: Метод кластеризации ("kmeans", "dbscan")
+        n_clusters: Количество кластеров (для kmeans)
+        reduction_method: Метод уменьшения размерности ("pca", "tsne")
+        point_size: Размер точек
+        alpha: Прозрачность точек
+        figsize: Размер фигуры
+        show_examples: Показывать примеры игр
+        max_examples_per_cluster: Максимум примеров игр на кластер
+
+    Returns:
+        ClusteringResult с информацией о кластеризации
+    """
+    print(f"=== КЛАСТЕРИЗАЦИЯ ИГР ===")
+    print(f"Игр: {len(data.games)}")
+    print(f"Признаков: {len(data.feature_names)}")
+    print(f"Метод: {method}")
+    print(f"Целевое количество кластеров: {n_clusters}")
+
+    if not data.games:
+        raise ValueError("Нет данных об играх для кластеризации")
+
+    if data.feature_matrix is None or len(data.feature_matrix) == 0:
+        print("Создаю матрицу признаков из  игр...")
+        feature_matrix = []
+        for game in data.games:
+            if game.feature_values:
+                feature_matrix.append(game.feature_values)
+            elif game.features:
+                vector = []
+                for feature_name in data.feature_names:
+                    vector.append(game.features.get(feature_name, 0))
+                feature_matrix.append(vector)
+            else:
+                raise ValueError(f"У игры {game.app_id} нет данных о признаках")
+
+        data.feature_matrix = feature_matrix
+
+    X = np.array(data.feature_matrix)
+
+    if len(X) < 2:
+        raise ValueError(f"Недостаточно данных для кластеризации: {len(X)} игр")
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    print("...")
+
+    if method.lower() == "kmeans":
+        if n_clusters > len(X):
+            n_clusters = max(2, len(X) // 10 + 1)
+            print(f"Скорректировано количество кластеров: {n_clusters}")
+
+        clusterer = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+        cluster_labels = clusterer.fit_predict(X_scaled)
+        cluster_centers = clusterer.cluster_centers_
+
+    elif method.lower() == "dbscan":
+        clusterer = DBSCAN(eps=0.5, min_samples=5)
+        cluster_labels = clusterer.fit_predict(X_scaled)
+        cluster_centers = None
+
+        n_noise = np.sum(cluster_labels == -1)
+        if n_noise > 0:
+            print(f"DBSCAN обнаружил {n_noise} шумных точек")
+            max_cluster = cluster_labels.max()
+            cluster_labels[cluster_labels == -1] = max_cluster + 1
+    else:
+        raise ValueError(f"Неизвестный метод кластеризации: {method}")
+
+    if reduction_method.lower() == "tsne" and len(X_scaled) <= 5000:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            reducer = TSNE(n_components=2, random_state=42,
+                           perplexity=min(30, len(X_scaled) - 1))
+            X_reduced = reducer.fit_transform(X_scaled)
+        reduction_name = "t-SNE"
+        variance_info = ""
+    else:
+        reducer = PCA(n_components=2)
+        X_reduced = reducer.fit_transform(X_scaled)
+        reduction_name = "PCA"
+        if hasattr(reducer, 'explained_variance_ratio_'):
+            variance_explained = reducer.explained_variance_ratio_.sum() * 100
+            variance_info = f" ({variance_explained:.1f}% дисперсии)"
+        else:
+            variance_info = ""
+
+    clusters_info = []
+    unique_clusters = sorted(np.unique(cluster_labels))
+    n_clusters_actual = len(unique_clusters)
+
+    print(f"Создано кластеров: {n_clusters_actual}")
+
+    for cluster_id in unique_clusters:
+        mask = cluster_labels == cluster_id
+        cluster_games_idx = np.where(mask)[0]
+
+        if len(cluster_games_idx) == 0:
+            continue
+
+        feature_stats = {}
+        if cluster_centers is not None and cluster_id < len(cluster_centers):
+            centroid = cluster_centers[cluster_id].tolist()
+        else:
+            cluster_data = X_scaled[mask]
+            centroid = np.mean(cluster_data, axis=0).tolist()
+
+        cluster_data_original = X[mask]
+        for i, feature_name in enumerate(data.feature_names):
+            if i < cluster_data_original.shape[1]:
+                feature_values = cluster_data_original[:, i]
+                feature_stats[feature_name] = {
+                    'mean': float(np.mean(feature_values)),
+                    'std': float(np.std(feature_values)),
+                    'min': float(np.min(feature_values)),
+                    'max': float(np.max(feature_values)),
+                    'median': float(np.median(feature_values))
+                }
+
+        top_games = []
+        if show_examples and cluster_games_idx.size > 0:
+            n_samples = min(max_examples_per_cluster, len(cluster_games_idx))
+            sampled_indices = np.random.choice(cluster_games_idx, n_samples, replace=False)
+
+            for idx in sampled_indices:
+                if idx < len(data.games):
+                    game = data.games[idx]
+                    top_games.append({
+                        'app_id': game.app_id,
+                        'name': game.name,
+                        'features_summary': {k: v for k, v in list(game.features.items())[:3]}
+                    })
+
+        description = None
+        if feature_stats:
+            if cluster_centers is not None and cluster_id < len(cluster_centers):
+                centroid_values = cluster_centers[cluster_id]
+                top_feature_indices = np.argsort(np.abs(centroid_values))[-3:][::-1]
+
+                key_features = []
+                for idx in top_feature_indices:
+                    if idx < len(data.feature_names):
+                        feature_name = data.feature_names[idx]
+                        if feature_name in feature_stats:
+                            mean_val = feature_stats[feature_name]['mean']
+                            key_features.append(f"{feature_name}: {mean_val:.2f}")
+                if key_features:
+                    description = f"Ключевые признаки: {', '.join(key_features)}"
+
+        clusters_info.append(ClusterInfo(
+            cluster_id=int(cluster_id),
+            size=int(np.sum(mask)),
+            centroid=centroid,
+            feature_stats=feature_stats,
+            top_games=top_games,
+            description=description
+        ))
+
+    fig = plt.figure(figsize=figsize)
+    gs = fig.add_gridspec(2, 2, height_ratios=[2, 1], hspace=0.3, wspace=0.3)
+
+    ax1 = fig.add_subplot(gs[0, :])
+
+    colors = plt.cm.tab10(np.linspace(0, 1, n_clusters_actual))
+
+    for i, cluster_id in enumerate(unique_clusters):
+        mask = cluster_labels == cluster_id
+        ax1.scatter(X_reduced[mask, 0], X_reduced[mask, 1],
+                    s=point_size,
+                    c=[colors[i]],
+                    alpha=alpha,
+                    edgecolors='black',
+                    linewidth=0.5,
+                    label=f'Кластер {cluster_id}')
+
+    ax1.set_title(f"{title_name}\n"
+                  f"{len(data.games)} игр × {len(data.feature_names)} признаков",
+                  fontsize=14, fontweight='bold')
+    ax1.set_xlabel(f"{reduction_name} - Компонента 1{variance_info}", fontsize=12)
+    ax1.set_ylabel(f"{reduction_name} - Компонента 2", fontsize=12)
+    ax1.legend(title=f"Кластеры (всего: {n_clusters_actual})",
+               fontsize=9, loc='upper right')
+    ax1.grid(True, alpha=0.3, linestyle='--')
+
+    ax2 = fig.add_subplot(gs[1, 0])
+
+    cluster_sizes = [info.size for info in clusters_info]
+    cluster_ids = [info.cluster_id for info in clusters_info]
+
+    bars = ax2.bar(range(len(cluster_sizes)), cluster_sizes,
+                   color=colors, edgecolor='black', alpha=0.8)
+    ax2.set_title("Размеры кластеров", fontsize=13, fontweight='bold')
+    ax2.set_xlabel("Кластер", fontsize=11)
+    ax2.set_ylabel("Количество игр", fontsize=11)
+    ax2.set_xticks(range(len(cluster_sizes)))
+    ax2.set_xticklabels([f"К{cluster_id}" for cluster_id in cluster_ids])
+
+    for bar, size in zip(bars, cluster_sizes):
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width() / 2., height + 0.5,
+                 f'{size}',
+                 ha='center', va='bottom', fontsize=9, fontweight='bold')
+
+    ax2.grid(True, alpha=0.3, axis='y')
+
+    ax3 = fig.add_subplot(gs[1, 1])
+    ax3.axis('off')
+
+    if show_examples:
+        info_text = "ИНФОРМАЦИЯ О КЛАСТЕРАХ:\n\n"
+
+        for info in clusters_info[:5]:
+            info_text += f"Кластер {info.cluster_id} ({info.size} игр):\n"
+
+            if info.description:
+                info_text += f"  {info.description}\n"
+
+            if info.top_games:
+                info_text += "  Примеры игр:\n"
+                for game in info.top_games[:2]:
+                    game_name = game['name'][:25] + '...' if len(game['name']) > 25 else game['name']
+                    info_text += f"    • {game_name}\n"
+
+            info_text += "\n"
+
+        if len(clusters_info) > 5:
+            info_text += f"... и еще {len(clusters_info) - 5} кластеров\n"
+    else:
+        info_text = f"СТАТИСТИКА КЛАСТЕРИЗАЦИИ:\n\n"
+        info_text += f"Всего игр: {len(data.games)}\n"
+        info_text += f"Признаков: {len(data.feature_names)}\n"
+        info_text += f"Метод: {method.upper()}\n"
+        info_text += f"Кластеров: {n_clusters_actual}\n\n"
+
+        total_size = sum(info.size for info in clusters_info)
+        for info in clusters_info[:3]:  # Топ-3 кластера
+            percentage = info.size / total_size * 100
+            info_text += f"Кластер {info.cluster_id}: {info.size} игр ({percentage:.1f}%)\n"
+
+        if len(clusters_info) > 3:
+            info_text += f"...\n"
+
+    ax3.text(0, 1, info_text,
+             transform=ax3.transAxes,
+             verticalalignment='top',
+             fontsize=9,
+             bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+
+    fig.suptitle(f"Кластеризация игр Steam",
+                 fontsize=16, fontweight='bold', y=0.98)
+
+    plt.tight_layout()
+    plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+
+    game_assignments = {}
+    for i, game in enumerate(data.games):
+        if i < len(cluster_labels):
+            game_assignments[game.app_id] = int(cluster_labels[i])
+
+    result = ClusteringResult(
+        clusters=clusters_info,
+        game_assignments=game_assignments,
+        n_clusters=n_clusters_actual,
+        method=method,
+        reduced_2d=X_reduced.tolist(),
+        values={
+            'total_games': len(data.games),
+            'feature_count': len(data.feature_names),
+            'cluster_sizes': {info.cluster_id: info.size for info in clusters_info}
+        },
+        ticks=data.feature_names[:10] + ['...'] if len(data.feature_names) > 10 else data.feature_names
+    )
+
+    return result
+
+
+def prepare_clustering_data_from_games(
+        games: List[Dict[str, Any]],
+        feature_columns: List[str],
+        id_field: str = "app_id",
+        name_field: str = "name"
+) -> GamesClusteringData:
+    """
+    Подготавливает данные для кластеризации из списка игр.
+
+    Args:
+        games: Список словарей с данными об играх
+        feature_columns: Список признаков для кластеризации
+        id_field: Название поля с ID игры
+        name_field: Название поля с именем игры
+
+    Returns:
+        GamesClusteringData
+    """
+    print(f"Подготавливаю данные для {len(games)} игр...")
+
+    game_vectors = []
+    feature_matrix = []
+
+    for game in games:
+        app_id = game.get(id_field, 0)
+        name = game.get(name_field, f"Game_{app_id}")
+
+        features = {}
+        feature_values = []
+
+        for col in feature_columns:
+            value = game.get(col, 0)
+
+            if isinstance(value, bool):
+                value = 1 if value else 0
+            elif isinstance(value, str):
+                try:
+                    value = float(value)
+                except:
+                    value = 0
+
+            features[col] = float(value)
+            feature_values.append(float(value))
+
+        game_vector = GameFeatureVector(
+            app_id=app_id,
+            name=name,
+            features=features,
+            feature_values=feature_values,
+            feature_names=feature_columns.copy()
+        )
+
+        game_vectors.append(game_vector)
+        feature_matrix.append(feature_values)
+
+    return GamesClusteringData(
+        games=game_vectors,
+        feature_names=feature_columns,
+        feature_matrix=feature_matrix,
+        values={'total_games': len(games), 'feature_count': len(feature_columns)},
+        ticks=feature_columns
+    )
 

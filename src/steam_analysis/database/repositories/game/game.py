@@ -423,3 +423,19 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 values[season_int] = count
 
         return values, ticks
+
+
+    # GameFeatureVector
+    def get_game_feature_vector(self,
+                                session: Session):
+        pass
+
+    # TwoDHistogramData
+    def get_2d_hist_data(self,
+                        session: Session):
+        pass
+
+    def get_2d_hist_data(self,
+                        session: Session):
+        pass
+

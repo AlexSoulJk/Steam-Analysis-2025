@@ -8,8 +8,10 @@ from steam_analysis.saver_test_data import default_saver
 class Application:
     TITLES = {
         "Clustering": {
-            "ByType": "Гистограмму"
-        }
+            "ByType": "Распределение собранных данных по типам ",
+            "ByCategory": "Распределение игр по категориям",
+            "BySeason": "Количество выпущенных по сезонам игр за всё время"
+        },
     }
 
     def __init__(self, path_to_save_work: Path):
@@ -23,7 +25,7 @@ class Application:
         os.makedirs(self.path_to_save_work, exist_ok=True)
         os.makedirs(self.folder_clustering, exist_ok=True)
 
-    def generate_distribution_by_type(self):
+    def generate_distribution_by_type(self,  columns_num: int = 15):
 
         path_for_type_pic = self.folder_clustering / Path("distribution_by_types.png")
         path_for_type_json = self.folder_clustering / Path("dist_by_types.json")
@@ -37,11 +39,12 @@ class Application:
             generate_clustering_task_picture.generate_distribution_by_feature(data=data_for_response,
                                                                               title_name=self.TITLES["Clustering"][
                                                                                   "ByType"],
-                                                                              path_to_save=path_for_type_pic)
-            generate_clustering_task_picture.generate_scatter_clusters(data=data_for_response,
-                                                                              title_name=self.TITLES["Clustering"][
-                                                                                  "ByType"],
-                                                                              path_to_save=path_for_type_pic_clustering)
+                                                                              path_to_save=path_for_type_pic,
+                                                                              columns_num=columns_num)
+            # generate_clustering_task_picture.generate_scatter_clusters(data=data_for_response,
+            #                                                                   title_name=self.TITLES["Clustering"][
+            #                                                                       "ByType"],
+            #                                                                   path_to_save=path_for_type_pic_clustering)
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
 
@@ -57,9 +60,9 @@ class Application:
             from steam_analysis.analysis.utils import generate_clustering_task_picture
             generate_clustering_task_picture.generate_distribution_by_feature(data=data_for_response,
                                                                               title_name=self.TITLES["Clustering"][
-                                                                                  "ByType"],
+                                                                                  "BySeason"],
                                                                               path_to_save=path_for_type_pic,
-                                                                              columns_num=12)
+                                                                              columns_num=12, num_highlited_bins=1)
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
 
@@ -78,14 +81,19 @@ class Application:
             from steam_analysis.analysis.utils import generate_clustering_task_picture
             generate_clustering_task_picture.generate_distribution_by_feature(data=data_for_response,
                                                                               title_name=self.TITLES["Clustering"][
-                                                                                  "ByType"],
+                                                                                  "ByCategory"],
                                                                               path_to_save=path_for_type_pic,
                                                                               columns_num=columns_num)
             generate_clustering_task_picture.generate_line_plot(data=data_for_response,
                                                                               title_name=self.TITLES["Clustering"][
-                                                                                  "ByType"],
+                                                                                  "ByCategory"],
                                                                               path_to_save=path_for_type_plot,
                                                                               columns_num=columns_num)
+            generate_clustering_task_picture.generate_histogram(data=data_for_response,
+                                                                title_name=self.TITLES["Clustering"][
+                                                                    "ByCategory"],
+                                                                path_to_save=path_for_type_plot,
+                                                                bins_num=50, density=True, xlabel_val="Категории")
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
 
@@ -121,5 +129,41 @@ class Application:
                                                                                   "ByType"],
                                                                               path_to_save=path_for_type_pic,
                                                                               columns_num=columns_num)
+        else:
+            self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
+
+
+    def generate_enhanced_hist(self, bins: int = 10):
+        path_for_type_pic = self.folder_clustering / Path("distribution_by_count_categories.png")
+        path_for_type_json = self.folder_clustering / Path("dist_by_count_categories.json")
+        data_for_response = self.data_provider.get_games_by_categories_count()
+
+        default_saver.save_data(data_for_response, filepath=path_for_type_json)
+
+        if data_for_response:
+            from steam_analysis.analysis.utils import generate_clustering_task_picture
+            generate_clustering_task_picture.generate_enhanced_histogram(data=data_for_response,
+                                                                              title_name=self.TITLES["Clustering"][
+                                                                                  "By"],
+                                                                              path_to_save=path_for_type_pic,
+                                                                              )
+        else:
+            self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
+
+
+    def generate_grouped_hist(self, bins: int = 10):
+        path_for_type_pic = self.folder_clustering / Path("distribution_by_count_categories.png")
+        path_for_type_json = self.folder_clustering / Path("dist_by_count_categories.json")
+        data_for_response = self.data_provider.get_games_by_categories_count()
+
+        default_saver.save_data(data_for_response, filepath=path_for_type_json)
+
+        if data_for_response:
+            from steam_analysis.analysis.utils import generate_clustering_task_picture
+            generate_clustering_task_picture.generate_grouped_histogram(data=data_for_response,
+                                                                              title_name=self.TITLES["Clustering"][
+                                                                                  "By"],
+                                                                              path_to_save=path_for_type_pic,
+                                                                              )
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")

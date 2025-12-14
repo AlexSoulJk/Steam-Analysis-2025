@@ -7,7 +7,7 @@ from steam_analysis.database.repositories.game.type import TypeRepository
 from steam_analysis.database.repositories.game.category import CategoryRepository
 
 from steam_analysis.proccessors.schemas.games import GamesByTypes, GamesByCategories, GamesByCountCategoriesWithSubs, \
-    GamesByGenres, GamesReleaseBySeason
+    GamesByGenres, GamesReleaseBySeason, GameFeatureVector, GamesClusteringData, TwoDHistogramData, EnhancedHistogramData
 
 
 class SeasonMode(str, Enum):
@@ -30,8 +30,6 @@ LABELS = {
     }
 
 class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С БАЗОЙ И СОБРАЛ ДАННЫЕ ДЛЯ КЛАСТЕРИЗАЦИИ И ОТДАЛ В ПРОВАЙДЕР (ФАСАД)
-
-
 
     def __init__(self):
         self.game_repo = GameRepository()
@@ -88,3 +86,18 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
             values = {LABELS[code][int(value[0])]: value[1] for value in values.items()}
             ticks = list(map(lambda tick: LABELS[code][int(tick)], ticks))
         return GamesReleaseBySeason(values=values, ticks=ticks)
+
+
+    # дальше по кластерзации
+
+    def get_game_clustering_data(self) -> Optional[GamesClusteringData]:
+        with get_db() as session:
+            vals = self.game_repo.get_game_feature_vector(session=session) # в цикле затолкать в GamesClusteringData
+        pass
+
+
+    def get_2d_hist_data(self) -> Optional[TwoDHistogramData]:
+        with get_db() as session:
+            vals = self.game_repo.get_2d_hist_data(session=session) # в цикле затолкать в GamesClusteringData
+        pass
+

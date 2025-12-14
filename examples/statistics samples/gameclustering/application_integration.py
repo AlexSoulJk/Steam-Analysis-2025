@@ -4,12 +4,12 @@ from steam_analysis.config import examples_statistics_images_path
 
 def main():
     app = Application(path_to_save_work=examples_statistics_images_path)
-    app.generate_distribution_by_type()
+    app.generate_distribution_by_type(15)
 
 
 def categories():
     app = Application(path_to_save_work=examples_statistics_images_path)
-    app.generate_distribution_by_category(20)
+    app.generate_distribution_by_category(25)
 
 
 def categories_count():
@@ -19,10 +19,11 @@ def categories_count():
 
 def release_by_season():
     app = Application(path_to_save_work=examples_statistics_images_path)
-    app.generate_distribution_for_release_by_season("quarter")
+    app.generate_distribution_for_release_by_season("monthly")
 
 
 if __name__ == "__main__":
-    # categories()
+    main()
+    categories()
     # categories_count()
     release_by_season()
