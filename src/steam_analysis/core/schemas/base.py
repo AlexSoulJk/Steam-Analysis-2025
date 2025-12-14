@@ -28,6 +28,7 @@ class SteamEntityMixin(BaseSchema):
         alias_generator=None
     )
 
+
 class StatsMixin(BaseSchema):
     """Миксин для Stats&Achiev"""
     name: str = Field(..., description="Название статистики", alias="name")
@@ -37,15 +38,14 @@ class StatsMixin(BaseSchema):
 class AchievMixin(BaseSchema):
     """Миксин для Stats&Achiev"""
     name: str = Field(..., description="Название статистики", alias="name")
-    default_value: int = Field(..., description="Значение по умолчанию", alias="defaultvalue")
-    display_name: str = Field(..., description="Отображаемое имя", alias="displayName")
+    defaultvalue: int = Field(..., description="Значение по умолчанию", alias="defaultvalue")
+    displayName: str = Field(..., description="Отображаемое имя", alias="displayName")
     hidden: int = Field(..., description="Скрыта ли статистика", alias="hidden")
     # icon: str = Field(..., description="URL иконки", alias="icon")
     # icon_gray: str = Field(..., description="URL серой иконки", alias="icongray")
 
 class AchievPercentMixin(BaseSchema):
     """Миксин для Achiev"""
-    achievement_name: str = Field(..., description="Название достижения", alias="name")
     percent: float = Field(..., description="Процент игроков с достижением", ge=0, le=100)
 
 
@@ -53,10 +53,10 @@ class ReviewAuthorMixin(BaseSchema):
     """Схема для автора отзыва"""
     steam_id: str = Field(..., alias="steamid")
     # num_games_owned: int = Field(..., ge=0)
-    num_reviews: int = Field(..., ge=0)
+    # num_reviews: int = Field(..., ge=0)
     # playtime_forever: int = Field(..., ge=0)
     # playtime_last_two_weeks: int = Field(..., ge=0)
-    playtime_at_review: int = Field(..., ge=0)
+    # playtime_at_review: int = Field(..., ge=0)
     # last_played: int = Field(..., ge=0)
 
 class ReviewMixin(BaseSchema):

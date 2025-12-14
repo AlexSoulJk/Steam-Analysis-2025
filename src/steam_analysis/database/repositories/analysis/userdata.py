@@ -116,3 +116,6 @@ class UserAnalysisRepository(BaseAnalysisRepository[UserDataAnalysis, UserAnalys
     def get_users_by_chunk_id(self, chunk_id: int, session: Session) -> List[UserDataAnalysis]:
         """Получить пользователей по chunk_id"""
         return session.query(self.model).filter(self.model.chunk_id == chunk_id).all()
+
+    def ger_users_count(self, session: Session):
+        return session.query(self.model).count()

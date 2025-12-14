@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any, List
 
 from ..schemas.analysis.game import GameAnalysisChunkForResponse
 from ..schemas.analysis.user import UserAnalysisChunkForResponse
-from ..schemas.game.service import FillGameAnalysisChunk
+from ..schemas.game.service import FillGameAnalysisChunk, FillAddSchemaChunk
 from ...core.dependencies.basehttp import RequestsClient, RequestsWithDelayClient
 from ..repositories.player_repository import PlayerRepository
 from ..repositories.game_repository import GameRepository
@@ -15,7 +15,7 @@ class SteamAnalysisFacade:
 
     def __init__(self, api_key: str):
         # Инициализация репозиториев
-        self.player_repo = PlayerRepository(RequestsClient(), api_key)
+        self.player_repo = PlayerRepository(RequestsWithDelayClient(delay=0.5), api_key)
         self.game_repo = GameRepository(RequestsWithDelayClient(delay=0.5), api_key)
 
         # Инициализация сервисов
@@ -51,11 +51,21 @@ class SteamAnalysisFacade:
     def analyze_player(self, steam_id: str) -> Optional[Dict[str, Any]]:
         return self.player_service.analyze_gaming_preferences(steam_id)
 
-    def get_player_data_bunch(self, chunk_procession: UserAnalysisChunkForResponse):
-        return self.player_service.get_player_data_analysis(chunk_procession)
+    def get_player_data_bunch(self, chunk_procession: UserAnalysisChunkForResponse, flag: bool):
+        return self.player_service.get_player_data_analysis(chunk_procession, flag)
 
-    def get_player_time_data_bunch(self, steam_ids: list[str]):
-        return self.player_service.get_player_game_data(steam_ids)
+    def get_player_for_steam_analys_filling(self, players_id: list[str]):
+        if not players_id:
+            return None
+        tmp = list(set(players_id))
+        if len(players_id) != len(tmp): print("Ouch steam_id for players has some duplicates")
+        return self.player_service.get_player_for_steam_analys_filling(tmp)
+
+    def get_player_game_data_bunch(self, chunk_procession: UserAnalysisChunkForResponse):
+        return self.player_service.get_player_game_data_analysis(chunk_procession)
+
+    # def get_player_time_data_bunch(self, steam_ids: list[str]):
+    #     return self.player_service.get_player_game_data(steam_ids)
 
     # Game methods
     # def get_game(self, app_id: int, lang = None) -> Optional[Dict[str, Any]]:
@@ -85,8 +95,8 @@ class SteamAnalysisFacade:
     def get_game_analysis_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillGameAnalysisChunk:
         return self.game_service.get_game_analysis_list(chunk_procession)
     
-    def get_schema_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillGameAnalysisChunk:
-        return self.game_service.get_schema_list(chunk_procession)
+    def get_add_game_list(self, chunk_procession: GameAnalysisChunkForResponse) -> FillAddSchemaChunk:
+        return self.game_service.get_add_game_info(chunk_procession)
 
     def get_game_timed_data(self, app_ids: list[int]):
         return self.game_service.get_game_timed_data(app_ids)

@@ -12,8 +12,10 @@ class PlayerCountHistory(BaseModel):
 
     game_id = Column(Integer, ForeignKey('games.id', ondelete='CASCADE'), nullable=False)
     player_count = Column(Integer, nullable=False)
-    twitch_viewers = Column(Integer)  # Количество зрителей на Twitch
-    trend_24h = Column(Float)  # Изменение за 24 часа в %
+    month =  Column(String(10))
+    avg_players = Column(Float)
+    percent_gain = Column(Float)
+    gain = Column(Float)
 
     game = relationship("Game", back_populates="player_counts")
 

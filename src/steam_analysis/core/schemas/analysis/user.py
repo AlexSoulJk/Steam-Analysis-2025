@@ -12,6 +12,7 @@ class UserAnalysisBase(BaseSchema):
     name: str = Field(..., min_length=1, max_length=255)
 
 
+
 class UserAnalysisFromJson(UserAnalysisBase):
     created_at: datetime
 
@@ -46,13 +47,13 @@ class UserAnalysisCreate(UserAnalysisBase):
 class UserAnalysisResponse(BaseSchema):
     id: int = Field(..., ge=1)
     steam_id: int
-    status: str = Field(..., pattern="^(pending|in_progress|success|failed|partial|null_state)$")
+    status: str = Field(..., pattern="^(pending|in_progress|success|failed|partial|null(_[a-z_]+)?|failed(_[a-z_]+)?)$")
 
 
 class UserAnalysisUpdate(BaseSchema):
     """Обновление юзера (только изменяемые поля)"""
     id: int = Field(..., ge=1)
-    status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle|null_state)$")
+    status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle|null(_[a-z_]+)?|failed(_[a-z_]+)?)$")
     error_log: Optional[str] = None
     # processed: Optional[bool] = None
 
@@ -71,10 +72,12 @@ class UserAnalysisChunkCreate(BaseSchema):
     chunk_size: int = Field(25, ge=1, le=100)
     # user_ids: Optional[List[int]] = None
 
+
 class UserAnalysisChunkForResponse(BaseSchema):
     id: int = Field(..., ge=1)
     status: str = Field(..., pattern="^(pending|in_progress|success|failed|particle_success)$")
     users: List[UserAnalysisResponse]
+    response_time: Optional[float] = None
 
     @property
     def get_chunk_steam_ids(self) -> List[int]:

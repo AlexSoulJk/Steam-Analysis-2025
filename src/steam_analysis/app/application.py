@@ -24,6 +24,7 @@ class AppMediator:
         self.game_analysis_creator = GameAnalysisCreator()
         self.user_analysis_creator = UserAnalysisCreator()
         self.resource_manager = ResourceManager()
+        self.steam_api_key = steam_api_key
 
     # region Fill analysis-db.db
 
@@ -50,7 +51,7 @@ class AppMediator:
         # Получаем данные через Steam API
         fill_butch = self.steam_facade.get_game_analysis_list(chunk_for_create)
         # Сохранение chunk игр в JSON
-        default_saver.save_fill_game_batch(fill_butch)
+        # default_saver.save_fill_game_batch(fill_butch)
         # Load chunk from JSON
         # fill_butch = default_loader.load_fill_game_batch(filename="games_chunk_2025110306.json")
         self.database_facade.create_games(fill_butch.data_chunk)
@@ -58,40 +59,43 @@ class AppMediator:
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
     def add_schema(self, chunk_size: int = 10):
-        # Получаем последний загруженный app_id
         chunk_to_fill = self.analysis_service.get_next_part_chunk_by_service(self.processor_name)
         # Получаем данные через Steam API
-        print(f"{chunk_to_fill=}")
-        fill_butch = self.steam_facade.get_schema_list(chunk_to_fill)
-        print(f"{fill_butch=}")
-        # Сохранение chunk игр в JSON
-        default_saver.save_fill_game_batch(fill_butch)
+        # print(f"{chunk_to_fill=}")
+        fill_butch = self.steam_facade.get_add_game_list(chunk_to_fill)
+        # # print(f"{fill_butch=}")
+        # # Сохранение chunk игр в JSON
+        # default_saver.save_fill_add_info_game_batch(fill_butch)
         # Load chunk from JSON
-        # fill_butch = default_loader.load_fill_schema_batch(filename="games_chunk_2025110306.json")
-        # self.database_facade.create_schemas(fill_butch.data_chunk)
+        # fill_butch = default_loader.load_fill_schema_batch(filename="games_add_info_chunk_2025120931.json")
+        self.database_facade.add_info_games(fill_butch.data_chunk)
         # Завершаем чанк
-        # self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+        self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
     def create_user(self,
                     chunk_size: int = 25):
-
-        # Сначала протестируй что работают 2 строчки
+        db_users_count = self.analysis_service.get_users_count()
         chunk_for_create = self.analysis_service.get_next_pending_user_chunk_by_service(self.processor_name)
-        fill_user_butch = self.steam_facade.get_player_data_bunch(chunk_for_create)
+        fill_user_butch = self.steam_facade.get_player_data_bunch(chunk_for_create, db_users_count > 700_000)
 
-        # Затем что сохраняется все. По идее не должно зависеть от схемы
-        default_saver.save_fill_game_batch(fill_user_butch)
+        # default_saver.save_fill_player_butch(fill_user_butch)
         # Тут можешь коментить первые 2 строчки и вытаскивать сериализованный чанк. Только путь поменяй к json на тот что у тебя получится
-        fill_user_butch = default_loader.load_fill_user_batch(filename="players_20251020_100.json")
+        # fill_user_butch = default_loader.load_fill_user_batch(filename="players_20251201_25.json")
         # users_ids = self.database_facade.create_users(fill_butch.data_chunk)
 
         # Тут вот ща лежит вызов твоего метода
-        response = self.database_facade.create_users(fill_user_butch.data_chunk)
+        response = self.database_facade.create_players(fill_user_butch.data_chunk)
+        print(f"Получили ответ от базы {response=}")
         # # Завершаем чанк
         # Этот метод должен работать. Если нет, то обязательно пиши!
         self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
         # ЭТО НУЖНО РЕАЛИЗОВАТЬ не тебе) Так что проверь только что response c database_facade летит как надо!
-        # self.analysis_service.update_info_after_user_creation(response)
+
+        if db_users_count <= 700_000:
+            data_for_create = self.steam_facade.get_player_for_steam_analys_filling(response)
+
+            if data_for_create:
+                self.analysis_service.create_user_chunk_by_service(data_for_create, processor_name=self.processor_name)
 
     def create_time_game_butch(self):
         with open('test_data/games_30_130_20251006.json', 'r', encoding='utf-8') as f:
@@ -105,11 +109,26 @@ class AppMediator:
         default_saver.save_fill_game_timed_data(fill_butch)
         pass
 
-    def create_player_butch(self, steam_ids: List[str]):
-        fill_butch = self.steam_facade.get_player_data_bunch(steam_ids)
-        default_saver.save_fill_player_butch(fill_butch)
+    def create_user_game(self,
+                         chunk_size: int = 25):
 
-    def create_player_game_butch(self, steam_ids: List[str]):
-        fill_butch = self.steam_facade.get_player_time_data_bunch(steam_ids)
-        default_saver.save_fill_player_game_butch(fill_butch)
+        chunk_for_create = self.analysis_service.get_next_user_part_chunk_by_service(self.processor_name)
+        fill_user_butch = self.steam_facade.get_player_game_data_bunch(chunk_for_create)
+
+        # default_saver.save_fill_player_game_butch(fill_user_butch)
+        # Тут можешь коментить первые 2 строчки и вытаскивать сериализованный чанк. Только путь поменяй к json на тот что у тебя получится
+        # fill_user_butch = default_loader.load_fill_user_game_batch(filename="players_game_20251129_25.json")
+        # users_ids = self.database_facade.create_users(fill_butch.data_chunk)
+
+        # Метод возвращает список не созданных игр
+        response = self.database_facade.create_players_game_relations(fill_user_butch.data_chunk)
+        self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
+
+    # def create_player_butch(self, steam_ids: List[str]):
+    #     fill_butch = self.steam_facade.get_player_data_bunch(steam_ids)
+    #     default_saver.save_fill_player_butch(fill_butch)
+    #
+    # def create_player_game_butch(self, steam_ids: List[str]):
+    #     fill_butch = self.steam_facade.get_player_time_data_bunch(steam_ids)
+    #     default_saver.save_fill_player_game_butch(fill_butch)
     # endregion

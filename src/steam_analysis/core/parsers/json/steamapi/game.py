@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 
-from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, TypeCreate, StatsCreate, AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
+from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, \
+    TypeCreate, StatsCreate, AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate 
 from steam_analysis.core.schemas.game.game import GameCreate, GameFromHttp
 
 
@@ -34,14 +35,14 @@ class GameParser:
     def extract_platforms(raw_data: Dict[str, Any]) -> List[PlatformCreate]:
         data = raw_data.get("platforms", {})
         return list(map(lambda x: PlatformCreate(description=x[0]), filter(lambda x: x[1], data.items())))
+    
+    @staticmethod
+    def extract_stats(raw_data: List[Any]) -> List[StatsCreate]:
+        return list(map(lambda x: StatsCreate(**x), raw_data))
 
     @staticmethod
-    def extract_stats(raw_data: Dict[str, Any]) -> List[StatsCreate]:
-        return list(map(lambda x: StatsCreate(**x), raw_data.get('stats', [])))
-
-    @staticmethod
-    def extract_achievs(raw_data: Dict[str, Any]) -> List[AchievCreate]:
-        return list(map(lambda x: AchievCreate(**x), raw_data.get('achievements', [])))
+    def extract_achievs(raw_data: List[Any]) -> List[AchievCreate]:
+        return list(map(lambda x: AchievCreate(**x), raw_data))
 
     @staticmethod
     def extract_achievs_percent(raw_data: Dict[str, Any]) -> List[AchievPercentCreate]:

@@ -73,6 +73,9 @@ class AchievBase(AchievMixin):
 class AchievCreate(AchievBase):
     pass
 
+class AchievCreateDB(AchievBase):
+    game_id: int
+
 class AchievUpdate(BaseSchema):
     description: Optional[str] = None
 
@@ -81,10 +84,13 @@ class AchievResponse(AchievBase):
 
 
 class AchievPercentBase(AchievPercentMixin):
-    pass
+    achievement_name: str = Field(..., description="Название достижения", alias="name")
 
 class AchievPercentCreate(AchievPercentBase):
     pass
+
+class AchievPercentCreateDB(AchievPercentMixin):
+    achievement_id: int
 
 class AchievPercentUpdate(BaseSchema):
     description: Optional[str] = None

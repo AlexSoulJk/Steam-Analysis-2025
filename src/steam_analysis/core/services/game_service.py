@@ -1,10 +1,10 @@
 import datetime
 from typing import List, Dict, Any, Optional
-from ..repositories.game_repository import GameRepository
+from ..repositories.game_repository import GameRepository, logger
 from ..schemas import GameCreate
 from ..schemas.analysis.game import GameAnalysisChunkForResponse, GameAnalysisChunkForRequest, GameAnalysisChunkUpdate
 from ..schemas.game.service import TypeAnalysesSchema, FillGameAnalysisChunk, \
-    FillTypeSchemaChunk, FillSchemaChunk
+    FillTypeSchemaChunk, FillSchemaChunk, FillAddSchemaChunk
 from ...resourcemanager.manager import resource_manager
 from ...resourcemanager.resources.codes import ResourceCodes
 
@@ -39,32 +39,34 @@ class GameService:
         return FillGameAnalysisChunk(data_for_analysis_db=GameAnalysisChunkForRequest(chunk=chunk_request_part,
                                                                                       chunk_games=requested_games),
                                      data_chunk=list(map(lambda x: x[0], data_chunk)))
-    
-    def get_schema_list(self, chunk: GameAnalysisChunkForResponse) -> FillSchemaChunk:
-        start_time = datetime.datetime.now()
 
+    def get_add_game_info(self, chunk: GameAnalysisChunkForResponse) -> FillAddSchemaChunk:
+        logger.info(
+            f"\nℹ️ Starting processing chunk games with id = {chunk.id}")
+
+        start_time = datetime.datetime.now()
         # data_chunk = []
         # for game in chunk.games:
         #     tmp_request = self.game_repo.get_by_schema(game)
         #     data_chunk.append(tmp_request)
 
-        data_chunk = list(map(self.game_repo.get_schema, chunk.games))
+        data_chunk = list(map(self.game_repo.get_add_info, chunk.games))
 
         finished_at = datetime.datetime.now()
         response_time = finished_at - start_time
         requested_games = list(map(lambda x: x[1], data_chunk))
-        chunk_error_log = "\n".join(list(map(lambda x: x.error_log, requested_games)))
+        # chunk_error_log = "\n".join(list(map(lambda x: x.error_log, requested_games)))
 
         chunk_request_part = GameAnalysisChunkUpdate.from_response_schema(response=chunk,
-                                                                          response_time=response_time.total_seconds(),
+                                                                          response_time=chunk.response_time + response_time.total_seconds(),
                                                                           started_at=start_time,
                                                                           finished_at=finished_at,
-                                                                          error_log=chunk_error_log,
+                                                                          error_log="",
                                                                           status="success")
 
-        return FillSchemaChunk(data_for_analysis_db=GameAnalysisChunkForRequest(chunk=chunk_request_part,
-                                                                                      chunk_games=requested_games),
-                                                                    data_chunk=list(map(lambda x: x[0], data_chunk)))
+        return FillAddSchemaChunk(data_for_analysis_db=GameAnalysisChunkForRequest(chunk=chunk_request_part,
+                                                                                chunk_games=requested_games),
+                                  data_chunk=list(map(lambda x: x[0], data_chunk)))
 
     def get_game_timed_data(self, app_ids: list[int]) -> FillTypeSchemaChunk:
         start_time = datetime.datetime.now()
@@ -77,7 +79,7 @@ class GameService:
             # global_stats = self.game_repo.get_global_stats(app_id, ..)
             number_of_players = self.game_repo.get_number_of_players(app_id)
             reviews = self.game_repo.get_reviews(app_id, limit=50)
-            if news != None or achiev_persentage != None or number_of_players != None or reviews != None:
+            if news is not None or achiev_persentage is not None or number_of_players is not None or reviews is not None:
                 success_count += 1
 
             data = TypeAnalysesSchema(

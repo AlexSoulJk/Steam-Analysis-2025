@@ -130,3 +130,6 @@ class UserPreparer:
                                               session=session, no_commit=True)
         session.commit()
         pass
+
+    def get_users_count(self, session):
+        return self.user_model_repo.ger_users_count(session=session)

@@ -6,6 +6,7 @@ from steam_analysis.core.schemas.base import BaseSchema
 from steam_analysis.core.schemas.game.dictionaries import GenreCreate, CategoryCreate, PlatformCreate, StatsCreate, \
     AchievCreate, AchievPercentCreate, ReviewCreate, NewCreate
 from steam_analysis.core.schemas.game.game import GameCreate, GameFromHttp
+from steam_analysis.core.schemas.game.ratings import RatingHttp
 
 class GameCreateReportInfo(BaseSchema):
     start_app_id: int
@@ -18,7 +19,7 @@ class UserDataAnalysisCreate(BaseSchema):
     genres: List[GenreCreate]
     categories: List[CategoryCreate]
     platforms: List[PlatformCreate]
-      
+  
 
 class SchemaCreate(BaseSchema):
     game_id: int
@@ -61,6 +62,27 @@ class TypeAnalysesSchema(BaseSchema):
     reviews: Optional[ReviewsDataAnalysisCreate]
 
 
+class Price(BaseSchema):
+    game_id: int
+    currency: str
+    initial: int
+    final: int
+    discount_percent: int
+
+
+class AddDetails(BaseSchema):
+    game_id: int
+    developers: List[str]
+    publishers: List[str]
+    price_overview: Optional[Price]
+    ratings: List[RatingHttp]
+
+
+class AddInfo(BaseSchema):
+    add_details: Optional[AddDetails]
+    schema_data: Optional[SchemaCreate]
+    achiev_persentage: Optional[AchievDataAnalysisCreate]
+    review_info: Optional[ReviewsDataAnalysisCreate]
 
 
 # region FillChunk schemas
@@ -77,6 +99,16 @@ class FillGameAnalysisChunk(BaseSchema):
 class FillSchemaChunk(BaseSchema):
     data_for_analysis_db: GameAnalysisChunkForRequest
     data_chunk: List[Optional[SchemaCreate]]
+
+    def get_report_into(self) -> GameCreateReportInfo:
+        return GameCreateReportInfo(start_app_id=self.start_app_id,
+                                    end_app_id=self.end_app_id,
+                                    response_time=self.response_time)
+
+
+class FillAddSchemaChunk(BaseSchema):
+    data_for_analysis_db: GameAnalysisChunkForRequest
+    data_chunk: List[Optional[AddInfo]]
 
     def get_report_into(self) -> GameCreateReportInfo:
         return GameCreateReportInfo(start_app_id=self.start_app_id,

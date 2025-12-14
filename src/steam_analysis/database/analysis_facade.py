@@ -117,11 +117,19 @@ class AnalysisDbFacade:
                 session=session)
 
             # Создаем схему только с нужными полями
-            return GameAnalysisChunkForResponse(
-                id=updated_chunk.id,
-                status=updated_chunk.status,
-                games=updated_chunk.in_progress_games
-            )
+            return GameAnalysisChunkForResponse(id=updated_chunk.id,
+                                                status=updated_chunk.status,
+                                                games=updated_chunk.in_progress_games,
+                                                response_time=updated_chunk.response_time)
+
+    def get_next_user_part_chunk_by_service(self, processor_name: str) -> Optional[UserAnalysisChunkForResponse]:
+        """Получаем следующий чанк для обработки"""
+        with get_analysis_db() as session:
+            updated_chunk = self.provider_user_service.get_next_part_chunk_by_processor_name(
+                processor_name=processor_name,
+                session=session)
+
+            return UserAnalysisChunkForResponse.from_orm(updated_chunk)
 
     # region Next Partial Success
 
@@ -146,3 +154,7 @@ class AnalysisDbFacade:
             if user:
                 steam_id = user.steam_id
         return steam_id
+
+    def get_users_count(self):
+        with get_analysis_db() as session:
+            return self.data_user_preparer.get_users_count(session=session)
