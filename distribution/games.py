@@ -17,7 +17,7 @@ def create_games_for_strategy(api_key: str, processor_name: str):
     path_strategy = pm.path_to_stategy
     # json
     app = get_app_mediator(api_key, processor_name)
-
+    # если существует
     pass
 
 
@@ -31,15 +31,15 @@ def games_update_strategy(api_key, processor_name):
 def games_create_games_json(api_key, processor_name):
     # нужна валидация api_key
     app = get_app_mediator(api_key, processor_name)
-    saver = SaveTestData(pm.folder_to_games)
+    saver = SaveTestData(pm.path_to_data / pm.folder_to_games)
     app.add_game_to_json(saver=saver)
 
 
 def games_create_fill_database():
     app = AppMediator()
-    path_save_data = pm.path_to_data
-    folder_games = pm.path_to_games
-    default_loader = LoaderTestData(dir_to_load=path_save_data)
+    path_load_data = pm.path_to_load
+    folder_games = pm.folder_to_games
+    default_loader = LoaderTestData(dir_to_load=path_load_data)
     app.loads_games_from_jsons(loader=default_loader, folder=folder_games)
 
 
@@ -66,13 +66,13 @@ def create_peaks_fill_database():
 def games_create_add_info_json(api_key, processor_name):
     # нужна валидация api_key
     app = get_app_mediator(api_key, processor_name)
-    saver = SaveTestData(pm.folder_to_games_add_info)
+    saver = SaveTestData(pm.path_to_data / pm.folder_to_games_add_info)
     app.add_schema_to_json(saver=saver)
 
 
 def games_create_add_info_fill_database():
     app = AppMediator()
-    path_save_data = pm.path_to_data
+    path_save_data = pm.path_to_load
     folder_games_add_info = pm.path_to_save_add_info
     default_loader = LoaderTestData(dir_to_load=path_save_data)
     app.loads_add_data_game_from_jsons(loader=default_loader, folder=folder_games_add_info)

@@ -54,19 +54,19 @@ PM_DIRECT_MAP = {
     "update_strategy": {"path_to_data": pm.path_to_strategy},
 
     "collect_data": {
-        "path_to_save": pm.path_to_save,
+        "path_to_save": pm.path_to_data,
     },
     "collect_data_peeks": {
-        "path_to_save": pm.path_to_save,
+        "path_to_save": pm.path_to_peak_pages,
     },
 
     "fill_analys_db": {"path_to_load":
-                           pm.path_to_load},
+                           pm.path_to_data},
 
     "fill_analys_db_peeks": {"path_to_load":
-                           pm.path_to_load},
+                                 pm.path_to_peak_pages},
 
-    "calculate": {"path_to_save": pm.path_to_save},
+    "calculate": {"path_to_save": pm.path_to_data},
     "google_load": {
         "credentials_path": pm.credentials_path
     },
