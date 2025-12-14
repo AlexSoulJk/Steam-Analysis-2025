@@ -9,10 +9,11 @@ def main():
     api_key = load_api_key()
 
     app = AppMediator(steam_api_key=api_key,
-                      processor_name="AlexSoulJK")
+                      processor_name="Lo-Lap")
     # sleep(180)
-    for i in range(1, 1700):
-        app.create_user()
+    for i in range(10):
+        # app.create_user()
+        app.add_user_to_json(filename="users")
 
     # app.create_user_game()
 

@@ -16,8 +16,10 @@ from collect_app_id import SteamAppIdCollector
 
 
 class SteamChartsPipeline:
-    def __init__(self, games = {}):
+    def __init__(self, games=None):
         super().__init__()
+        if games is None:
+            games = {}
         if not games:
             self.read_games = self.read_batch_file(filename="games.json")
         else:

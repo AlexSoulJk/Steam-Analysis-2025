@@ -31,11 +31,17 @@ class PlayerRelationsCreationService:
         friends_prep = {}
         no_created_friends_prep = {}
         no_created_friends = []
+        friends_steam_ids = []
+        for x in data_without_none:
+            friends_steam_ids.extend(x.friends)
+        existing_users = self.player_repos.get_existing_by_steam_ids(friends_steam_ids, session)
+
         for x in data_without_none:
             friends_prep[x.player.steam_id] = []
             no_created_friends_prep[x.player.steam_id] = []
             for friend_name in x.friends:
-                friend = self.player_repos.get_by_steam_id(friend_name, session)
+                # friend = self.player_repos.get_by_steam_id(friend_name, session)
+                friend = existing_users.get(friend_name, None)
                 if friend:
                     friends_prep[x.player.steam_id].append(friend)
                 else:

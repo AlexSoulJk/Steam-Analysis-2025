@@ -1,17 +1,17 @@
 from typing import Dict, Any
 
-from ..calculation import calculate_for_task
-from ..games import collect_create_peaks, create_peaks_fill_database, create_games_for_strategy, \
+from distribution.calculation import calculate_for_task
+from distribution.games import collect_create_peaks, create_peaks_fill_database, create_games_for_strategy, \
     games_update_strategy, games_create_add_info_json, games_create_games_json, games_create_fill_database, \
     games_create_add_info_fill_database
-from ..user import user_create_strategy, user_update_strategy, \
+from distribution.user import user_create_strategy, user_update_strategy, \
     user_create_to_json, user_games_create_to_json, \
     user_create_fill_database, user_create_games_fill_database
-from ..google_load import google_load
-from ..utils.command_schemas import BaseConfigCommandSchema, VisualizeConfig, \
+from distribution.google_load import google_load
+from distribution.utils.command_schemas import BaseConfigCommandSchema, VisualizeConfig, \
     GoogleLoadConfig, CalculateConfig
-from ..pathmanager import pm
-from ..visualization import visualization_handler
+from distribution.pathmanager import pm
+from distribution.visualization import visualization_handler
 
 ROUTE_MAP: Dict[str, Any] = {
     "create_strategy": {
