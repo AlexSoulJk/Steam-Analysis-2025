@@ -142,6 +142,40 @@ class LoaderTestData:
             print(f"❌ Ошибка загрузки: {e}")
             return []
 
+    def load_users_batchs(self, filename) -> List[Optional[FillPlayerAnalysisChunk]]:
+        all_chunks_from_file = []
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            for k in data.keys():
+                data_game = data[k]
+                model = FillPlayerAnalysisChunk.model_validate(data_game)
+                all_chunks_from_file.append(model)
+
+            return all_chunks_from_file
+
+        except Exception as e:
+            print(f"❌ Ошибка загрузки: {e}")
+            return []
+
+    def load_users_games_batchs(self, filename) -> List[Optional[FillPlayerGameSchemaChunk]]:
+        all_chunks_from_file = []
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            for k in data.keys():
+                data_game = data[k]
+                model = FillPlayerGameSchemaChunk.model_validate(data_game)
+                all_chunks_from_file.append(model)
+
+            return all_chunks_from_file
+
+        except Exception as e:
+            print(f"❌ Ошибка загрузки: {e}")
+            return []
+
 
 default_loader = LoaderTestData(dir_to_load=test_data_path)
 

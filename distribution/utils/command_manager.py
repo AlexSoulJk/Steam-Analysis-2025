@@ -1,40 +1,43 @@
 from typing import Dict, Any
 
-from distribution.calculation import calculate_for_task
-from distribution.games import create_peaks, create_peaks_fill_database, create_games_for_strategy, \
+from ..calculation import calculate_for_task
+from ..games import collect_create_peaks, create_peaks_fill_database, create_games_for_strategy, \
     games_update_strategy, games_create_add_info_json, games_create_games_json, games_create_fill_database, \
     games_create_add_info_fill_database
-from distribution.google_load import google_load
-from distribution.utils.command_schemas import BaseConfigCommandSchema, VisualizeConfig, \
+from ..user import user_create_strategy, user_update_strategy, \
+    user_create_to_json, user_games_create_to_json, \
+    user_create_fill_database, user_create_games_fill_database
+from ..google_load import google_load
+from ..utils.command_schemas import BaseConfigCommandSchema, VisualizeConfig, \
     GoogleLoadConfig, CalculateConfig
-from distribution.pathmanager import pm
-from distribution.visualization import visualization_handler
+from ..pathmanager import pm
+from ..visualization import visualization_handler
 
 ROUTE_MAP: Dict[str, Any] = {
     "create_strategy": {
-        "Player": create_strategy_player,
+        "Player": user_create_strategy,
         "Game": create_games_for_strategy
     },
     "update_strategy": {
-        "Player": update_strategy_player,
+        "Player": user_update_strategy,
         "Game": games_update_strategy
     },
     "collect_data": {
         "Player": {
-            0: collect_data_player_stage0,
-            1: collect_data_player_stage1
+            0: user_create_to_json,
+            1: user_games_create_to_json
         },
         "Game": {
             0: games_create_games_json,
             1: games_create_add_info_json
         }
     },
-    "fill_analys_db_peeks": create_peaks,
-    "collect_data_peeks": create_peaks_fill_database,
+    "fill_analys_db_peeks": create_peaks_fill_database,
+    "collect_data_peeks": collect_create_peaks,
     "fill_analys_db": {
         "Player": {
-            0: fill_analys_db_player_stage0,
-            1: fill_analys_db_player_stage1
+            0: user_create_fill_database,
+            1: user_create_games_fill_database
         },
         "Game": {
             0: games_create_fill_database,

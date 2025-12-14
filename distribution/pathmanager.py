@@ -75,7 +75,7 @@ class PathManager:
 
     @property
     def file_peak_app_ids(self):
-        self.check_exist_folder(self._file_peak_app_ids)
+        self.check_exist_file(self._file_peak_app_ids)
         return self._file_peak_app_ids
 
     # @property
@@ -84,7 +84,38 @@ class PathManager:
     #     return self._file_peak_batches_app_ids
 
     def check_exist_folder(self, path: Path):
-        pass
+        try:
+            if isinstance(path, str):
+                path = Path(path)
+
+            if path.exists():
+                if path.is_dir():
+                    return True
+                else:
+                    raise Exception(f"Ошибка: {path.absolute()} существует, но это не папка")
+
+            path.mkdir(parents=True, exist_ok=True)
+            print(f"Папка успешно создана: {path.absolute()}")
+            return True
+
+        except PermissionError:
+            raise Exception(f"Ошибка: Нет прав на создание папки {path}")
+
+        except Exception as e:
+            raise Exception(f"Ошибка при создании папки {path}: {e}")
+
+    def check_exist_file(self, path: Path):
+        if isinstance(path, str):
+            path = Path(path)
+
+        if not path.exists():
+            raise Exception(f"Файл не найден: {path}")
+
+        if not path.is_file():
+            raise Exception(f"Путь существует, но это не файл: {path}")
+
+        print(f"✓ Файл найден: {path}")
+        return True
 
 
 pm = PathManager()

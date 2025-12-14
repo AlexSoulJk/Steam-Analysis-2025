@@ -49,7 +49,7 @@ def get_app_ids():
     collector_app_ids.print_stats()
 
 
-def create_peaks():
+def collect_create_peaks():
     app_ids = SteamAppIdCollector.read_app_ids_from_json(pm.file_peak_app_ids)
     games = SteamChartsPipeline.save_games_in_batches(all_games=app_ids,
                                                       base_filename=DEFAULT_FILE_BATCHES_APP_IDS)

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import ValidationError, BaseModel
 
-from distribution.utils.command_schemas import CreateStrategyConfig, UpdateStrategyConfig, \
+from ..utils.command_schemas import CreateStrategyConfig, UpdateStrategyConfig, \
     CollectDataConfig, FillAnalysDBConfig, CalculateConfig, GoogleLoadConfig, VisualizeConfig, BaseConfigCommandSchema, \
     FillAnalysDBPeeksConfig, CollectDataPeeksConfig
 from steam_analysis.core.parsers import json

@@ -220,6 +220,30 @@ class AppMediator:
                 # Завершаем чанк
                 self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
+    def loads_users_from_jsons(self, loader=default_loader, folder="users"):
+        json_files = loader.read_jsons(folder)
+        for json_file in json_files:
+            print(f"\nОбработка файла: {json_file}....")
+            users_batchs = loader.load_users_batchs(json_file)
+            if not users_batchs:
+                continue
+            print(f"Загружены бачи: {len(users_batchs)}....")
+            for fill_butch in users_batchs:
+                self.database_facade.create_players(fill_butch.data_chunk)
+                self.analysis_service.mark_user_chunk_complete(fill_butch.data_for_analysis_db)
+
+    def loads_users_games_from_jsons(self, loader=default_loader, folder="users_games"):
+        json_files = loader.read_jsons(folder)
+        for json_file in json_files:
+            print(f"\nОбработка файла: {json_file}....")
+            users_batchs = loader.load_users_games_batchs(json_file)
+            if not users_batchs:
+                continue
+            print(f"Загружены бачи: {len(users_batchs)}....")
+            for fill_butch in users_batchs:
+                self.database_facade.create_players_game_relations(fill_butch.data_chunk)
+                self.analysis_service.mark_user_chunk_complete(fill_butch.data_for_analysis_db)
+
     # def create_player_butch(self, steam_ids: List[str]):
     #     fill_butch = self.steam_facade.get_player_data_bunch(steam_ids)
     #     default_saver.save_fill_player_butch(fill_butch)
