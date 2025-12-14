@@ -30,7 +30,12 @@ DEFAULT_PATH_TO_GEO_SAVE_GAMES = "geo_games"
 
 class PathManager:
     def __init__(self):
-        self.path_to_stategy: Path = DEFAULT_PATH_TO_STRATEGY
+        self._path_to_strategy_game: Path = DEFAULT_PATH_TO_STRATEGY / "strategy_games.json"
+        self._path_to_strategy_user: Path = DEFAULT_PATH_TO_STRATEGY / "strategy_users.json"
+
+        self._path_to_strategy_update_game: Path = DEFAULT_PATH_TO_STRATEGY / "strategy_update_games.json"
+        self._path_to_strategy_update_user: Path = DEFAULT_PATH_TO_STRATEGY / "strategy_update_users.json"
+
         self._path_to_data: Path = DEFAULT_PATH_TO_DATA_JSONS
 
         self._folder_to_games: Path = DEFAULT_FOLDER_GAMES
@@ -46,6 +51,26 @@ class PathManager:
         self._file_geo_games: Path = DEFAULT_PATH_TO_TASKS_DATA_JSON / DEFAULT_FOLDER_GEO_TASKS / f"{DEFAULT_FILENAME_GAMES}.json"
         self._path_to_google_token = None
         # self._file_peak_batches_app_ids: Path = DEFAULT_FILE_BATCHES_APP_IDS
+
+    @property
+    def path_to_strategy_game(self):
+        self.check_exist_file(self._path_to_strategy_game)
+        return self._path_to_data
+
+    @property
+    def path_to_strategy_user(self):
+        self.check_exist_file(self._path_to_strategy_user)
+        return self._path_to_strategy_user
+
+    @property
+    def path_to_strategy_update_game(self):
+        self.check_exist_file(self._path_to_strategy_update_game)
+        return self._path_to_strategy_update_game
+
+    @property
+    def path_to_strategy_update_user(self):
+        self.check_exist_file(self._path_to_strategy_update_user)
+        return self._path_to_strategy_update_user
 
     @property
     def path_to_data(self):

@@ -1,5 +1,7 @@
 from pathlib import Path
+import json
 from deps import validation, validate_json_strategy, get_app_mediator
+from pydantic import ValidationError
 from pathmanager import pm
 from pathmanager import DEFAULT_FILE_APP_IDS, DEFAULT_FILE_BATCHES_APP_IDS
 from steam_analysis.app.application import AppMediator
@@ -8,24 +10,43 @@ from steam_analysis.saver_test_data import SaveTestData
 from steam_analysis.steamcharts.collect_app_id import SteamAppIdCollector
 from steam_analysis.steamcharts.steamcharts import SteamChartsPipeline
 from steam_analysis.steamcharts.steamcharts_repository import SteamChartsRepository
+from steam_analysis.core.schemas.game.game import GameListFromJson
 
 
-@validation(hendlers=[validate_json_strategy, ])
 def create_games_for_strategy(api_key: str, processor_name: str):
-    # нужна валидация api_key
-    # TODO: сделать заполнение служебной БД pending
-    path_strategy = pm.path_to_stategy
-    # json
-    app = get_app_mediator(api_key, processor_name)
-    # если существует
-    pass
+    path_strategy_json = pm.path_to_strategy_game
+
+    with open(path_strategy_json, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+
+    try:
+        games_data = GameListFromJson.model_validate_json(data)
+
+        app = get_app_mediator(api_key, processor_name)
+        app.fill_analysis_game_from_json(games_data)
+
+    except ValidationError as e:
+        print(f"❌ Ошибки валидации:")
+        for error in e.errors():
+            print(f"  Поле: {error['loc']}, Ошибка: {error['msg']}")
 
 
 def games_update_strategy(api_key, processor_name):
-    # нужна валидация api_key
-    # TODO: сделать заполнение служебной БД particle??
-    app = get_app_mediator(api_key, processor_name)
-    pass
+    path_strategy_json = pm.path_to_strategy_update_game
+
+    with open(path_strategy_json, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+
+    try:
+        games_data = GameListFromJson.model_validate_json(data)
+
+        app = get_app_mediator(api_key, processor_name)
+        app.update_analysis_game_from_json(games_data)
+
+    except ValidationError as e:
+        print(f"❌ Ошибки валидации:")
+        for error in e.errors():
+            print(f"  Поле: {error['loc']}, Ошибка: {error['msg']}")
 
 
 def games_create_games_json(api_key, processor_name):

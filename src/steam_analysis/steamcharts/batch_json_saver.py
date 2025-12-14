@@ -74,10 +74,11 @@ class BatchJsonSaver:
     def _create_new_filename(self) -> str:
         """Создает имя для нового файла"""
         base_name = os.path.splitext(self.batch_file)[0]
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         count = 1
 
         while True:
-            new_name = f"{base_name}_{count}.json"
+            new_name = f"{base_name}_{timestamp}_{count}.json"
             if not os.path.exists(new_name):
                 return new_name
             count += 1
