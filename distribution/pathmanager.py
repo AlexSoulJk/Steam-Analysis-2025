@@ -7,10 +7,10 @@ DEFAULT_PATH_TO_PEAK = Path("/peaks")
 DEFAULT_PATH_TO_PEAK_DATA_JSONS = DEFAULT_PATH_TO_PEAK / Path("peak_pages")
 
 # folder name
-DEFAULT_FOLDER_GAMES = "games"
-DEFAULT_FOLDER_ADD_INFO_GAMES = "add_info_games"
-DEFAULT_FOLDR_USERS = "users"
-DEFAULT_FOLDER_USERS_GAMES = "users_games"
+DEFAULT_FOLDER_GAMES = DEFAULT_PATH_TO_DATA_JSONS / Path("games")
+DEFAULT_FOLDER_ADD_INFO_GAMES = DEFAULT_PATH_TO_DATA_JSONS / Path("add_info_games")
+DEFAULT_FOLDR_USERS = DEFAULT_PATH_TO_DATA_JSONS / Path("users")
+DEFAULT_FOLDER_USERS_GAMES = DEFAULT_PATH_TO_DATA_JSONS / Path("users_games")
 
 # file for saving and reading
 DEFAULT_FILE_APP_IDS = DEFAULT_PATH_TO_PEAK / "steam_app_ids.json"
@@ -28,10 +28,10 @@ class PathManager:
         self.path_to_stategy: Path = DEFAULT_PATH_TO_STRATEGY
         self._path_to_data: Path = DEFAULT_PATH_TO_DATA_JSONS
 
-        self._folder_to_games: str = DEFAULT_FOLDER_GAMES
-        self._folder_to_games_add_info: str = DEFAULT_FOLDER_ADD_INFO_GAMES
-        self._folder_to_users: str = DEFAULT_FOLDR_USERS
-        self._folder_to_users_games: str = DEFAULT_FOLDER_USERS_GAMES
+        self._folder_to_games: Path = DEFAULT_FOLDER_GAMES
+        self._folder_to_games_add_info: Path = DEFAULT_FOLDER_ADD_INFO_GAMES
+        self._folder_to_users: Path = DEFAULT_FOLDR_USERS
+        self._folder_to_users_games: Path = DEFAULT_FOLDER_USERS_GAMES
 
         self._path_to_peak_pages: Path = DEFAULT_PATH_TO_PEAK_DATA_JSONS
         self._path_to_peak_folder: Path = DEFAULT_PATH_TO_PEAK
@@ -45,22 +45,22 @@ class PathManager:
 
     @property
     def folder_to_games(self):
-        # self.check_exist_folder(self._folder_to_games)
+        self.check_exist_folder(self._folder_to_games)
         return self._folder_to_games
 
     @property
-    def folder_to_save_add_info(self):
-        # self.check_exist_folder(self._folder_to_games_add_info)
+    def folder_to_games_add_info(self):
+        self.check_exist_folder(self._folder_to_games_add_info)
         return self._folder_to_games_add_info
 
     @property
     def folder_to_users(self):
-        # self.check_exist_folder(self._folder_to_users)
+        self.check_exist_folder(self._folder_to_users)
         return self._folder_to_users
 
     @property
     def folder_to_users_games(self):
-        # self.check_exist_folder(self._folder_to_users_games)
+        self.check_exist_folder(self._folder_to_users_games)
         return self._folder_to_users
 
     @property

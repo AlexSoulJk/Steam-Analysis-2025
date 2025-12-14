@@ -5,6 +5,7 @@ from pathmanager import DEFAULT_FILE_APP_IDS, DEFAULT_FILE_BATCHES_APP_IDS
 from utils.diconteiner import conteiner
 from steam_analysis.app.application import AppMediator
 from steam_analysis.loader_test_data import LoaderTestData
+from steam_analysis.saver_test_data import SaveTestData
 from steam_analysis.steamcharts.collect_app_id import SteamAppIdCollector
 from steam_analysis.steamcharts.steamcharts import SteamChartsPipeline
 from steam_analysis.steamcharts.steamcharts_repository import SteamChartsRepository
@@ -31,7 +32,8 @@ def games_update_strategy(api_key, processor_name):
 def games_create_games_json(api_key, processor_name):
     # нужна валидация api_key
     app = get_app_mediator(api_key, processor_name)
-    app.add_game_to_json()
+    saver = SaveTestData(pm.folder_to_games)
+    app.add_game_to_json(saver=saver)
 
 
 def games_create_fill_database():
@@ -65,7 +67,8 @@ def create_peaks_fill_database():
 def games_create_add_info_json(api_key, processor_name):
     # нужна валидация api_key
     app = get_app_mediator(api_key, processor_name)
-    app.add_schema_to_json()
+    saver = SaveTestData(pm.folder_to_games_add_info)
+    app.add_schema_to_json(saver=saver)
 
 
 def games_create_add_info_fill_database():

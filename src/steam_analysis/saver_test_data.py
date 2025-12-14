@@ -2,7 +2,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from steam_analysis.config import test_data_path, test_data_add_game_path, test_game_path
+from steam_analysis.config import test_data_path, test_data_add_game_path, test_game_path, \
+    test_data_add_user, test_add_user_games
 from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillTypeSchemaChunk, FillAddSchemaChunk
 from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, FillPlayerGameSchemaChunk
@@ -225,3 +226,5 @@ class SaveTestData:
 default_saver = SaveTestData(test_data_path)
 save_add_info_games = SaveTestData(test_data_add_game_path)
 save_games = SaveTestData(test_game_path)
+save_user = SaveTestData(test_data_add_user)
+save_user_games = SaveTestData(test_add_user_games)
