@@ -5,6 +5,7 @@ from steam_analysis.core.client.steamclient import SteamAnalysisFacade
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk
 from steam_analysis.core.services.game_analysis_creator import GameAnalysisCreator
 from steam_analysis.core.services.user_analysis_creator import UserAnalysisCreator
+from steam_analysis.core.schemas import GameShortInfo, PlayerShortInfo
 from steam_analysis.database.analysis_facade import AnalysisDbFacade
 from steam_analysis.database.facade import DbFacade
 from steam_analysis.loader_test_data import default_loader
@@ -13,6 +14,8 @@ from steam_analysis.resourcemanager.resources.codes import ResourceCodes
 from steam_analysis.saver_test_data import default_saver, save_add_info_games, save_games, \
     save_user, save_user_games
 from distribution.pathmanager import DEFAULT_FILENAME_GAMES, DEFAULT_FILENAME_ADD_INFO_GAMES
+
+from steam_analysis.core.services.fastlogger import setup_logger
 
 
 class AppMediator:
@@ -34,8 +37,29 @@ class AppMediator:
         last_game_app_id = self.analysis_service.get_last_upploaded_game()
         start_app_id = self.steam_facade.get_first_app_id() if last_game_app_id is None else last_game_app_id
         data_for_create = self.game_analysis_creator.get_game_analysis_data_for_create_from_resource(start_app_id)
-        default_saver.save_fill_game_analysis_butch_chunck(data_for_create)
+        # default_saver.save_fill_game_analysis_butch_chunck(data_for_create)
         self.analysis_service.create_chunk_by_service(*data_for_create)
+
+    def fill_analysis_game_from_json(self,
+                                     game_data: List[GameShortInfo]):
+        exist_games = self.analysis_service.get_exist_games(game_data)
+        exist_games_ids = [game.app_id for game in exist_games]
+        create_data = []
+        logger = setup_logger("games_strategy")
+        for game in game_data:
+            if game.app_id in exist_games:
+                logger.warning(f"Игра с app_id = {game.app_id} уже существует!")
+            else:
+                create_data.append(game)
+
+        data_for_create = self.game_analysis_creator.\
+            get_game_analysis_data_from_json(create_data, self.processor_name)
+
+        self.analysis_service.create_chunk_by_service(*data_for_create)
+
+    def update_analysis_game_from_json(self,
+                                       game_data: List[GameShortInfo]):
+        self.analysis_service.update_chunk_by_service(game_data)
 
     def fill_analysis_user(self):
         last_steam_id = self.analysis_service.get_last_upploaded_user()
@@ -45,6 +69,12 @@ class AppMediator:
             user_resource=self.resource_manager.get_resource(ResourceCodes.USER_LIST))
         self.analysis_service.create_user_chunk_by_service(data_for_create, processor_name=self.processor_name)
 
+    def fill_analysis_user_from_json(self, users: List[PlayerShortInfo]):
+        data_create = self.user_analysis_creator.get_user_analysis_data_from_json(users)
+        self.analysis_service.create_user_chunk_by_service(data_create, processor_name=self.processor_name)
+
+    def update_analysis_user_from_json(self, users: List[PlayerShortInfo]):
+        self.analysis_service.update_user_chunk_by_service(users)
     # endregion
 
     # region Fill steam-analysis.db

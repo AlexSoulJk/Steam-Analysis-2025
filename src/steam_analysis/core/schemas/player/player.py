@@ -21,6 +21,10 @@ class PlayerShortInfo:
     persona_name: Optional[str] = None
 
 
+class ListPlayerShortInfo(BaseSchema):
+    users = List[PlayerShortInfo]
+
+
 class PlayerBase(BaseSchema):
     """Базовые поля пользователя (редко меняются)"""
     steam_id: str = Field(..., min_length=17, max_length=17)

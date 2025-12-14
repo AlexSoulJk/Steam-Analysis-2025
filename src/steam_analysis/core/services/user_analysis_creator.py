@@ -1,6 +1,7 @@
 import datetime
 from typing import List, Tuple, Optional
 
+from steam_analysis.core.schemas import PlayerShortInfo
 from steam_analysis.core.schemas.analysis.user import UserAnalysisChunkCreate, UserAnalysisFromJson
 from steam_analysis.resourcemanager.manager import ResourceManager
 from steam_analysis.resourcemanager.resources.codes import ResourceCodes
@@ -32,3 +33,16 @@ class UserAnalysisCreator:
             return []
 
         return user_list
+
+    def get_user_analysis_data_from_json(self,
+                                         json_data: List[PlayerShortInfo]) -> List[UserAnalysisFromJson]:
+        start_creation = datetime.datetime.now()
+        tmp = json_data
+        try:
+            game_list = list(map(lambda x: UserAnalysisFromJson.from_json_resource(x, start_creation),
+                                 tmp))
+            return game_list
+
+        except Exception as e:
+            print("\n".join(list(map(lambda item: item.name, tmp))))
+            raise e

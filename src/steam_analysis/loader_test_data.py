@@ -85,7 +85,7 @@ class LoaderTestData:
                     folder_path: Путь к папке с JSON файлами (по умолчанию "pages")
 
                 Returns:
-                    Список словарей с данными из JSON файлов
+                    Возвращает файлы, которые есть в папке
                 """
 
         folder_path = self.dir_to_load / folder_path

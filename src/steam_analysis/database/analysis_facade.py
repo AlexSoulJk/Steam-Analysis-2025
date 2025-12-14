@@ -3,8 +3,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from typing import List, Optional
 
+import datetime
 from steam_analysis.config import analysis_db_path
 
+from steam_analysis.core.schemas import GameShortInfo, PlayerShortInfo
 from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson, \
     GameAnalysisChunkUpdate, GameAnalysisChunkForResponse, GameAnalysisChunkForRequest
 from steam_analysis.core.schemas.analysis.user import UserAnalysisChunkCreate, UserAnalysisFromJson, \
@@ -24,6 +26,7 @@ from steam_analysis.database.services.user_analysis_preparer import UserPreparer
 from steam_analysis.database.services.game_data_provider import GameAnalysisProvider
 from steam_analysis.database.services.user_data_provider import UserAnalysisProvider
 
+from steam_analysis.core.services.fastlogger import setup_logger
 analysis_engine = create_engine(f"sqlite:///{analysis_db_path}")
 AnalysisSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=analysis_engine)
 
@@ -82,6 +85,26 @@ class AnalysisDbFacade:
         with get_analysis_db() as session:
             self.data_game_preparer.create_chuncks(chunks, games, session)
 
+    def update_chunk_by_service(self, games: List[GameShortInfo]):
+        with get_analysis_db() as session:
+            updated_time = datetime.datetime.now()
+            exist_games = self.data_game_preparer.get_exist_games(games, session)
+            exist_games_ids = list(exist_games.keys())
+
+            chunks_ids = [game.chunk_id for game in exist_games.values()]
+            chunks = self.data_game_preparer.chunk_repo.get_chunks_by_ids(chunks_ids, session)
+            for chunk in chunks:
+                chunk.status = "pending"
+                chunk.updated_at = updated_time
+
+            logger = setup_logger("update_games_strategy")
+            for game in games:
+                if game.app_id not in exist_games_ids:
+                    logger.warning(f"Игра с app_id = {game.app_id} не существует!")
+                else:
+                    game.status = "pending"
+                    game.updated_at = updated_time
+
     def create_user_chunk_by_service(self,
                                      users: list[UserAnalysisFromJson], processor_name: str):
         # chunks: list[UserAnalysisChunkCreate], # cуда пользователей и создаем чанкееее
@@ -91,6 +114,35 @@ class AnalysisDbFacade:
             # Коммит на уровне фасада выноси под самый конец работы.
             # За сессию должен быть один коммит.
             # session.commit()
+
+    def update_user_chunk_by_service(self,
+                                     users: list[PlayerShortInfo]):
+        with get_analysis_db() as session:
+            updated_time = datetime.datetime.now()
+            steam_ids = [user.steam_id for user in users]
+            exist_users = self.data_user_preparer.user_model_repo.get_existing_by_steam_ids(steam_ids, session)
+            exist_users_ids = list(exist_users.keys())
+
+            chunks_ids = [user.chunk_id for user in exist_users.values()]
+            chunks = self.data_user_preparer.chunk_repo.get_chunks_by_ids(chunks_ids, session)
+            for chunk in chunks:
+                chunk.status = "pending"
+                chunk.updated_at = updated_time
+
+            logger = setup_logger("update_users_strategy")
+            for user in users:
+                if user.steam_id not in exist_users_ids:
+                    logger.warning(f"Пользователь со steam_id = {user.steam_id} не существует!")
+                else:
+                    user.status = "pending"
+                    user.updated_at = updated_time
+
+    def get_exist_games(self, games: List[GameShortInfo]):
+        # chunks: list[UserAnalysisChunkCreate], # cуда пользователей и создаем чанкееее
+        with get_analysis_db() as session:
+            # self.data_user_preparer.create_chuncks(chunks, users, session)
+            return self.data_game_preparer.get_exist_games(games, session)
+
 
     # region Next Pending Chunk
     def get_next_pending_chunk_by_service(self, processor_name: str) -> Optional[GameAnalysisChunkForResponse]:

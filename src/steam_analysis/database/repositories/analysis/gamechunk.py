@@ -15,6 +15,25 @@ class GameChunkRepository(BaseAnalysisRepository[AnalysisChunk, GameAnalysisChun
     def __init__(self):
         super().__init__(model=AnalysisChunk) # ыыыыыы
 
+    def get_chunks_by_ids(self, chunk_ids: List[int], session: Session, batch_size=500):
+        if not chunk_ids:
+            return {}
+
+        result_dict = {}
+
+        # Обрабатываем батчи
+        for i in range(0, len(chunk_ids), batch_size):
+            batch = chunk_ids[i:i + batch_size]
+            query = select(self.model).where(self.model.id.in_(batch))
+            result = session.execute(query)
+            existing_games = result.scalars().all()
+
+            result_dict.update({chunk.id: chunk for chunk in existing_games})
+
+        return result_dict
+
+
+
     def _get_next_chunk_by_status_and_name(self, status: str, processor_name: str, session: Session) -> Optional[
         AnalysisChunk]:
         obj = session.query(AnalysisChunk) \

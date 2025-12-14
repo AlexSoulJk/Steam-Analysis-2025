@@ -49,7 +49,10 @@ class UserPreparer:
 
         pass
 
-    def create_users(self, users: List[UserAnalysisFromJson], processor_name: str, session: Session, chunk_size: int = 25):
+    def create_users(self, users: List[UserAnalysisFromJson],
+                     processor_name: str,
+                     session: Session,
+                     chunk_size: int = 25):
 
         user_created = self.user_model_repo.create_bulk_from_json(objects_in=users, session=session)
         print(f"Newly created users: {len(user_created)}")

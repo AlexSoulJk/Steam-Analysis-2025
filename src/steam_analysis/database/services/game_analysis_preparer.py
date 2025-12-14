@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
+from steam_analysis.core.schemas.game.game import GameShortInfo
 from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson, GameAnalysisCreate, \
     GameAnalysisChunkForRequest
 from steam_analysis.database.models.servicemodels import AnalysisChunk, GameDataAnalysis
@@ -40,6 +41,11 @@ class GamePreparer:
         self.game_model_repo.create_bulk(objects_in=prepared_games,
                                          session=session,
                                          no_commit=True)
+
+    def get_exist_games(self,  games: List[GameShortInfo], session: Session):
+        app_ids = [game.app_id for game in games]
+        existing = self.game_model_repo.get_existing_by_app_ids(app_ids, session=session)
+        return {app_id: game for app_id, game in existing.items()}
 
     def get_last_uploaded_game(self, session: Session) -> Optional[GameDataAnalysis]:
         return self.game_model_repo.get_last_uploaded_game(session)

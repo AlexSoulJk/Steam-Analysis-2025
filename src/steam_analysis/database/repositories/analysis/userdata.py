@@ -7,6 +7,8 @@ from steam_analysis.core.schemas.analysis.user import UserAnalysisCreate, UserAn
 from ..base.baseanalisis import BaseAnalysisRepository
 from ...models.serviceplayermodels import UserDataAnalysis
 
+from steam_analysis.core.services.fastlogger import setup_logger
+
 
 class UserAnalysisRepository(BaseAnalysisRepository[UserDataAnalysis, UserAnalysisCreate, UserAnalysisUpdate]):
     """Репозиторий для работы с юзерами"""
@@ -50,8 +52,15 @@ class UserAnalysisRepository(BaseAnalysisRepository[UserDataAnalysis, UserAnalys
         existing_users = self.get_existing_by_steam_ids(steam_ids, session)
         existing_steam_ids = set(existing_users.keys())
 
+        logger = setup_logger("users_strategy")
+
         # Фильтруем только новых пользователей
-        new_users = [obj for obj in objects_in if obj.steam_id not in existing_steam_ids]
+        new_users = []
+        for obj in objects_in:
+            if obj.steam_id not in existing_steam_ids:
+                new_users.append(obj)
+            else:
+                logger.warning(f"Пользователь с steam_id = {obj.steam_id} уже существует!")
 
         if not new_users:
             return []  # возвращаем пустой список, если все пользователи уже существуют

@@ -14,6 +14,10 @@ class GameShortInfo:
     name: str
 
 
+class GameListFromJson(BaseSchema):
+    games: List[GameShortInfo]
+
+
 @dataclass
 class GameCategory:
     category_id: int
