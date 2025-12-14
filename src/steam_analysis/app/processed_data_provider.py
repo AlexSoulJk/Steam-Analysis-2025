@@ -27,11 +27,19 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
 
     # только для кластеризации
 
-    def get_game_clustering_data(self):
-        return self.clustering_game_proccesor.get_game_clustering_data()
+    def get_game_clustering_data(self, type_id, limit):
+        return self.clustering_game_proccesor.get_game_clustering_data(type_id=type_id, limit=limit
+                                                                       )
 
-    def get_2d_hist_data(self):
-        return self.clustering_game_proccesor.get_2d_hist_data()
+    def get_2d_hist_data(self,x_field, y_field, x_bins, y_bins, min_review_count):
+        return self.clustering_game_proccesor.get_2d_hist_data(x_field=x_field,
+                                                               y_field=y_field,
+                                                               x_bins=x_bins,
+                                                               y_bins=y_bins,
+                                                               type_id=1)
+
+    def enhanced_histogram_data(self):
+        return self.clustering_game_proccesor.enhanced_histogram_data()
     # endregion
 
 

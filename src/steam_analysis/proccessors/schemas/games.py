@@ -38,7 +38,6 @@ class GamesReleaseBySeasonByGenre(AbstractGameBy_):
     values: dict[str, dict[str, int]]
     ticks: list[str]
 
-
 # дальше (бога нет) все для кластеризации
 
 class GameFeatureVector(BaseSchema):        # <-- короче вот это мне надо из сервиса
@@ -97,9 +96,6 @@ class TwoDHistogramData(AbstractGameBy_):
     y_bins: int = 20         # Количество бинов по оси Y
     x_label: str = "X"       # Подпись оси X
     y_label: str = "Y"       # Подпись оси Y
-
-
-
 
 
 class EnhancedHistogramData(AbstractGameBy_):   # <-- короче вот это мне надо из сервиса

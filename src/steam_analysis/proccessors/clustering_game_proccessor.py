@@ -1,13 +1,18 @@
 from enum import Enum
-from typing import Optional
+from typing import Dict, List, Any, Optional
+
+import statistics
 
 from steam_analysis.database.facade import get_db
 from steam_analysis.database.repositories import GameRepository
 from steam_analysis.database.repositories.game.type import TypeRepository
 from steam_analysis.database.repositories.game.category import CategoryRepository
 
-from steam_analysis.proccessors.schemas.games import GamesByTypes, GamesByCategories, GamesByCountCategoriesWithSubs, \
-    GamesByGenres, GamesReleaseBySeason, GameFeatureVector, GamesClusteringData, TwoDHistogramData, EnhancedHistogramData
+from steam_analysis.proccessors.schemas.games import (AbstractGameBy_, GamesClusteringData,
+                                                      TwoDHistogramData, GamesReleaseBySeason,
+                                                      EnhancedHistogramData,
+                                                      GamesByTypes, GamesByCategories, GamesByCountCategoriesWithSubs, \
+                                                      GamesByGenres)
 
 
 class SeasonMode(str, Enum):
@@ -88,16 +93,261 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
         return GamesReleaseBySeason(values=values, ticks=ticks)
 
 
-    # дальше по кластерзации
+    def get_game_clustering_data(
+            self,
+            type_id: int = 1,
+            limit: Optional[int] = None
+    ) -> Optional[GamesClusteringData]:
+        """
+            type_id: ID типа игр (по умолчанию 1 - игры)
+            limit: Ограничение количества игр
+            min_review_count: Минимальное количество отзывов
 
-    def get_game_clustering_data(self) -> Optional[GamesClusteringData]:
+        """
+        result = None
         with get_db() as session:
-            vals = self.game_repo.get_game_feature_vector(session=session) # в цикле затолкать в GamesClusteringData
-        pass
+            try:
+                result = self.game_repo.get_game_clustering_data(
+                    session=session,
+                    type_id=type_id,
+                    limit=limit
+                )
+                if result and result.games:
+                    if result.feature_matrix is None and result.games:
+                        feature_matrix = []
+                        feature_names = result.feature_names
+                        for game in result.games:
+                            if game.feature_values and len(game.feature_values) == len(feature_names):
+                                feature_matrix.append(game.feature_values)
+                            elif game.features:
+                                vector = []
+                                for feature_name in feature_names:
+                                    vector.append(game.features.get(feature_name, 0.0))
+                                feature_matrix.append(vector)
+                                game.feature_values = vector
+                            else:
+                                continue
+                        if feature_matrix:
+                            result.feature_matrix = feature_matrix
+            except Exception as e:
+                print(f"Ошибка получения данных кластеризации: {e}")
+                self.logger.error(f"Ошибка в get_game_clustering_data: {e}")
+
+        return result
 
 
-    def get_2d_hist_data(self) -> Optional[TwoDHistogramData]:
+    def get_2d_hist_data(
+            self,
+            x_field: str = "review_score",
+            y_field: str = "price",
+            type_id: int = 1,
+            x_bins: int = 20,
+            y_bins: int = 20,
+            min_review_count: int = 10
+    ) -> Optional[TwoDHistogramData]:
+        """
+            x_field: Поле для оси X
+            y_field: Поле для оси Y
+            type_id: ID типа игр
+            x_bins: Количество бинов по оси X
+            y_bins: Количество бинов по оси Y
+            min_review_count: Минимальное количество отзывов
+        """
+        result = None
         with get_db() as session:
-            vals = self.game_repo.get_2d_hist_data(session=session) # в цикле затолкать в GamesClusteringData
-        pass
+            try:
+                result = self.game_repo.get_2d_hist_data(
+                    session=session,
+                    x_field=x_field,
+                    y_field=y_field,
+                    type_id=type_id,
+                    x_bins=x_bins,
+                    y_bins=y_bins,
+                    min_review_count=min_review_count
+                )
 
+                if result and result.x_values and result.y_values:
+                    stats: Dict[str, Any] = {}
+                    if result.x_values:
+                        stats.update({
+                            "x_mean": float(statistics.mean(result.x_values)) if result.x_values else 0,
+                            "x_median": float(statistics.median(result.x_values)) if result.x_values else 0,
+                            "x_min": float(min(result.x_values)) if result.x_values else 0,
+                            "x_max": float(max(result.x_values)) if result.x_values else 0,
+                            "x_count": len(result.x_values)
+                        })
+                    if result.y_values:
+                        stats.update({
+                            "y_mean": float(statistics.mean(result.y_values)) if result.y_values else 0,
+                            "y_median": float(statistics.median(result.y_values)) if result.y_values else 0,
+                            "y_min": float(min(result.y_values)) if result.y_values else 0,
+                            "y_max": float(max(result.y_values)) if result.y_values else 0,
+                            "y_count": len(result.y_values)
+                        })
+                    if len(result.x_values) == len(result.y_values) and len(result.x_values) > 1:
+                        try:
+                            correlation = statistics.correlation(result.x_values, result.y_values)
+                            stats["correlation"] = float(correlation)
+                        except:
+                            stats["correlation"] = 0.0
+                    stats["total_points"] = len(result.x_values)
+                    result_dict = result.dict()
+                    result_dict["values"] = stats
+                    result = TwoDHistogramData(**result_dict)
+
+            except Exception as e:
+                print(f"Error getting 2D histogram data: {e}")
+                result = TwoDHistogramData(
+                    x_values=[],
+                    y_values=[],
+                    x_bins=x_bins,
+                    y_bins=y_bins,
+                    x_label=x_field,
+                    y_label=y_field
+                )
+        return result
+
+
+    def enhanced_histogram_data(
+            self,
+            value_field: str = "review_score",
+            type_id: int = 1,
+            bins_method: str = "auto",
+            min_review_count: int = 10,
+            show_stats: bool = True,
+            show_outliers: bool = True,
+            compare_with_normal: bool = True,
+            log_scale: bool = False,
+            filter_free: Optional[bool] = None
+    ) -> Optional[EnhancedHistogramData]:
+        """
+            value_field: Анализируемое поле
+            type_id: ID типа игр
+            bins_method: Метод расчета бинов
+            min_review_count: Минимальное количество отзывов
+            show_stats: Показывать статистику
+            show_outliers: Выделять выбросы
+            compare_with_normal: Сравнивать с нормальным распределением
+            log_scale: Использовать логарифмическую шкалу
+            filter_free: Фильтр по бесплатным играм
+        """
+        result = None
+        with get_db() as session:
+            try:
+                result = self.game_repo.enhanced_histogram_data(
+                    session=session,
+                    value_field=value_field,
+                    type_id=type_id,
+                    bins_method=bins_method,
+                    min_review_count=min_review_count,
+                    show_stats=show_stats,
+                    show_outliers=show_outliers,
+                    compare_with_normal=compare_with_normal,
+                    log_scale=log_scale,
+                    filter_free=filter_free
+                )
+                if result and result.values:
+                    import statistics
+                    from typing import List
+                    values: List[float] = result.values
+                    if values:
+                        try:
+                            mean_val = statistics.mean(values)
+                            median_val = statistics.median(values)
+                            std_val = statistics.stdev(values) if len(values) > 1 else 0
+                            min_val = min(values)
+                            max_val = max(values)
+                            quantiles = []
+                            if len(values) >= 5:
+                                sorted_vals = sorted(values)
+                                for q in [0.25, 0.5, 0.75, 0.95]:
+                                    idx = int(len(sorted_vals) * q)
+                                    idx = min(idx, len(sorted_vals) - 1)
+                                    quantiles.append(sorted_vals[idx])
+                            ticks = [
+                                f"Всего: {len(values)}",
+                                f"Среднее: {mean_val:.2f}",
+                                f"Медиана: {median_val:.2f}",
+                                f"Мин: {min_val:.2f}",
+                                f"Макс: {max_val:.2f}"
+                            ]
+                            if std_val > 0:
+                                ticks.append(f"Стд: {std_val:.2f}")
+                            if quantiles:
+                                ticks.extend([
+                                    f"Q1: {quantiles[0]:.2f}",
+                                    f"Q3: {quantiles[2]:.2f}"
+                                ])
+                            filter_info = []
+                            if filter_free is not None:
+                                filter_info.append("Бесплатные" if filter_free else "Платные")
+                            if min_review_count > 0:
+                                filter_info.append(f">={min_review_count} отзывов")
+                            if filter_info:
+                                ticks.append(f"Фильтры: {', '.join(filter_info)}")
+                            result.ticks = ticks
+                        except Exception as e:
+                            print(f"Error calculating statistics: {e}")
+                            result.ticks = [f"Данные: {len(values)} значений"]
+                    else:
+                        result.ticks = ["Нет данных"]
+            except Exception as e:
+                print(f"Error getting enhanced histogram data: {e}")
+                result = EnhancedHistogramData(
+                    values=[],
+                    value_name=value_field,
+                    unit="",
+                    bins_method=bins_method,
+                    show_density=show_stats,
+                    show_stats=show_stats,
+                    show_outliers=show_outliers,
+                    compare_with_normal=compare_with_normal,
+                    log_scale=log_scale,
+                    ticks=["Ошибка получения данных"]
+                )
+        return result
+
+
+    def get_available_clustering_fields(self) -> Dict[str, List[str]]:
+        """
+        Получить список доступных полей для анализа
+        Returns:
+            Словарь с группами полей
+        """
+        return {
+            "metrics": [
+                "review_score",
+                "review_count",
+                "recommendations_count",
+                "metacritic_score",
+                "peak_players_all_time"
+            ],
+            "game_info": [
+                "price",
+                "is_free",
+                "coming_soon",
+                "game_age_years"
+            ],
+            "counts": [
+                "achievements_count",
+                "genres_count",
+                "categories_count"
+            ]
+        }
+
+
+    def get_default_2d_hist_pairs(self) -> List[Dict[str, str]]:
+        """
+        Получить рекомендуемые пары для 2D гистограмм
+        Returns:
+            Список рекомендуемых пар полей
+        """
+        return [
+            {"x": "review_score", "y": "price", "label": "Рейтинг vs Цена"},
+            {"x": "review_score", "y": "game_age_years", "label": "Рейтинг vs Возраст"},
+            {"x": "price", "y": "game_age_years", "label": "Цена vs Возраст"},
+            {"x": "review_count", "y": "review_score", "label": "Отзывы vs Рейтинг"},
+            {"x": "metacritic_score", "y": "review_score", "label": "Metacritic vs Рейтинг"},
+            {"x": "achievements_count", "y": "price", "label": "Достижения vs Цена"},
+            {"x": "genres_count", "y": "categories_count", "label": "Жанры vs Категории"}
+        ]

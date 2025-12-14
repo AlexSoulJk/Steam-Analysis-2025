@@ -2993,7 +2993,7 @@ def main_hist():
 
 
 # main()
-main_clust()
-# run_example_clustering()
+# main_clust()
+run_example_clustering()
 # main_hist()
 

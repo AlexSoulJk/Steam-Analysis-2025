@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship, validates
 from .base import BaseModel, DictionaryModel
 
 
+
 class Game(BaseModel):
     """Основная модель игры"""
     __tablename__ = "games"
