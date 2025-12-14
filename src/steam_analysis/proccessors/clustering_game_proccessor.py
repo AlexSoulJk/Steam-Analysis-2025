@@ -88,3 +88,4 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
             values = {LABELS[code][int(value[0])]: value[1] for value in values.items()}
             ticks = list(map(lambda tick: LABELS[code][int(tick)], ticks))
         return GamesReleaseBySeason(values=values, ticks=ticks)
+

@@ -2,7 +2,6 @@ from pathlib import Path
 from deps import validation, validate_json_strategy, get_app_mediator
 from pathmanager import pm
 from pathmanager import DEFAULT_FILE_APP_IDS, DEFAULT_FILE_BATCHES_APP_IDS
-from utils.diconteiner import conteiner
 from steam_analysis.app.application import AppMediator
 from steam_analysis.loader_test_data import LoaderTestData
 from steam_analysis.saver_test_data import SaveTestData

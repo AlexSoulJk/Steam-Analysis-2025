@@ -2,8 +2,6 @@ from functools import wraps
 from typing import Callable, List
 
 
-
-
 def validate_json_strategy(**kwargs):
     return
 
