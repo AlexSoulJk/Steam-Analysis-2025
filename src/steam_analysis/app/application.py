@@ -10,12 +10,14 @@ from steam_analysis.database.facade import DbFacade
 from steam_analysis.loader_test_data import default_loader
 from steam_analysis.resourcemanager.manager import ResourceManager
 from steam_analysis.resourcemanager.resources.codes import ResourceCodes
-from steam_analysis.saver_test_data import default_saver
+from steam_analysis.saver_test_data import default_saver, save_add_info_games, save_games, \
+    save_user, save_user_games
+from distribution.pathmanager import DEFAULT_FILENAME_GAMES, DEFAULT_FILENAME_ADD_INFO_GAMES
 
 
 class AppMediator:
 
-    def __init__(self, steam_api_key: str,
+    def __init__(self, steam_api_key: str = "",
                  processor_name: str = "Test"):
         self.processor_name = processor_name
         self.steam_facade = SteamAnalysisFacade(steam_api_key)
@@ -38,8 +40,9 @@ class AppMediator:
     def fill_analysis_user(self):
         last_steam_id = self.analysis_service.get_last_upploaded_user()
         print("last_steam_id: ", last_steam_id)
-        data_for_create = self.user_analysis_creator.get_user_analysis_data_for_create_from_resource(last_steam_id=last_steam_id,
-                                                                                                     user_resource=self.resource_manager.get_resource(ResourceCodes.USER_LIST))
+        data_for_create = self.user_analysis_creator.get_user_analysis_data_for_create_from_resource(
+            last_steam_id=last_steam_id,
+            user_resource=self.resource_manager.get_resource(ResourceCodes.USER_LIST))
         self.analysis_service.create_user_chunk_by_service(data_for_create, processor_name=self.processor_name)
 
     # endregion
@@ -63,11 +66,11 @@ class AppMediator:
         # Получаем данные через Steam API
         # print(f"{chunk_to_fill=}")
         fill_butch = self.steam_facade.get_add_game_list(chunk_to_fill)
-        # # print(f"{fill_butch=}")
-        # # Сохранение chunk игр в JSON
+        # # # print(f"{fill_butch=}")
+        # # # Сохранение chunk игр в JSON
         # default_saver.save_fill_add_info_game_batch(fill_butch)
         # Load chunk from JSON
-        # fill_butch = default_loader.load_fill_schema_batch(filename="games_add_info_chunk_2025120931.json")
+        # fill_butch = default_loader.load_fill_schema_batch(filename="games_add_info_chunk_2025121158.json")
         self.database_facade.add_info_games(fill_butch.data_chunk)
         # Завершаем чанк
         self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
@@ -82,8 +85,6 @@ class AppMediator:
         # Тут можешь коментить первые 2 строчки и вытаскивать сериализованный чанк. Только путь поменяй к json на тот что у тебя получится
         # fill_user_butch = default_loader.load_fill_user_batch(filename="players_20251201_25.json")
         # users_ids = self.database_facade.create_users(fill_butch.data_chunk)
-
-        # Тут вот ща лежит вызов твоего метода
         response = self.database_facade.create_players(fill_user_butch.data_chunk)
         print(f"Получили ответ от базы {response=}")
         # # Завершаем чанк
@@ -123,6 +124,122 @@ class AppMediator:
         # Метод возвращает список не созданных игр
         response = self.database_facade.create_players_game_relations(fill_user_butch.data_chunk)
         self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
+
+    def add_game_to_json(self, saver=save_games, filename: str = None, chunk_size: int = 10):
+        chunk_for_create = self.analysis_service.get_next_pending_chunk_by_service(self.processor_name)
+        if chunk_for_create is None:
+            print(f"\nНе найдены чанки со статусом pending")
+            return
+        # Получаем данные через Steam API
+        # print(f"{chunk_to_fill=}")
+        fill_butch = self.steam_facade.get_game_analysis_list(chunk_for_create)
+        # # # Сохранение chunk игр в JSON
+        if filename is None:
+            saver.batch_save_data_simple(fill_butch, file_name=DEFAULT_FILENAME_GAMES)
+        else:
+            saver.batch_save_data_simple(fill_butch, file_name=filename)
+
+        self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+
+    def add_schema_to_json(self, saver=save_add_info_games, filename: str = None, chunk_size: int = 10):
+        chunk_to_fill = self.analysis_service.get_next_part_chunk_by_service(self.processor_name)
+        if chunk_to_fill is None:
+            print(f"\nНе найдены чанки со статусом particle_sucess")
+            return
+        # Получаем данные через Steam API
+        # print(f"{chunk_to_fill=}")
+        fill_butch = self.steam_facade.get_add_game_list(chunk_to_fill)
+        # # # Сохранение chunk игр в JSON
+        if filename is None:
+            saver.batch_save_data_simple(fill_butch, file_name=DEFAULT_FILENAME_ADD_INFO_GAMES)
+        else:
+            saver.batch_save_data_simple(fill_butch, file_name=filename)
+        self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+
+    def add_user_to_json(self,
+                         saver=save_user,
+                         filename: str = None,
+                         chunk_size: int = 10,
+                         save_friends: bool = False):
+        chunk_for_create = self.analysis_service.get_next_pending_user_chunk_by_service(self.processor_name)
+        if chunk_for_create is None:
+            print(f"\nНе найдены чанки со статусом pending")
+            return
+
+        fill_user_butch = self.steam_facade.get_player_data_bunch(chunk_for_create, save_friends)
+        if filename is None:
+            saver.batch_save_data_simple(fill_user_butch, file_name=DEFAULT_FILENAME_ADD_INFO_GAMES)
+        else:
+            saver.batch_save_data_simple(fill_user_butch, file_name=filename)
+        self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
+
+    def add_user_games_to_json(self,
+                               saver=save_user_games,
+                               filename: str = None,
+                               chunk_size: int = 10):
+        chunk_for_create = self.analysis_service.get_next_pending_user_chunk_by_service(self.processor_name)
+        if chunk_for_create is None:
+            print(f"\nНе найдены чанки со статусом particle_success")
+            return
+
+        chunk_for_create = self.analysis_service.get_next_user_part_chunk_by_service(self.processor_name)
+        fill_user_butch = self.steam_facade.get_player_game_data_bunch(chunk_for_create)
+        if filename is None:
+            saver.batch_save_data_simple(fill_user_butch, file_name=DEFAULT_FILENAME_ADD_INFO_GAMES)
+        else:
+            saver.batch_save_data_simple(fill_user_butch, file_name=filename)
+        self.analysis_service.mark_game_chunk_complete(fill_user_butch.data_for_analysis_db)
+
+    def loads_add_data_game_from_jsons(self, loader=default_loader, folder="add_info_games"):
+        json_files = loader.read_jsons(folder)
+        for json_file in json_files:
+            print(f"\nОбработка файла: {json_file}....")
+            schema_batchs = loader.load_add_schema_batchs(json_file)
+            if not schema_batchs:
+                continue
+            print(f"Загружены бачи: {len(schema_batchs)}....")
+            for fill_butch in schema_batchs:
+                self.database_facade.add_info_games(fill_butch.data_chunk)
+                # Завершаем чанк
+                self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+
+    def loads_games_from_jsons(self, loader=default_loader, folder="games"):
+        json_files = loader.read_jsons(folder)
+        for json_file in json_files:
+            print(f"\nОбработка файла: {json_file}....")
+            games_batchs = loader.load_games_batchs(json_file)
+            if not games_batchs:
+                continue
+            print(f"Загружены бачи: {len(games_batchs)}....")
+            for fill_butch in games_batchs:
+                self.database_facade.create_games(fill_butch.data_chunk)
+                # Завершаем чанк
+                self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+
+    def loads_users_from_jsons(self, loader=default_loader, folder="users"):
+        json_files = loader.read_jsons(folder)
+        for json_file in json_files:
+            print(f"\nОбработка файла: {json_file}....")
+            users_batchs = loader.load_users_batchs(json_file)
+            if not users_batchs:
+                continue
+            print(f"Загружены бачи: {len(users_batchs)}....")
+            for fill_butch in users_batchs:
+                print(f"Обрабатываем батч {fill_butch.data_for_analysis_db.chunk.id}")
+                self.database_facade.create_players(fill_butch.data_chunk)
+                self.analysis_service.mark_user_chunk_complete(fill_butch.data_for_analysis_db)
+
+    def loads_users_games_from_jsons(self, loader=default_loader, folder="users_games"):
+        json_files = loader.read_jsons(folder)
+        for json_file in json_files:
+            print(f"\nОбработка файла: {json_file}....")
+            users_batchs = loader.load_users_games_batchs(json_file)
+            if not users_batchs:
+                continue
+            print(f"Загружены бачи: {len(users_batchs)}....")
+            for fill_butch in users_batchs:
+                self.database_facade.create_players_game_relations(fill_butch.data_chunk)
+                self.analysis_service.mark_user_chunk_complete(fill_butch.data_for_analysis_db)
 
     # def create_player_butch(self, steam_ids: List[str]):
     #     fill_butch = self.steam_facade.get_player_data_bunch(steam_ids)

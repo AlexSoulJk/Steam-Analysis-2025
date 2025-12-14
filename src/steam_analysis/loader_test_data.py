@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
+import json
 
 from steam_analysis.config import test_data_path
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillSchemaChunk, FillAddSchemaChunk
@@ -75,6 +76,106 @@ class LoaderTestData:
         except Exception as e:
             print(f"❌ Ошибка загрузки: {e}")
             return None
+
+    def read_jsons(self, folder_path: str = "add_info_games"):
+        """
+                Читает все JSON файлы из указанной папки и возвращает список данных.
+
+                Args:
+                    folder_path: Путь к папке с JSON файлами (по умолчанию "pages")
+
+                Returns:
+                    Список словарей с данными из JSON файлов
+                """
+
+        folder_path = self.dir_to_load / folder_path
+
+        if not folder_path.exists():
+            print(f"❌ Папка {folder_path} не существует")
+            return []
+
+        if not folder_path.is_dir():
+            print(f"❌ {folder_path} не является папкой")
+            return []
+
+        # Ищем все JSON файлы в папке
+        json_files = list(folder_path.glob("*.json"))
+
+        if not json_files:
+            print(f"⚠️  В папке {folder_path} не найдено JSON файлов")
+            return []
+
+        print(f"📁 Найдено {len(json_files)} JSON файлов в папке {folder_path}")
+        return json_files
+
+    def load_add_schema_batchs(self, filename) -> List[Optional[FillAddSchemaChunk]]:
+        all_chunks_from_file = []
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            for k in data.keys():
+                data_game = data[k]
+                model = FillAddSchemaChunk.model_validate(data_game)
+                all_chunks_from_file.append(model)
+
+            return all_chunks_from_file
+
+        except Exception as e:
+            print(f"❌ Ошибка загрузки: {e}")
+            return []
+
+    def load_games_batchs(self, filename) -> List[Optional[FillGameAnalysisChunk]]:
+        all_chunks_from_file = []
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            for k in data.keys():
+                data_game = data[k]
+                model = FillGameAnalysisChunk.model_validate(data_game)
+                all_chunks_from_file.append(model)
+
+            return all_chunks_from_file
+
+        except Exception as e:
+            print(f"❌ Ошибка загрузки: {e}")
+            return []
+
+    def load_users_batchs(self, filename) -> List[Optional[FillPlayerAnalysisChunk]]:
+        all_chunks_from_file = []
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            for k in data.keys():
+                data_game = data[k]
+                model = FillPlayerAnalysisChunk.model_validate(data_game)
+                all_chunks_from_file.append(model)
+
+            return all_chunks_from_file
+
+        except Exception as e:
+            print(f"❌ Ошибка загрузки: {e}")
+            return []
+
+    def load_users_games_batchs(self, filename) -> List[Optional[FillPlayerGameSchemaChunk]]:
+        all_chunks_from_file = []
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            for k in data.keys():
+                data_game = data[k]
+                model = FillPlayerGameSchemaChunk.model_validate(data_game)
+                all_chunks_from_file.append(model)
+
+            return all_chunks_from_file
+
+        except Exception as e:
+            print(f"❌ Ошибка загрузки: {e}")
+            return []
+
 
 default_loader = LoaderTestData(dir_to_load=test_data_path)
 

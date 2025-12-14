@@ -2,7 +2,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from steam_analysis.config import test_data_path
+from steam_analysis.config import test_data_path, test_data_add_game_path, test_game_path, \
+    test_data_add_user, test_add_user_games
 from steam_analysis.core.schemas.analysis.game import GameAnalysisChunkCreate, GameAnalysisFromJson
 from steam_analysis.core.schemas.game.service import FillGameAnalysisChunk, FillTypeSchemaChunk, FillAddSchemaChunk
 from steam_analysis.core.schemas.player.service import FillPlayerAnalysisChunk, FillPlayerGameSchemaChunk
@@ -12,6 +13,9 @@ class SaveTestData:
 
     def __init__(self, dir_to_save: str):
         self.dir_to_save = Path(dir_to_save)
+        self.current_file = None
+        self.current_batch_count = 0
+        self.current_file_data = {}
 
     def save_data(self, fill_model, filepath):
         data_dict = fill_model.model_dump()
@@ -179,5 +183,48 @@ class SaveTestData:
             print(f"❌ Ошибка сохранения: {e}")
             return False
 
+    def batch_save_data_simple(self, fill_model, file_name="games_add_info_chunk"):
+        """Упрощенная версия с последовательным сохранением"""
+        try:
+            chunk_id = fill_model.data_for_analysis_db.chunk.id
+            data_to_save = fill_model.model_dump()
+
+            # Проверяем, нужно ли создать новый файл
+            if (self.current_file is None or
+                    self.current_batch_count >= 50 or
+                    not self.current_file.exists()):
+                # Создаем новый файл
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"{file_name}_{timestamp}.json"
+                self.current_file = self.dir_to_save / filename
+                self.current_batch_count = 0
+                self.current_file_data = {}
+                print(f"📁 Создан новый файл: {filename}")
+
+            # Добавляем данные
+            self.current_file_data[str(chunk_id)] = data_to_save
+            self.current_batch_count += 1
+
+            # Сохраняем в файл
+            with open(self.current_file, 'w', encoding='utf-8') as f:
+                json.dump(self.current_file_data, f, indent=2, ensure_ascii=False, default=str)
+
+            print(f"✅ Батч {chunk_id} сохранен в {self.current_file.name}")
+            print(f"   - Батчей в файле: {self.current_batch_count}/50")
+
+            if self.current_batch_count >= 50:
+                print(f"⚠️  Достигнут лимит в 50 батчей. Следующий батч будет в новом файле.")
+
+            return self.current_file
+
+        except Exception as e:
+            print(f"❌ Ошибка сохранения: {e}")
+            return None
+
+
 
 default_saver = SaveTestData(test_data_path)
+save_add_info_games = SaveTestData(test_data_add_game_path)
+save_games = SaveTestData(test_game_path)
+save_user = SaveTestData(test_data_add_user)
+save_user_games = SaveTestData(test_add_user_games)

@@ -1,0 +1,584 @@
+{
+  "75": {
+    "data_for_analysis_db": {
+      "chunk_games": [
+        {
+          "id": 1851,
+          "status": "null_state",
+          "error_log": "Game app_id: 15170 not found or failed to load"
+        },
+        {
+          "id": 1852,
+          "status": "null_state",
+          "error_log": "Game app_id: 15190 not found or failed to load"
+        },
+        {
+          "id": 1853,
+          "status": "null_state",
+          "error_log": "Game app_id: 15200 not found or failed to load"
+        },
+        {
+          "id": 1854,
+          "status": "null_state",
+          "error_log": "Game app_id: 15210 not found or failed to load"
+        },
+        {
+          "id": 1855,
+          "status": "particle",
+          "error_log": ""
+        },
+        {
+          "id": 1856,
+          "status": "null_state",
+          "error_log": "Game app_id: 15240 not found or failed to load"
+        },
+        {
+          "id": 1857,
+          "status": "null_state",
+          "error_log": "Game app_id: 15260 not found or failed to load"
+        },
+        {
+          "id": 1858,
+          "status": "particle",
+          "error_log": ""
+        },
+        {
+          "id": 1859,
+          "status": "particle",
+          "error_log": ""
+        },
+        {
+          "id": 1860,
+          "status": "particle",
+          "error_log": ""
+        },
+        {
+          "id": 1861,
+          "status": "null_state",
+          "error_log": "Game app_id: 15300 not found or failed to load"
+        },
+        {
+          "id": 1862,
+          "status": "null_state",
+          "error_log": "Game app_id: 15310 not found or failed to load"
+        },
+        {
+          "id": 1863,
+          "status": "particle",
+          "error_log": ""
+        },
+        {
+          "id": 1864,
+          "status": "null_state",
+          "error_log": "Game app_id: 15330 not found or failed to load"
+        },
+        {
+          "id": 1865,
+          "status": "null_state",
+          "error_log": "Game app_id: 15350 not found or failed to load"
+        },
+        {
+          "id": 1866,
+          "status": "null_state",
+          "error_log": "Game app_id: 15360 not found or failed to load"
+        },
+        {
+          "id": 1867,
+          "status": "null_state",
+          "error_log": "Game app_id: 15370 not found or failed to load"
+        },
+        {
+          "id": 1868,
+          "status": "null_state",
+          "error_log": "Game app_id: 15380 not found or failed to load"
+        },
+        {
+          "id": 1869,
+          "status": "null_state",
+          "error_log": "Game app_id: 15390 not found or failed to load"
+        },
+        {
+          "id": 1870,
+          "status": "null_state",
+          "error_log": "Game app_id: 15396 not found or failed to load"
+        },
+        {
+          "id": 1871,
+          "status": "particle",
+          "error_log": ""
+        },
+        {
+          "id": 1872,
+          "status": "particle",
+          "error_log": ""
+        },
+        {
+          "id": 1873,
+          "status": "particle",
+          "error_log": ""
+        },
+        {
+          "id": 1874,
+          "status": "particle",
+          "error_log": ""
+        },
+        {
+          "id": 1875,
+          "status": "particle",
+          "error_log": ""
+        }
+      ],
+      "chunk": {
+        "id": 75,
+        "status": "particle_success",
+        "response_time": 6.260608,
+        "error_log": "Game app_id: 15170 not found or failed to load\nGame app_id: 15190 not found or failed to load\nGame app_id: 15200 not found or failed to load\nGame app_id: 15210 not found or failed to load\n\nGame app_id: 15240 not found or failed to load\nGame app_id: 15260 not found or failed to load\n\n\n\nGame app_id: 15300 not found or failed to load\nGame app_id: 15310 not found or failed to load\n\nGame app_id: 15330 not found or failed to load\nGame app_id: 15350 not found or failed to load\nGame app_id: 15360 not found or failed to load\nGame app_id: 15370 not found or failed to load\nGame app_id: 15380 not found or failed to load\nGame app_id: 15390 not found or failed to load\nGame app_id: 15396 not found or failed to load",
+        "started_at": "2025-12-12 18:43:18.999314",
+        "finished_at": "2025-12-12 18:43:25.259922"
+      }
+    },
+    "data_chunk": [
+      null,
+      null,
+      null,
+      null,
+      {
+        "game": {
+          "app_id": 15220,
+          "name": "Blazing Angels® Squadrons of WWII",
+          "is_free": false,
+          "release_date": "2008-05-13 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "advertising"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 1,
+            "description": "Action"
+          },
+          {
+            "steam_id": 28,
+            "description": "Simulation"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 1,
+            "description": "Multi-player"
+          },
+          {
+            "steam_id": 62,
+            "description": "Family Sharing"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          }
+        ]
+      },
+      null,
+      null,
+      {
+        "game": {
+          "app_id": 15270,
+          "name": "Cold Fear™",
+          "is_free": false,
+          "release_date": "2008-05-13 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "game"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 1,
+            "description": "Action"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 62,
+            "description": "Family Sharing"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          }
+        ]
+      },
+      {
+        "game": {
+          "app_id": 15280,
+          "name": "IL-2 Sturmovik: 1946",
+          "is_free": false,
+          "release_date": "2008-06-13 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "game"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 28,
+            "description": "Simulation"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 1,
+            "description": "Multi-player"
+          },
+          {
+            "steam_id": 23,
+            "description": "Steam Cloud"
+          },
+          {
+            "steam_id": 17,
+            "description": "Includes level editor"
+          },
+          {
+            "steam_id": 62,
+            "description": "Family Sharing"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          }
+        ]
+      },
+      {
+        "game": {
+          "app_id": 15290,
+          "name": "Lost™: Via Domus",
+          "is_free": false,
+          "release_date": "2009-02-13 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "advertising"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 25,
+            "description": "Adventure"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 62,
+            "description": "Family Sharing"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          }
+        ]
+      },
+      null,
+      null,
+      {
+        "game": {
+          "app_id": 15320,
+          "name": "IL-2 Sturmovik: 1946",
+          "is_free": false,
+          "release_date": "2008-06-13 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "game"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 28,
+            "description": "Simulation"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 1,
+            "description": "Multi-player"
+          },
+          {
+            "steam_id": 23,
+            "description": "Steam Cloud"
+          },
+          {
+            "steam_id": 17,
+            "description": "Includes level editor"
+          },
+          {
+            "steam_id": 62,
+            "description": "Family Sharing"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          }
+        ]
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      {
+        "game": {
+          "app_id": 15400,
+          "name": "Harvest: Massive Encounter",
+          "is_free": false,
+          "release_date": "2009-01-23 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "game"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 2,
+            "description": "Strategy"
+          },
+          {
+            "steam_id": 23,
+            "description": "Indie"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 22,
+            "description": "Steam Achievements"
+          },
+          {
+            "steam_id": 62,
+            "description": "Family Sharing"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          },
+          {
+            "description": "mac"
+          },
+          {
+            "description": "linux"
+          }
+        ]
+      },
+      {
+        "game": {
+          "app_id": 15500,
+          "name": "The Wonderful End of the World",
+          "is_free": false,
+          "release_date": "2008-07-17 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "game"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 4,
+            "description": "Casual"
+          },
+          {
+            "steam_id": 23,
+            "description": "Indie"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 22,
+            "description": "Steam Achievements"
+          },
+          {
+            "steam_id": 18,
+            "description": "Partial Controller Support"
+          },
+          {
+            "steam_id": 62,
+            "description": "Family Sharing"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          }
+        ]
+      },
+      {
+        "game": {
+          "app_id": 15510,
+          "name": "The Wonderful End of the World Demo",
+          "is_free": true,
+          "release_date": "2008-07-17 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "demo"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 4,
+            "description": "Casual"
+          },
+          {
+            "steam_id": 23,
+            "description": "Indie"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 10,
+            "description": "Game demo"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          }
+        ]
+      },
+      {
+        "game": {
+          "app_id": 15520,
+          "name": "AaAaAA!!! - A Reckless Disregard for Gravity",
+          "is_free": false,
+          "release_date": "2009-09-03 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "game"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 1,
+            "description": "Action"
+          },
+          {
+            "steam_id": 23,
+            "description": "Indie"
+          },
+          {
+            "steam_id": 18,
+            "description": "Sports"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 22,
+            "description": "Steam Achievements"
+          },
+          {
+            "steam_id": 25,
+            "description": "Steam Leaderboards"
+          },
+          {
+            "steam_id": 62,
+            "description": "Family Sharing"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          }
+        ]
+      },
+      {
+        "game": {
+          "app_id": 15522,
+          "name": "Aaaaa! - Brutal Concussion",
+          "is_free": false,
+          "release_date": "2011-07-22 00:00:00",
+          "coming_soon": false,
+          "controller_support": "none",
+          "type": {
+            "description": "dlc"
+          }
+        },
+        "genres": [
+          {
+            "steam_id": 1,
+            "description": "Action"
+          },
+          {
+            "steam_id": 23,
+            "description": "Indie"
+          }
+        ],
+        "categories": [
+          {
+            "steam_id": 2,
+            "description": "Single-player"
+          },
+          {
+            "steam_id": 21,
+            "description": "Downloadable Content"
+          },
+          {
+            "steam_id": 62,
+            "description": "Family Sharing"
+          }
+        ],
+        "platforms": [
+          {
+            "description": "windows"
+          }
+        ]
+      }
+    ]
+  }
+}

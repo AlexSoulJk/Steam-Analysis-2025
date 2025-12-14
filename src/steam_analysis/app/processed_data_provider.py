@@ -1,5 +1,6 @@
 from steam_analysis.database.facade import DbFacade
 from steam_analysis.proccessors.clustering_game_proccessor import ClusteringGameProcessor
+from steam_analysis.proccessors.clustering_game_proccessor_external import ClusteringGameProcessorForFlourish
 
 
 class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, РЕШАЮЩИЕ ЗАДАЧИ
@@ -7,6 +8,7 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
     def __init__(self):
         # Services that process data
         self.clustering_game_proccesor = ClusteringGameProcessor()
+        self.clustering_game_proccesor_for_external = ClusteringGameProcessorForFlourish()
 
     # region Providing data for simple-visualisation
     def get_games_by_types(self):
@@ -42,5 +44,7 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
         return self.clustering_game_proccesor.enhanced_histogram_data()
     # endregion
 
+    def get_games_by_types_for_flurish(self):
+        return self.clustering_game_proccesor_for_external.get_games_by_types()
 
 

@@ -1,31 +1,40 @@
 import datetime
 from time import sleep
 
-from examples.steamapi.utils import load_api_keys
+from utils import load_api_key
 from steam_analysis.app.application import AppMediator
 
 
 def main():
-    api_keys = load_api_keys()
-    apps = []
-    for api_key in api_keys:
-        apps.append(AppMediator(steam_api_key=api_key,
-                          processor_name="Ekaterina Lips"))
-    butch_per_3_minute = len(api_keys) * 4 + 1
-    sleep(300)
-    start_time = datetime.datetime.now()
+    api_key = load_api_key()
+    app = AppMediator(steam_api_key=api_key,
+                      processor_name="Lo-Lap")
+    # app.create_user()
+    for i in range(1367):
+        # app.create_game()
+        print(f"Processed count chunk = {i}")
+        app.add_game_to_json()
 
-    for i in range(1, 3600-1186):
-        if (i % butch_per_3_minute) != 0:
-            index = i % butch_per_3_minute
-            app = apps[(index - 1) // 4]
-            print(f"Chunk {i} {app.steam_api_key}")
-            app.create_game()
-        else:
-            elapsed_time = (datetime.datetime.now() - start_time).seconds
-            print(f"Now is {i} and we will sleep {300 - elapsed_time}")
-            sleep(300 - elapsed_time)
-            start_time = datetime.datetime.now()
+    # api_keys = load_api_keys()
+    # apps = []
+    # for api_key in api_keys:
+    #     apps.append(AppMediator(steam_api_key=api_key,
+    #                       processor_name="Ekaterina Lips"))
+    # butch_per_3_minute = len(api_keys) * 4 + 1
+    # sleep(300)
+    # start_time = datetime.datetime.now()
+    #
+    # for i in range(1, 3600-1186):
+    #     if (i % butch_per_3_minute) != 0:
+    #         index = i % butch_per_3_minute
+    #         app = apps[(index - 1) // 4]
+    #         print(f"Chunk {i} {app.steam_api_key}")
+    #         app.create_game()
+    #     else:
+    #         elapsed_time = (datetime.datetime.now() - start_time).seconds
+    #         print(f"Now is {i} and we will sleep {300 - elapsed_time}")
+    #         sleep(300 - elapsed_time)
+    #         start_time = datetime.datetime.now()
 
 if __name__ == "__main__":
     main()

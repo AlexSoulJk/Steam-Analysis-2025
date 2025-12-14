@@ -19,7 +19,7 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         """Получить пользователя по Steam ID"""
         return self.get_by_field("steam_id", steam_id, session=session)
 
-    def get_existing_by_steam_ids(self, steam_ids: List[str], session: Session) -> Dict[str, User]:
+    def get_existing_by_steam_ids(self, steam_ids: List[str], session: Session, batch_size=500) -> Dict[str, User]:
         """
         Получить существующих пользователей по списку steam_ids одним запросом
         Возвращает словарь {steam_id: user_object}
@@ -30,8 +30,17 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         query = select(self.model).where(self.model.steam_id.in_(steam_ids))
         result = session.execute(query)
         existing_users = result.scalars().all()
+        result_dict = {}
 
-        return {user.steam_id: user for user in existing_users}
+        # Обрабатываем батчи
+        for i in range(0, len(steam_ids), batch_size):
+            batch = steam_ids[i:i + batch_size]
+            query = select(self.model).where(self.model.steam_id.in_(batch))
+            result = session.execute(query)
+            existing_users = result.scalars().all()
+
+            result_dict.update({user.steam_id: user for user in existing_users})
+        return result_dict
 
     def create_bulk(self, objects_in: List[PlayerCreate], session: Session) -> List[User]:
         """
