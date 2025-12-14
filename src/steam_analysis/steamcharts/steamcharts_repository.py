@@ -7,8 +7,9 @@ import time
 import random
 from datetime import datetime
 from pathlib import Path
+from sqlalchemy import select, and_, or_
 
-from steam_analysis.database.repositories.game.game import GameRepository
+from steam_analysis.database.repositories.game import PeakRepository
 from steam_analysis.database.facade import get_db
 
 from steam_analysis.database.models.game import Game
@@ -18,7 +19,7 @@ from steam_analysis.database.models.timeseries import PlayerCountHistory
 class SteamChartsRepository:
     def __init__(self):
         super().__init__()
-        self.game_repo = GameRepository()
+        self.peak_repos = PeakRepository()
         self.json_files = []
 
     def read_jsons(self, folder_path: str = "pages"):
@@ -76,44 +77,8 @@ class SteamChartsRepository:
     def add_one_part_to_db(self, games: Dict[str, Any]):
         success = False
         with get_db() as session:
-            app_ids = [int(app_id) for app_id in games.keys()]
-            exist_games = self.game_repo.get_existing_by_app_ids(app_ids, session)
-
-            game_ids = {str(app_id): game.id for app_id, game in exist_games.items()}
-            all_tables = []
-            for app_id in games.keys():
-                if exist_games.get(int(app_id), None) is None:
-                    continue
-
-                game = games[app_id]
-                exist_games[int(app_id)].all_time_peak = game.get("all-time peak", 0)
-
-                table = game.get("months", {})
-                if not table:
-                    continue
-
-                for month in table.keys():
-                    percent_gain = table[month].get("% Gain", 0.0)
-                    if percent_gain == "inf" or percent_gain == "-inf" or percent_gain == "nan":
-                        percent_gain = float(percent_gain)
-
-                    gain = table[month].get("Gain", 0.0)
-                    if gain == "inf" or gain == "-inf" or gain == "nan":
-                        gain = float(gain)
-
-                    all_tables.append(
-                        PlayerCountHistory(
-                            game_id=game_ids[app_id],
-                            player_count=table[month].get("Peak Players", 0),
-                            date=month,
-                            avg_players=table[month].get("Avg. Players", 0.0),
-                            percent_gain=percent_gain,
-                            gain=gain
-                        )
-                    )
-
-            if all_tables:
-                session.add_all(all_tables)
+            create_tables = self.peak_repos.create_bulk_from_json(games=games, session=session)
+            if create_tables:
                 success = True
 
         if success:
@@ -150,5 +115,5 @@ class SteamChartsRepository:
 
 if __name__ == "__main__":
     chart_repo = SteamChartsRepository()
-    chart_repo.read_jsons()
+    chart_repo.read_jsons("games_page")
     chart_repo.add_files_to_db()
