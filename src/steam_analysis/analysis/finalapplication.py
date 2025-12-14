@@ -144,8 +144,9 @@ class Application:
         res = self.data_provider.get_geo_games(limit_of_games)
         return res
 
-    def calculate_friends_graphs_by_games(self):
-        res = self.data_provider.get_geo_games(3)
+    def calculate_friends_graphs_by_games(self, friends_game_saver: SaveTestData):
+        res = self.data_provider.get_friends_by_games()
+        friends_game_saver.save_task_data_simple(res, Path(DEFAULT_FILENAME_GAMES))
         return res
 
     def load_geo_games(self, geo_game_loader: LoaderTestData, spreadsheet_url=str):

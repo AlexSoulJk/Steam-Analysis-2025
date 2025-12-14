@@ -304,3 +304,6 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         session.commit()
         session.refresh(user)
         return user
+
+    def get_friends_by(self):
+        pass

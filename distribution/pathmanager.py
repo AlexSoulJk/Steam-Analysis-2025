@@ -14,6 +14,7 @@ DEFAULT_FOLDR_USERS = Path("users")
 DEFAULT_FOLDER_USERS_GAMES = Path("users_games")
 
 DEFAULT_FOLDER_GEO_TASKS = Path("geo")
+DEFAULT_FOLDER_FRIENDS_TASKS = Path("friends")
 
 # file for saving and reading
 DEFAULT_FILE_APP_IDS = DEFAULT_PATH_TO_PEAK / "steam_app_ids.json"
@@ -23,6 +24,7 @@ DEFAULT_FILE_BATCHES_APP_IDS = DEFAULT_PATH_TO_PEAK / "batches_app_ids.json"
 
 # filename
 DEFAULT_FILENAME_GAMES = "games"
+DEFAULT_FILENAME_FRIENDS_BY_GAMES = "friends_by_games"
 DEFAULT_FILENAME_ADD_INFO_GAMES = "add_info_games"
 DEFAULT_FILENAME_USERS = "users"
 DEFAULT_FILENAME_USERS_GAMES = "users_games"
