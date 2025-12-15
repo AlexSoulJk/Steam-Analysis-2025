@@ -50,11 +50,8 @@ ROUTE_MAP: Dict[str, Any] = {
 }
 
 PM_DIRECT_MAP = {
-    "create_strategy": {"path_to_strategy_game": pm.path_to_strategy_game,
-                        "path_to_strategy_user": pm.path_to_strategy_game},
-
-    "update_strategy": {"path_to_strategy_game": pm.path_to_strategy_update_game,
-                        "path_to_strategy_user": pm.path_to_strategy_update_user},
+    "create_strategy": {"path_to_data": pm.path_to_strategy},
+    "update_strategy": {"path_to_data": pm.path_to_strategy},
 
     "collect_data": {
         "path_to_save": pm.path_to_data,

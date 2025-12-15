@@ -1,8 +1,15 @@
 import os
 from pathlib import Path
+
+from distribution.pathmanager import pm, DEFAULT_FILENAME_GAMES
+from geo_mapper import GeoRemapper
+from google_loader import GoogleLoader
 from steam_analysis.app.processed_data_provider import ProcessedDataProvider
+from steam_analysis.core.schemas.analysis.geoshemas import ListCountryGameStat
 from steam_analysis.core.services.fastlogger import setup_logger
-from steam_analysis.saver_test_data import default_saver
+from steam_analysis.json_to_csv_converter import JsonToCsvConverter
+from steam_analysis.loader_test_data import LoaderTestData
+from steam_analysis.saver_test_data import default_saver, SaveTestData
 
 
 class Application:
@@ -13,9 +20,13 @@ class Application:
     }
 
     def __init__(self, path_to_save_work: Path):
+        # Need to exclude
         self.path_to_save_work: Path = path_to_save_work
         self.folder_clustering = self.path_to_save_work / Path("clustering")
+        self.convert_to_csv = JsonToCsvConverter()
         self.data_provider = ProcessedDataProvider()
+        self.google_uploader = GoogleLoader()
+        self.geo_remapper = GeoRemapper()
         self.logger = setup_logger("Steam_Analysis_App")
         self._prepare_paths()
 
@@ -39,9 +50,9 @@ class Application:
                                                                                   "ByType"],
                                                                               path_to_save=path_for_type_pic)
             generate_clustering_task_picture.generate_scatter_clusters(data=data_for_response,
-                                                                              title_name=self.TITLES["Clustering"][
-                                                                                  "ByType"],
-                                                                              path_to_save=path_for_type_pic_clustering)
+                                                                       title_name=self.TITLES["Clustering"][
+                                                                           "ByType"],
+                                                                       path_to_save=path_for_type_pic_clustering)
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
 
@@ -82,10 +93,10 @@ class Application:
                                                                               path_to_save=path_for_type_pic,
                                                                               columns_num=columns_num)
             generate_clustering_task_picture.generate_line_plot(data=data_for_response,
-                                                                              title_name=self.TITLES["Clustering"][
-                                                                                  "ByType"],
-                                                                              path_to_save=path_for_type_plot,
-                                                                              columns_num=columns_num)
+                                                                title_name=self.TITLES["Clustering"][
+                                                                    "ByType"],
+                                                                path_to_save=path_for_type_plot,
+                                                                columns_num=columns_num)
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
 
@@ -123,3 +134,26 @@ class Application:
                                                                               columns_num=columns_num)
         else:
             self.logger.warning("Пустота в данных распределения по типам приложений! Обратитесь к авторам софта)")
+
+    def calculate_geo_games(self, geo_game_saver: SaveTestData, limit_of_games=3):
+        res = self.data_provider.get_geo_games(limit_of_games)
+        geo_game_saver.save_task_data_simple(res, Path(DEFAULT_FILENAME_GAMES))
+        return res
+
+    def calculate_geo_categories(self, limit_of_games=3):
+        res = self.data_provider.get_geo_games(limit_of_games)
+        return res
+
+    def calculate_friends_graphs_by_games(self, friends_game_saver: SaveTestData):
+        res = self.data_provider.get_friends_by_games()
+        friends_game_saver.save_task_data_simple(res, Path(DEFAULT_FILENAME_GAMES))
+        return res
+
+    def load_geo_games(self, geo_game_loader: LoaderTestData, spreadsheet_url=str):
+        loaded_data = geo_game_loader.load_from_files_by_schema(pm.file_to_task_geo_games, ListCountryGameStat)
+        loaded_data_remaped = self.geo_remapper.convert_for_datawrapper(loaded_data)
+        tmp = self.convert_to_csv.convert_geo_games(loaded_data_remaped)
+
+        self.google_uploader.upload_csv(spreadsheet_url, tmp)
+
+

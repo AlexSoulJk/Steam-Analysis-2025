@@ -221,6 +221,22 @@ class SaveTestData:
             print(f"❌ Ошибка сохранения: {e}")
             return None
 
+    def save_task_data_simple(self, fill_model, file_name):
+        try:
+            data_to_save = fill_model.model_dump()
+            filename = f"{file_name}.json"
+            self.current_file = self.dir_to_save / filename
+            print(f"📁 Создан новый файл: {filename}")
+            # Сохраняем в файл
+            with open(self.current_file, 'w', encoding='utf-8') as f:
+                json.dump(data_to_save, f, indent=2, ensure_ascii=False, default=str)
+
+            return self.current_file
+
+        except Exception as e:
+            print(f"❌ Ошибка сохранения: {e}")
+            return None
+
 
 
 default_saver = SaveTestData(test_data_path)

@@ -24,7 +24,7 @@ class LoaderTestData:
         except Exception as e:
             print(f"❌ Ошибка загрузки: {e}")
             return None
-        
+
     def load_fill_schema_batch(self, filename: str) -> Optional[FillAddSchemaChunk]:
         """Загружает батч из JSON"""
         try:
@@ -175,6 +175,19 @@ class LoaderTestData:
         except Exception as e:
             print(f"❌ Ошибка загрузки: {e}")
             return []
+
+    def load_from_files_by_schema(self, file, model):
+        """Загружает батч из JSON"""
+        try:
+            filepath = file
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = f.read()
+
+            return model.model_validate_json(data)
+
+        except Exception as e:
+            print(f"❌ Ошибка загрузки: {e}")
+            return None
 
 
 default_loader = LoaderTestData(dir_to_load=test_data_path)
