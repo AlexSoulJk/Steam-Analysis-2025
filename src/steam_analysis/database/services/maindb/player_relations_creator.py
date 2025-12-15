@@ -28,29 +28,68 @@ class PlayerRelationsCreationService:
                                           data_without_none: List[PlayerDataAnalysisCreate],
                                           session: Session) -> Tuple[PreparedForPlayerCreation, List[str]]:
         """Подготовить данные для создания игроков"""
+        # friends_prep = {}
+        # no_created_friends_prep = {}
+        # no_created_friends = []
+        # friends_steam_ids = []
+        # for x in data_without_none:
+        #     friends_steam_ids.extend(x.friends)
+        # existing_users = self.player_repos.get_existing_by_steam_ids(friends_steam_ids, session)
+        # friend_objects_cache = {}
+        # for x in data_without_none:
+        #     friends_prep[x.player.steam_id] = []
+        #     no_created_friends_prep[x.player.steam_id] = []
+        #     for friend_name in x.friends:
+        #         # friend = self.player_repos.get_by_steam_id(friend_name, session)
+        #         friend = existing_users.get(friend_name, None)
+        #         if friend:
+        #             friends_prep[x.player.steam_id].append(friend)
+        #         else:
+        #             no_created_friends_prep[x.player.steam_id].append(friend_name)
+        #             if friend_name not in no_created_friends:
+        #                 no_created_friends.append(friend_name)
+        #
+        # return PreparedForPlayerCreation(friends=friends_prep, no_created_friends=no_created_friends_prep), \
+        #     no_created_friends
+        # 1. Собираем ВСЕ steam_id за один проход
+        all_friends_steam_ids = set()
+        player_friends_map = {}  # steam_id игрока -> список друзей steam_id
+
+        for x in data_without_none:
+            player_steam_id = x.player.steam_id
+            friends_list = x.friends
+            player_friends_map[player_steam_id] = friends_list
+            all_friends_steam_ids.update(friends_list)
+
+        # 2. Один запрос для получения всех существующих пользователей
+        existing_users = self.player_repos.get_existing_by_steam_ids(
+            list(all_friends_steam_ids), session
+        )
+
+        # 3. Подготавливаем структуры данных
         friends_prep = {}
         no_created_friends_prep = {}
-        no_created_friends = []
-        friends_steam_ids = []
-        for x in data_without_none:
-            friends_steam_ids.extend(x.friends)
-        existing_users = self.player_repos.get_existing_by_steam_ids(friends_steam_ids, session)
+        no_created_friends_set = set()
 
-        for x in data_without_none:
-            friends_prep[x.player.steam_id] = []
-            no_created_friends_prep[x.player.steam_id] = []
-            for friend_name in x.friends:
-                # friend = self.player_repos.get_by_steam_id(friend_name, session)
-                friend = existing_users.get(friend_name, None)
-                if friend:
-                    friends_prep[x.player.steam_id].append(friend)
+        # 4. Один проход по данным
+        for player_steam_id, friends_steam_ids in player_friends_map.items():
+            found_friends = []
+            not_found_friends = []
+
+            for friend_steam_id in friends_steam_ids:
+                if friend_steam_id in existing_users.keys():
+                    friend_obj = existing_users[friend_steam_id]
+                    found_friends.append(friend_obj)
                 else:
-                    no_created_friends_prep[x.player.steam_id].append(friend_name)
-                    if friend_name not in no_created_friends:
-                        no_created_friends.append(friend_name)
+                    not_found_friends.append(friend_steam_id)
+                    no_created_friends_set.add(friend_steam_id)
 
-        return PreparedForPlayerCreation(friends=friends_prep, no_created_friends=no_created_friends_prep), \
-            no_created_friends
+            friends_prep[player_steam_id] = found_friends
+            no_created_friends_prep[player_steam_id] = not_found_friends
+
+        return PreparedForPlayerCreation(
+            friends=friends_prep,
+            no_created_friends=no_created_friends_prep), list(no_created_friends_set)
 
     def create_connections_friends(self, data_without_none,
                                    players: List[User],

@@ -112,7 +112,7 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
 
 
 
-    def get_existing_by_steam_ids(self, steam_ids: List[str], session: Session, batch_size=500) -> Dict[str, User]:
+    def get_existing_by_steam_ids(self, steam_ids: List[str], session: Session, batch_size=900) -> Dict[str, User]:
         """
         Получить существующих пользователей по списку steam_ids одним запросом
         Возвращает словарь {steam_id: user_object}
@@ -120,9 +120,9 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         if not steam_ids:
             return {}
 
-        query = select(self.model).where(self.model.steam_id.in_(steam_ids))
-        result = session.execute(query)
-        existing_users = result.scalars().all()
+        # query = select(self.model).where(self.model.steam_id.in_(steam_ids))
+        # result = session.execute(query)
+        # existing_users = result.scalars().all()
         result_dict = {}
 
         # Обрабатываем батчи
