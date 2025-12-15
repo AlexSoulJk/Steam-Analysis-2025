@@ -30,14 +30,6 @@ class PlayerGameOwnershipRepository(BaseDBRepository[UserGameOwnership, Ownershi
             UserGameOwnership.owned == True
         ).all()
 
-    # def get_user_games(self, session: Session, user_id: int) -> List[Game]:
-    #     """Получить все игры пользователя"""
-    #     return session.query(UserGameOwnership.game). \
-    #         filter(
-    #         UserGameOwnership.user_id == user_id,
-    #         UserGameOwnership.owned == True
-    #     ).all()
-
     def create_or_update_ownership(self, session: Session,
                                    ownership_create: OwnershipCreate) -> UserGameOwnership:
         """Создать или обновить владение игрой"""
