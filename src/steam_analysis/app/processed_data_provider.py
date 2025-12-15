@@ -41,7 +41,7 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
     def get_geo_games(self, game_limit):
         return self.geo_coordinate_proccessor.get_games_by_geo(game_limit)
 
-    def get_friends_by_games(self):
-        return self.friends_proccessor.get_friends_by_games()
+    def get_friends_by_games(self, steam_id: str):
+        return self.friends_proccessor.get_friends_by_games(steam_id)
 
 

@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict, Tuple, Any, Callable, Type
-from sqlalchemy import select, and_, or_, over
+from sqlalchemy import select, and_, or_, over, true, case, literal_column, union_all
 from sqlalchemy.orm import Session, joinedload, selectinload
 from datetime import datetime
 
@@ -305,5 +305,139 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         session.refresh(user)
         return user
 
-    def get_friends_by(self):
-        pass
+    def get_friends_game_graph(
+            self,
+            session: Session,
+            target_user_id_stmt: User,  # Это может быть ID (int) или подзапрос
+            games: Optional[List[Game]] = None
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Строит граф: [Target User] + [Friends] -> [Games].
+
+        Логика:
+        Мы передаем список игр (games).
+        Функция показывает, кто из друзей (и сам пользователь) владеет этими играми.
+        Даже если игрой никто не владеет, она все равно будет отображена как вершина (Node).
+        """
+
+        # 0. Подготовка списка ID игр для SQL-фильтра
+        game_ids = []
+        if games:
+            game_ids = [g.id for g in games]
+
+        # --- ЧАСТЬ 1: Запрос для ЦЕЛЕВОГО пользователя ---
+        target_query = (
+            select(
+                User.id.label("user_id"),
+                User.persona_name,
+                User.steam_id,
+                Game.id.label("game_id"),
+                Game.name.label("game_name"),
+                literal_column("'target'").label("user_type")
+            )
+            .join(UserGameOwnership, User.id == UserGameOwnership.user_id)
+            .join(Game, Game.id == UserGameOwnership.game_id)
+            .where(
+                User.id == target_user_id_stmt.id,
+                UserGameOwnership.owned == true()
+            )
+        )
+
+        # --- ЧАСТЬ 2: Подготовка списка друзей (CTE) ---
+        friends_cte = select(
+            case(
+                (Friend.user_id == target_user_id_stmt.id, Friend.friend_id),
+                else_=Friend.user_id
+            ).label("friend_id")
+        ).where(
+            or_(
+                Friend.user_id == target_user_id_stmt.id,
+                Friend.friend_id == target_user_id_stmt.id
+            ),
+            Friend.status == 'valid'
+        ).cte("friends_list")
+
+        # --- ЧАСТЬ 3: Запрос для ДРУЗЕЙ ---
+        friends_query = (
+            select(
+                User.id.label("user_id"),
+                User.persona_name,
+                User.steam_id,
+                Game.id.label("game_id"),
+                Game.name.label("game_name"),
+                literal_column("'friend'").label("user_type")
+            )
+            .select_from(friends_cte)
+            .join(User, User.id == friends_cte.c.friend_id)
+            .join(UserGameOwnership, User.id == UserGameOwnership.user_id)
+            .join(Game, Game.id == UserGameOwnership.game_id)
+            .where(UserGameOwnership.owned == true())
+        )
+
+        # --- ФИЛЬТРАЦИЯ ---
+        # Применяем фильтр по ID игр к обоим запросам
+        if game_ids:
+            target_query = target_query.where(Game.id.in_(game_ids))
+            friends_query = friends_query.where(Game.id.in_(game_ids))
+
+        # --- ОБЪЕДИНЕНИЕ И ВЫПОЛНЕНИЕ ---
+        final_query = union_all(target_query, friends_query)
+        rows = session.execute(final_query).all()
+
+        # --- СБОРКА ГРАФА ---
+        nodes_dict = {}
+        edges_list = []
+
+        # ШАГ А: Сразу добавляем все игры из входного списка как вершины.
+        # Это нужно, чтобы на графе отобразились даже те игры, которые никто не купил.
+        if games:
+            for game in games:
+                game_key = f"g_{game.id}"
+                nodes_dict[game_key] = {
+                    "id": game_key,
+                    "label": game.name,
+                    "type": "game",
+                    "owned_by_friends_count": 0  # Счетчик для удобства фронтенда
+                }
+
+        # ШАГ Б: Обрабатываем результаты SQL (связи)
+        for row in rows:
+            user_key = f"u_{row.user_id}"
+            game_key = f"g_{row.game_id}"
+
+            # 1. Создаем вершину ПОЛЬЗОВАТЕЛЯ (если её еще нет)
+            if user_key not in nodes_dict:
+                nodes_dict[user_key] = {
+                    "id": user_key,
+                    "label": row.persona_name,
+                    "steam_id": row.steam_id,
+                    "type": "user",
+                    "subtype": row.user_type  # 'target' или 'friend'
+                }
+
+            # 2. Создаем/Обновляем вершину ИГРЫ
+            # (Если игра была в списке games, она уже создана на Шаге А.
+            # Если списка games не было, создаем тут).
+            if game_key not in nodes_dict:
+                nodes_dict[game_key] = {
+                    "id": game_key,
+                    "label": row.game_name,
+                    "type": "game",
+                    "owned_by_friends_count": 0
+                }
+
+            # Подсчитываем кол-во друзей (исключая самого пользователя), владеющих игрой
+            if row.user_type == 'friend':
+                nodes_dict[game_key]["owned_by_friends_count"] += 1
+
+            # 3. Создаем РЕБРО (Связь)
+            edges_list.append({
+                "source": user_key,
+                "target": game_key,
+                "id": f"{user_key}-{game_key}"
+            })
+
+        return {
+            "nodes": list(nodes_dict.values()),
+            "edges": edges_list
+        }

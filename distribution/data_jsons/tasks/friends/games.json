@@ -1,0 +1,519 @@
+{
+  "nodes": [
+    {
+      "id": "g_23",
+      "name": "Team Fortress 2",
+      "type": "game",
+      "count": 1
+    },
+    {
+      "id": "g_25",
+      "name": "Left 4 Dead 2",
+      "type": "game",
+      "count": 5
+    },
+    {
+      "id": "g_30",
+      "name": "Counter-Strike 2",
+      "type": "game",
+      "count": 10
+    },
+    {
+      "id": "g_69559",
+      "name": "Garry's Mod",
+      "type": "game",
+      "count": 3
+    },
+    {
+      "id": "g_92851",
+      "name": "Terraria",
+      "type": "game",
+      "count": 4
+    },
+    {
+      "id": "g_491",
+      "name": "Tomb Raider",
+      "type": "game",
+      "count": 3
+    },
+    {
+      "id": "g_92905",
+      "name": "Crusader Kings II",
+      "type": "game",
+      "count": 0
+    },
+    {
+      "id": "g_70036",
+      "name": "Insurgency",
+      "type": "game",
+      "count": 1
+    },
+    {
+      "id": "g_93268",
+      "name": "War Thunder",
+      "type": "game",
+      "count": 3
+    },
+    {
+      "id": "g_907",
+      "name": "Rust",
+      "type": "game",
+      "count": 1
+    },
+    {
+      "id": "g_93406",
+      "name": "Rocket League®",
+      "type": "game",
+      "count": 3
+    },
+    {
+      "id": "g_93606",
+      "name": "Grand Theft Auto V Legacy",
+      "type": "game",
+      "count": 2
+    },
+    {
+      "id": "g_101194",
+      "name": "Unturned",
+      "type": "game",
+      "count": 5
+    },
+    {
+      "id": "g_1429",
+      "name": "Mortal Kombat X",
+      "type": "game",
+      "count": 0
+    },
+    {
+      "id": "g_101364",
+      "name": "Move or Die",
+      "type": "game",
+      "count": 0
+    },
+    {
+      "id": "g_102255",
+      "name": "Heaven Island - VR MMO",
+      "type": "game",
+      "count": 0
+    },
+    {
+      "id": "g_96993",
+      "name": "Unforgiving Trials: The Darkest Crusade",
+      "type": "game",
+      "count": 0
+    },
+    {
+      "id": "g_4965",
+      "name": "Nuclear Contingency",
+      "type": "game",
+      "count": 0
+    },
+    {
+      "id": "g_5087",
+      "name": "Space Beret",
+      "type": "game",
+      "count": 0
+    },
+    {
+      "id": "g_5114",
+      "name": "Black Squad",
+      "type": "game",
+      "count": 2
+    },
+    {
+      "id": "g_98710",
+      "name": "PUBG: BATTLEGROUNDS",
+      "type": "game",
+      "count": 7
+    },
+    {
+      "id": "g_5843",
+      "name": "VITATIO 2",
+      "type": "game",
+      "count": 0
+    },
+    {
+      "id": "g_73923",
+      "name": "Zup! F",
+      "type": "game",
+      "count": 0
+    },
+    {
+      "id": "g_55397",
+      "name": "Grand Theft Auto V Enhanced",
+      "type": "game",
+      "count": 2
+    },
+    {
+      "id": "u_3",
+      "name": "Ricky",
+      "type": "target"
+    },
+    {
+      "id": "u_103",
+      "name": "jinu9627",
+      "type": "friend"
+    },
+    {
+      "id": "u_105",
+      "name": "JESUS IS KING",
+      "type": "friend"
+    },
+    {
+      "id": "u_107",
+      "name": "1750772181",
+      "type": "friend"
+    },
+    {
+      "id": "u_108",
+      "name": "gger",
+      "type": "friend"
+    },
+    {
+      "id": "u_109",
+      "name": "PDW Jaca ♿",
+      "type": "friend"
+    },
+    {
+      "id": "u_110",
+      "name": "багдан52",
+      "type": "friend"
+    },
+    {
+      "id": "u_111",
+      "name": "Klukvinka",
+      "type": "friend"
+    },
+    {
+      "id": "u_113",
+      "name": "Дима",
+      "type": "friend"
+    },
+    {
+      "id": "u_115",
+      "name": "Zarby",
+      "type": "friend"
+    },
+    {
+      "id": "u_116",
+      "name": "Chpuka",
+      "type": "friend"
+    },
+    {
+      "id": "u_118",
+      "name": "Whitel",
+      "type": "friend"
+    },
+    {
+      "id": "u_119",
+      "name": "Kuba_310",
+      "type": "friend"
+    }
+  ],
+  "orts": [
+    {
+      "source": "u_3",
+      "target": "g_23"
+    },
+    {
+      "source": "u_3",
+      "target": "g_25"
+    },
+    {
+      "source": "u_3",
+      "target": "g_30"
+    },
+    {
+      "source": "u_3",
+      "target": "g_491"
+    },
+    {
+      "source": "u_3",
+      "target": "g_907"
+    },
+    {
+      "source": "u_3",
+      "target": "g_1429"
+    },
+    {
+      "source": "u_3",
+      "target": "g_4965"
+    },
+    {
+      "source": "u_3",
+      "target": "g_5087"
+    },
+    {
+      "source": "u_3",
+      "target": "g_5114"
+    },
+    {
+      "source": "u_3",
+      "target": "g_5843"
+    },
+    {
+      "source": "u_3",
+      "target": "g_55397"
+    },
+    {
+      "source": "u_3",
+      "target": "g_69559"
+    },
+    {
+      "source": "u_3",
+      "target": "g_70036"
+    },
+    {
+      "source": "u_3",
+      "target": "g_73923"
+    },
+    {
+      "source": "u_3",
+      "target": "g_92851"
+    },
+    {
+      "source": "u_3",
+      "target": "g_92905"
+    },
+    {
+      "source": "u_3",
+      "target": "g_93268"
+    },
+    {
+      "source": "u_3",
+      "target": "g_93406"
+    },
+    {
+      "source": "u_3",
+      "target": "g_93606"
+    },
+    {
+      "source": "u_3",
+      "target": "g_96993"
+    },
+    {
+      "source": "u_3",
+      "target": "g_98710"
+    },
+    {
+      "source": "u_3",
+      "target": "g_101194"
+    },
+    {
+      "source": "u_3",
+      "target": "g_101364"
+    },
+    {
+      "source": "u_3",
+      "target": "g_102255"
+    },
+    {
+      "source": "u_103",
+      "target": "g_25"
+    },
+    {
+      "source": "u_103",
+      "target": "g_98710"
+    },
+    {
+      "source": "u_105",
+      "target": "g_25"
+    },
+    {
+      "source": "u_105",
+      "target": "g_30"
+    },
+    {
+      "source": "u_105",
+      "target": "g_491"
+    },
+    {
+      "source": "u_105",
+      "target": "g_907"
+    },
+    {
+      "source": "u_105",
+      "target": "g_5114"
+    },
+    {
+      "source": "u_105",
+      "target": "g_69559"
+    },
+    {
+      "source": "u_105",
+      "target": "g_92851"
+    },
+    {
+      "source": "u_105",
+      "target": "g_93268"
+    },
+    {
+      "source": "u_105",
+      "target": "g_98710"
+    },
+    {
+      "source": "u_105",
+      "target": "g_101194"
+    },
+    {
+      "source": "u_107",
+      "target": "g_25"
+    },
+    {
+      "source": "u_107",
+      "target": "g_30"
+    },
+    {
+      "source": "u_107",
+      "target": "g_491"
+    },
+    {
+      "source": "u_107",
+      "target": "g_55397"
+    },
+    {
+      "source": "u_107",
+      "target": "g_92851"
+    },
+    {
+      "source": "u_107",
+      "target": "g_93606"
+    },
+    {
+      "source": "u_107",
+      "target": "g_98710"
+    },
+    {
+      "source": "u_108",
+      "target": "g_23"
+    },
+    {
+      "source": "u_108",
+      "target": "g_25"
+    },
+    {
+      "source": "u_108",
+      "target": "g_30"
+    },
+    {
+      "source": "u_108",
+      "target": "g_5114"
+    },
+    {
+      "source": "u_108",
+      "target": "g_98710"
+    },
+    {
+      "source": "u_108",
+      "target": "g_101194"
+    },
+    {
+      "source": "u_109",
+      "target": "g_30"
+    },
+    {
+      "source": "u_110",
+      "target": "g_30"
+    },
+    {
+      "source": "u_110",
+      "target": "g_98710"
+    },
+    {
+      "source": "u_110",
+      "target": "g_101194"
+    },
+    {
+      "source": "u_111",
+      "target": "g_30"
+    },
+    {
+      "source": "u_113",
+      "target": "g_30"
+    },
+    {
+      "source": "u_113",
+      "target": "g_93268"
+    },
+    {
+      "source": "u_113",
+      "target": "g_93406"
+    },
+    {
+      "source": "u_115",
+      "target": "g_30"
+    },
+    {
+      "source": "u_115",
+      "target": "g_98710"
+    },
+    {
+      "source": "u_116",
+      "target": "g_25"
+    },
+    {
+      "source": "u_116",
+      "target": "g_30"
+    },
+    {
+      "source": "u_116",
+      "target": "g_69559"
+    },
+    {
+      "source": "u_116",
+      "target": "g_92851"
+    },
+    {
+      "source": "u_116",
+      "target": "g_93268"
+    },
+    {
+      "source": "u_116",
+      "target": "g_93406"
+    },
+    {
+      "source": "u_116",
+      "target": "g_101194"
+    },
+    {
+      "source": "u_118",
+      "target": "g_491"
+    },
+    {
+      "source": "u_118",
+      "target": "g_69559"
+    },
+    {
+      "source": "u_118",
+      "target": "g_70036"
+    },
+    {
+      "source": "u_118",
+      "target": "g_92851"
+    },
+    {
+      "source": "u_118",
+      "target": "g_98710"
+    },
+    {
+      "source": "u_118",
+      "target": "g_101194"
+    },
+    {
+      "source": "u_119",
+      "target": "g_30"
+    },
+    {
+      "source": "u_119",
+      "target": "g_55397"
+    },
+    {
+      "source": "u_119",
+      "target": "g_93406"
+    },
+    {
+      "source": "u_119",
+      "target": "g_93606"
+    }
+  ]
+}

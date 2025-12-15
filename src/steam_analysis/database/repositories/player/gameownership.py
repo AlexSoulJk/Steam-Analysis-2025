@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from datetime import datetime
 
 from ..base.base import BaseDBRepository
-from ...models import UserGameOwnership
+from ...models import UserGameOwnership, Game
 from steam_analysis.core.schemas.player.playergame import OwnershipCreate
 
 
@@ -29,6 +29,14 @@ class PlayerGameOwnershipRepository(BaseDBRepository[UserGameOwnership, Ownershi
             UserGameOwnership.user_id == user_id,
             UserGameOwnership.owned == True
         ).all()
+
+    # def get_user_games(self, session: Session, user_id: int) -> List[Game]:
+    #     """Получить все игры пользователя"""
+    #     return session.query(UserGameOwnership.game). \
+    #         filter(
+    #         UserGameOwnership.user_id == user_id,
+    #         UserGameOwnership.owned == True
+    #     ).all()
 
     def create_or_update_ownership(self, session: Session,
                                    ownership_create: OwnershipCreate) -> UserGameOwnership:

@@ -1,21 +1,23 @@
-from typing import List
+from typing import List, Union
 
 from steam_analysis.core.schemas.base import BaseSchema
 
 
-class UserBase(BaseSchema):
-    id: int
+class NodeBase(BaseSchema):
+    id: Union[int, str]
+    name: str
+    type: str
+
+
+class NodeWithCount(NodeBase):
+    count: int
 
 
 class OrtBase(BaseSchema):
-    id_1: int
-    id_2: int
-
-
-class OrtByGames(OrtBase):
-    game: str
+    source: str
+    target: str
 
 
 class FriendsByGames(BaseSchema):
-    users: List[UserBase]
-    orts: List[OrtByGames]
+    nodes: List[Union[NodeBase, NodeWithCount]]
+    orts: List[OrtBase]

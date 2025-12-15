@@ -144,8 +144,8 @@ class Application:
         res = self.data_provider.get_geo_games(limit_of_games)
         return res
 
-    def calculate_friends_graphs_by_games(self, friends_game_saver: SaveTestData):
-        res = self.data_provider.get_friends_by_games()
+    def calculate_friends_graphs_by_games(self, friends_game_saver: SaveTestData, steam_id: str = "76561198287722531"):
+        res = self.data_provider.get_friends_by_games(steam_id)
         friends_game_saver.save_task_data_simple(res, Path(DEFAULT_FILENAME_GAMES))
         return res
 

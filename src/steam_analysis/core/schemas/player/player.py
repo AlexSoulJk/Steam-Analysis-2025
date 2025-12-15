@@ -22,7 +22,7 @@ class PlayerShortInfo:
 
 
 class ListPlayerShortInfo(BaseSchema):
-    users = List[PlayerShortInfo]
+    users: List[PlayerShortInfo]
 
 
 class PlayerBase(BaseSchema):
