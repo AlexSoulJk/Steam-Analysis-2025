@@ -11,7 +11,7 @@ def main():
     app = AppMediator(steam_api_key=api_key,
                       processor_name="Lo-Lap")
     # sleep(180)
-    for i in range(2000):
+    for i in range(300):
         # app.create_user()
         app.add_user_to_json(filename="users")
 
