@@ -9,8 +9,17 @@ class NodeBase(BaseSchema):
     type: str
 
 
+class NodeUser(NodeBase):
+    steam_id: str
+    url: str
+
+
 class NodeWithCount(NodeBase):
     count: int
+
+
+class NodeGame(NodeWithCount):
+    app_id: str
 
 
 class OrtBase(BaseSchema):
@@ -19,5 +28,5 @@ class OrtBase(BaseSchema):
 
 
 class FriendsByGames(BaseSchema):
-    nodes: List[Union[NodeBase, NodeWithCount]]
+    nodes: List[Union[NodeUser, NodeGame]]
     orts: List[OrtBase]

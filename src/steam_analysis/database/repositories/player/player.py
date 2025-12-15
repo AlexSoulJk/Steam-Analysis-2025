@@ -331,8 +331,10 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
                 User.id.label("user_id"),
                 User.persona_name,
                 User.steam_id,
+                User.profile_url,
                 Game.id.label("game_id"),
                 Game.name.label("game_name"),
+                Game.app_id,
                 literal_column("'target'").label("user_type")
             )
             .join(UserGameOwnership, User.id == UserGameOwnership.user_id)
@@ -362,9 +364,11 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
             select(
                 User.id.label("user_id"),
                 User.persona_name,
-                User.steam_id,
+                User.steam_id.label("user_steam_id"),
+                User.profile_url,
                 Game.id.label("game_id"),
                 Game.name.label("game_name"),
+                Game.app_id,
                 literal_column("'friend'").label("user_type")
             )
             .select_from(friends_cte)
@@ -374,11 +378,6 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
             .where(UserGameOwnership.owned == true())
         )
 
-        # --- ФИЛЬТРАЦИЯ ---
-        # Применяем фильтр по ID игр к обоим запросам
-        if game_ids:
-            target_query = target_query.where(Game.id.in_(game_ids))
-            friends_query = friends_query.where(Game.id.in_(game_ids))
 
         # --- ОБЪЕДИНЕНИЕ И ВЫПОЛНЕНИЕ ---
         final_query = union_all(target_query, friends_query)
@@ -392,9 +391,10 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         # Это нужно, чтобы на графе отобразились даже те игры, которые никто не купил.
         if games:
             for game in games:
-                game_key = f"g_{game.id}"
+                game_key = f"{game.app_id}"
                 nodes_dict[game_key] = {
                     "id": game_key,
+                    "app_id": game.app_id,
                     "label": game.name,
                     "type": "game",
                     "owned_by_friends_count": 0  # Счетчик для удобства фронтенда
@@ -403,7 +403,7 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
         # ШАГ Б: Обрабатываем результаты SQL (связи)
         for row in rows:
             user_key = f"u_{row.user_id}"
-            game_key = f"g_{row.game_id}"
+            game_key = f"{row.app_id}"
 
             # 1. Создаем вершину ПОЛЬЗОВАТЕЛЯ (если её еще нет)
             if user_key not in nodes_dict:
@@ -412,7 +412,8 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
                     "label": row.persona_name,
                     "steam_id": row.steam_id,
                     "type": "user",
-                    "subtype": row.user_type  # 'target' или 'friend'
+                    "subtype": row.user_type,
+                    "url": row.profile_url# 'target' или 'friend'
                 }
 
             # 2. Создаем/Обновляем вершину ИГРЫ
@@ -422,6 +423,7 @@ class PlayerRepository(BaseDBRepository[User, PlayerCreate, PlayerUpdate]):
                 nodes_dict[game_key] = {
                     "id": game_key,
                     "label": row.game_name,
+                    "app_id": row.app_id,
                     "type": "game",
                     "owned_by_friends_count": 0
                 }

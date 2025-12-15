@@ -30,6 +30,10 @@ DEFAULT_FILENAME_USERS = "users"
 DEFAULT_FILENAME_USERS_GAMES = "users_games"
 DEFAULT_PATH_TO_GEO_SAVE_GAMES = "geo_games"
 
+# google_sheet names
+
+DEFAULT_NODE_AGE_NAME = "Nodes_By_Games"
+
 class PathManager:
     def __init__(self):
         self._path_to_strategy_game: Path = DEFAULT_PATH_TO_STRATEGY / "strategy_games.json"
@@ -51,6 +55,7 @@ class PathManager:
         self._file_peak_app_ids: Path = DEFAULT_PATH_TO_PEAK / "steam_app_ids.json"
 
         self._file_geo_games: Path = DEFAULT_PATH_TO_TASKS_DATA_JSON / DEFAULT_FOLDER_GEO_TASKS / f"{DEFAULT_FILENAME_GAMES}.json"
+        self._file_to_task_friends_games = DEFAULT_PATH_TO_TASKS_DATA_JSON / DEFAULT_FOLDER_FRIENDS_TASKS / f"{DEFAULT_FILENAME_GAMES}.json"
         self._path_to_google_token = None
         # self._file_peak_batches_app_ids: Path = DEFAULT_FILE_BATCHES_APP_IDS
 
@@ -94,6 +99,11 @@ class PathManager:
     def file_to_task_geo_games(self):
         self.check_exist_file(self._file_geo_games)
         return self._file_geo_games
+
+    @property
+    def file_to_task_friends_games(self):
+        self.check_exist_file(self._file_to_task_friends_games)
+        return self._file_to_task_friends_games
 
 
     @property

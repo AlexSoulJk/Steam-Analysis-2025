@@ -1,10 +1,11 @@
 import os
 from pathlib import Path
 
-from distribution.pathmanager import pm, DEFAULT_FILENAME_GAMES
+from distribution.pathmanager import pm, DEFAULT_FILENAME_GAMES, DEFAULT_NODE_AGE_NAME
 from geo_mapper import GeoRemapper
 from google_loader import GoogleLoader
 from steam_analysis.app.processed_data_provider import ProcessedDataProvider
+from steam_analysis.core.schemas.analysis.friends import FriendsByGames
 from steam_analysis.core.schemas.analysis.geoshemas import ListCountryGameStat
 from steam_analysis.core.services.fastlogger import setup_logger
 from steam_analysis.json_to_csv_converter import JsonToCsvConverter
@@ -154,6 +155,13 @@ class Application:
         loaded_data_remaped = self.geo_remapper.convert_for_datawrapper(loaded_data)
         tmp = self.convert_to_csv.convert_geo_games(loaded_data_remaped)
 
-        self.google_uploader.upload_csv(spreadsheet_url, tmp)
+        self.google_uploader.upload_csv_by_url_from_str(spreadsheet_url, tmp)
 
+    def load_friends_graphs_by_games(self, friends_loader: LoaderTestData, spreadsheet_url=str):
+        loaded_data = friends_loader.load_from_files_by_schema(pm.file_to_task_friends_games, FriendsByGames)
+        df_nodes, df_orts = self.convert_to_csv.convert_for_cosmograph(loaded_data)
+        nodes_id = self.google_uploader.upload_csv_by_title_from_df(DEFAULT_NODE_AGE_NAME, [df_nodes, df_orts], folder_id=spreadsheet_url)
+        nodes_csv_link = f"https://docs.google.com/spreadsheets/d/{nodes_id}"
+
+        print(f"Проверьте документ по ссылке: {nodes_csv_link}")
 

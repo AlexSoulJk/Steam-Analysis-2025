@@ -1,4 +1,5 @@
-from steam_analysis.core.schemas.analysis.friends import FriendsByGames, OrtBase, NodeWithCount, NodeBase
+from steam_analysis.core.schemas.analysis.friends import FriendsByGames, OrtBase, NodeWithCount, NodeBase, NodeUser, \
+    NodeGame
 from steam_analysis.database.facade import get_db
 from steam_analysis.database.repositories import PlayerRepository, PlayerGameOwnershipRepository
 
@@ -13,9 +14,15 @@ class FriendsProcessor:
         vertexes = []
         for vertex in info["nodes"]:
             if vertex["type"] == "user":
-                vertexes.append(NodeBase(type=vertex["subtype"], id=vertex["id"], name=vertex["label"]))
+                vertexes.append(NodeUser(type=vertex["subtype"],
+                                         id=vertex["id"],
+                                         name=vertex["label"],
+                                         steam_id=vertex["steam_id"],
+                                         url=vertex["url"]))
             else:
-                vertexes.append(NodeWithCount(id=vertex["id"], count=vertex["owned_by_friends_count"], name=vertex["label"], type=vertex["type"]))
+                vertexes.append(NodeGame(id=vertex["id"], count=vertex["owned_by_friends_count"],
+                                         name=vertex["label"], type=vertex["type"],
+                                         app_id=str(vertex["app_id"])))
 
         orts = list(map(lambda x: OrtBase(source=x["source"], target=x["target"]), info["edges"]))
         return orts, vertexes

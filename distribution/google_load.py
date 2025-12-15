@@ -20,9 +20,10 @@ def task_4(app: Application, graphs, spreadsheet_url):
 
 
 def task_5(app: Application, graphs, spreadsheet_url):
-    GRAPHS_HENDLERS = {0: app.calculate_friends_graphs_by_games}
+    GRAPHS_HENDLERS = {0: app.load_friends_graphs_by_games}
     for graph in graphs:
-        GRAPHS_HENDLERS[graph]()
+        loader_friends_game = LoaderTestData("")
+        GRAPHS_HENDLERS[graph](loader_friends_game, spreadsheet_url)
 
 
 def google_load(task: int, graphs: List[int], spreadsheet_url: str):
@@ -31,7 +32,8 @@ def google_load(task: int, graphs: List[int], spreadsheet_url: str):
 
     return TASKS[task](app, graphs, spreadsheet_url)
 
-spreadsheet_url = "https://docs.google.com/spreadsheets/d/1w-ojS7k00hRTdEKqRa8fF-fOkBAQ0dPxMASBMVlJgLs/edit?usp=sharing"
+spreadsheet_url_ = "https://docs.google.com/spreadsheets/d/1w-ojS7k00hRTdEKqRa8fF-fOkBAQ0dPxMASBMVlJgLs/edit?usp=sharing"
 pm._path_to_google_token = r"C:\Users\Hp\PycharmProjects\Steam-Analysis-2025\google_token.json"
-
-google_load(4, [0], spreadsheet_url)
+spreadsheet_foled = "1CTi4qxH6TXQbnOwGHz7TbDZOteeXliQ3"
+# google_load(4, [0], spreadsheet_url)
+google_load(5, [0], spreadsheet_foled)
