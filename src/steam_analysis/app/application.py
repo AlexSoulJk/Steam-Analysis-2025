@@ -13,7 +13,8 @@ from steam_analysis.resourcemanager.manager import ResourceManager
 from steam_analysis.resourcemanager.resources.codes import ResourceCodes
 from steam_analysis.saver_test_data import default_saver, save_add_info_games, save_games, \
     save_user, save_user_games
-from distribution.pathmanager import DEFAULT_FILENAME_GAMES, DEFAULT_FILENAME_ADD_INFO_GAMES
+from distribution.pathmanager import DEFAULT_FILENAME_GAMES, DEFAULT_FILENAME_ADD_INFO_GAMES,\
+    DEFAULT_FILENAME_USERS_GAMES, DEFAULT_FILENAME_USERS
 
 from steam_analysis.core.services.fastlogger import setup_logger
 
@@ -169,7 +170,7 @@ class AppMediator:
         else:
             saver.batch_save_data_simple(fill_butch, file_name=filename)
 
-        self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+        # self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
     def add_schema_to_json(self, saver=save_add_info_games, filename: str = None, chunk_size: int = 10):
         chunk_to_fill = self.analysis_service.get_next_part_chunk_by_service(self.processor_name)
@@ -184,7 +185,7 @@ class AppMediator:
             saver.batch_save_data_simple(fill_butch, file_name=DEFAULT_FILENAME_ADD_INFO_GAMES)
         else:
             saver.batch_save_data_simple(fill_butch, file_name=filename)
-        self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
+        # self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
 
     def add_user_to_json(self,
                          saver=save_user,
@@ -198,10 +199,10 @@ class AppMediator:
 
         fill_user_butch = self.steam_facade.get_player_data_bunch(chunk_for_create, save_friends)
         if filename is None:
-            saver.batch_save_data_simple(fill_user_butch, file_name=DEFAULT_FILENAME_ADD_INFO_GAMES)
+            saver.batch_save_data_simple(fill_user_butch, file_name=DEFAULT_FILENAME_USERS)
         else:
             saver.batch_save_data_simple(fill_user_butch, file_name=filename)
-        self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
+        # self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
 
     def add_user_games_to_json(self,
                                saver=save_user_games,
@@ -215,10 +216,10 @@ class AppMediator:
         chunk_for_create = self.analysis_service.get_next_user_part_chunk_by_service(self.processor_name)
         fill_user_butch = self.steam_facade.get_player_game_data_bunch(chunk_for_create)
         if filename is None:
-            saver.batch_save_data_simple(fill_user_butch, file_name=DEFAULT_FILENAME_ADD_INFO_GAMES)
+            saver.batch_save_data_simple(fill_user_butch, file_name=DEFAULT_FILENAME_USERS_GAMES)
         else:
             saver.batch_save_data_simple(fill_user_butch, file_name=filename)
-        self.analysis_service.mark_game_chunk_complete(fill_user_butch.data_for_analysis_db)
+        self.analysis_service.mark_user_chunk_complete(fill_user_butch.data_for_analysis_db)
 
     def loads_add_data_game_from_jsons(self, loader=default_loader, folder="add_info_games"):
         json_files = loader.read_jsons(folder)
@@ -229,6 +230,7 @@ class AppMediator:
                 continue
             print(f"Загружены бачи: {len(schema_batchs)}....")
             for fill_butch in schema_batchs:
+                print(f"Обрабатываем батч {fill_butch.data_for_analysis_db.chunk.id}")
                 self.database_facade.add_info_games(fill_butch.data_chunk)
                 # Завершаем чанк
                 self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
@@ -242,6 +244,7 @@ class AppMediator:
                 continue
             print(f"Загружены бачи: {len(games_batchs)}....")
             for fill_butch in games_batchs:
+                print(f"Обрабатываем батч {fill_butch.data_for_analysis_db.chunk.id}")
                 self.database_facade.create_games(fill_butch.data_chunk)
                 # Завершаем чанк
                 self.analysis_service.mark_game_chunk_complete(fill_butch.data_for_analysis_db)
@@ -268,6 +271,7 @@ class AppMediator:
                 continue
             print(f"Загружены бачи: {len(users_batchs)}....")
             for fill_butch in users_batchs:
+                print(f"Обрабатываем батч {fill_butch.data_for_analysis_db.chunk.id}")
                 self.database_facade.create_players_game_relations(fill_butch.data_chunk)
                 self.analysis_service.mark_user_chunk_complete(fill_butch.data_for_analysis_db)
 

@@ -1,19 +1,13 @@
-import datetime
-from time import sleep
-
 from utils import load_api_key
 from steam_analysis.app.application import AppMediator
 
 
-def main():
+def test_part_fill_users_games():
     api_key = load_api_key()
     app = AppMediator(steam_api_key=api_key,
                       processor_name="Lo-Lap")
-    # app.create_user()
-    for i in range(1600):
-        # app.create_user_game()
-        app.add_user_games_to_json(filename="users_games")
+    app.loads_users_games_from_jsons(folder="user_games")
 
 
 if __name__ == "__main__":
-    main()
+    test_part_fill_users_games()
