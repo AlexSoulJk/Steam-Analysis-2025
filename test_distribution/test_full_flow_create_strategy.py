@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch, call
 from distribution.utils.parse_config import parse_config_file
 from distribution.utils.command_manager import get_result
 from distribution.pathmanager import pm
+from pathlib import Path
 
 
 class TestIntegration:
