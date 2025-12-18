@@ -1,12 +1,14 @@
 import os
 from pathlib import Path
 
-from distribution.pathmanager import pm, DEFAULT_FILENAME_GAMES, DEFAULT_NODE_AGE_NAME
+from distribution.pathmanager import pm, DEFAULT_FILENAME_GAMES, DEFAULT_NODE_AGE_NAME, \
+    DEFAULT_FILENAME_CLUSTERING, DEFAULT_FILENAME_DISTR_PRICE_GENRE, DEFAULT_FILENAME_DISTR_PRICE_CATEGORY
 from geo_mapper import GeoRemapper
 from google_loader import GoogleLoader
 import numpy as np
 from typing import List
 
+from steam_analysis.proccessors.schemas.games import GamesClusteringData, CharacterByPrice
 from steam_analysis.app.processed_data_provider import ProcessedDataProvider
 from steam_analysis.core.schemas.analysis.friends import FriendsByGames
 from steam_analysis.core.schemas.analysis.geoshemas import ListCountryGameStat
@@ -14,9 +16,9 @@ from steam_analysis.core.services.fastlogger import setup_logger
 from steam_analysis.json_to_csv_converter import JsonToCsvConverter
 from steam_analysis.loader_test_data import LoaderTestData
 from steam_analysis.saver_test_data import default_saver, SaveTestData
-
 from steam_analysis.analysis.response_schemas.graphics import HistogramAnalysisResult, GroupedHistogramData, \
-CorrelationHeatmapData
+    CorrelationHeatmapData
+
 
 class Application:
     TITLES = {
@@ -49,7 +51,7 @@ class Application:
         os.makedirs(self.folder_prices, exist_ok=True)
         os.makedirs(self.folder_dynamics, exist_ok=True)
 
-    def generate_distribution_by_type(self):
+    def generate_distribution_by_type(self, columns_num=15):
 
         path_for_type_pic = self.folder_clustering / Path("distribution_by_types.png")
         path_for_type_json = self.folder_clustering / Path("dist_by_types.json")
@@ -109,10 +111,10 @@ class Application:
                                                                               path_to_save=path_for_type_pic,
                                                                               columns_num=columns_num)
             generate_clustering_task_picture.generate_line_plot(data=data_for_response,
-                                                                              title_name=self.TITLES["Clustering"][
-                                                                                  "ByCategory"],
-                                                                              path_to_save=path_for_type_plot,
-                                                                              columns_num=columns_num)
+                                                                title_name=self.TITLES["Clustering"][
+                                                                    "ByCategory"],
+                                                                path_to_save=path_for_type_plot,
+                                                                columns_num=columns_num)
             generate_clustering_task_picture.generate_histogram(data=data_for_response,
                                                                 title_name=self.TITLES["Clustering"][
                                                                     "ByCategory"],
@@ -180,11 +182,11 @@ class Application:
     def load_friends_graphs_by_games(self, friends_loader: LoaderTestData, spreadsheet_url=str):
         loaded_data = friends_loader.load_from_files_by_schema(pm.file_to_task_friends_games, FriendsByGames)
         df_nodes, df_orts = self.convert_to_csv.convert_for_cosmograph(loaded_data)
-        nodes_id = self.google_uploader.upload_csv_by_title_from_df(DEFAULT_NODE_AGE_NAME, [df_nodes, df_orts], folder_id=spreadsheet_url)
+        nodes_id = self.google_uploader.upload_csv_by_title_from_df(DEFAULT_NODE_AGE_NAME, [df_nodes, df_orts],
+                                                                    folder_id=spreadsheet_url)
         nodes_csv_link = f"https://docs.google.com/spreadsheets/d/{nodes_id}"
 
         print(f"Проверьте документ по ссылке: {nodes_csv_link}")
-
 
     def generate_distribution_by_price(self, n: int = 10, type: str = "category"):
         """
@@ -241,9 +243,9 @@ class Application:
 
         try:
             if hasattr(data_for_response, 'model_dump'):
-                save_data = data_for_response.model_dump()
+                save_data = data_for_response
             elif hasattr(data_for_response, 'dict'):
-                save_data = data_for_response.dict()
+                save_data = data_for_response
             else:
                 save_data = {
                     "values": data_for_response.values,
@@ -283,7 +285,6 @@ class Application:
 
         self.logger.info(f"Графики цен по {type} сохранены")
         print(f"Графики цен по {type} сохранены")
-
 
     def generate_distribution_categories_dinamics(self, categories: list[str]):
         pass
@@ -327,14 +328,14 @@ class Application:
                     method=method,
                     n_clusters=min(n_clusters, len(data_for_response.games) // 2),
                     features_to_show=[
-                    "price_rub",
-                    "review_score",
-                    "review_confidence",
-                    "review_count_log",
-                    "achievements_count_norm",
-                    "game_age_years",
+                        "price_rub",
+                        "review_score",
+                        "review_confidence",
+                        "review_count_log",
+                        "achievements_count_norm",
+                        "game_age_years",
                     ],
-                    auto_select_params = auto_select_params,
+                    auto_select_params=auto_select_params,
                 )
             else:
                 self.logger.warning(
@@ -342,3 +343,199 @@ class Application:
         except Exception as e:
             self.logger.error(f"Ошибка при кластеризации игр: {e}", exc_info=True)
 
+    def calculate_game_clustering(self,
+                                  clustering_saver: SaveTestData = default_saver,
+                                  limit: int = None):
+        try:
+            data_for_response = self.data_provider.get_game_clustering_data(
+                type_id=1,
+                limit=limit
+            )
+        except Exception as e:
+            self.logger.error(f"Ошибка получения данных кластеризации: {e}")
+            return
+        if data_for_response is None:
+            self.logger.warning("Получены пустые данные для кластеризации!")
+            return
+        if not data_for_response.games:
+            self.logger.warning(f"Нет игр для кластеризации (получено {len(data_for_response.games)} игр)")
+        try:
+            clustering_saver.save_task_data_simple(data_for_response,
+                                                   file_name=DEFAULT_FILENAME_CLUSTERING)
+
+        except Exception as save_error:
+            self.logger.error(f"Ошибка сохранения данных кластеризации: {save_error}")
+
+    def load_clustering(self,
+                        clustering_loader: LoaderTestData,
+                        n_clusters=6,
+                        method="kmeans",
+                        auto_select_params=False):
+
+        path = pm.file_clustering_games
+        loaded_data = clustering_loader.load_from_files_by_schema(path, GamesClusteringData)
+        if not loaded_data:
+            print(f"❌ Ошибка чтения файла: '{path}'")
+            return
+        try:
+            from steam_analysis.analysis.utils import clustering
+            path_clustering_pic = path.parent / f"{path.stem}_scatter.png"
+            if len(loaded_data.games) >= n_clusters:
+                clustering.perform_games_clustering(
+                    data=loaded_data,
+                    title_name=f"Детальный анализ кластеризации игр",
+                    path_to_save=str(path_clustering_pic),
+                    method=method,
+                    n_clusters=min(n_clusters, len(loaded_data.games) // 2),
+                    features_to_show=[
+                        "price_rub",
+                        "review_score",
+                        "review_confidence",
+                        "review_count_log",
+                        "achievements_count_norm",
+                        "game_age_years",
+                    ],
+                    auto_select_params=auto_select_params,
+                )
+
+                from PIL import Image
+                image = Image.open(path_clustering_pic)
+                image.show()
+            else:
+                self.logger.warning(
+                    f"Недостаточно данных для детальной кластеризации: "
+                    f"{len(loaded_data.games)} игр < {n_clusters} кластеров")
+
+        except Exception as e:
+            self.logger.error(f"Ошибка при кластеризации игр: {e}", exc_info=True)
+
+    def calculate_distribution_by_price_genre(self,
+                                              distr_by_price_saver: SaveTestData = default_saver,
+                                              n: int = 10,
+                                              limit: int = None):
+
+        data_for_response = self.data_provider.get_genre_by_price(n_columns=n)
+        # Проверяем, что получили данные и что это объект CharacterByPrice или словарь
+        if not data_for_response:
+            self.logger.warning(f"Нет данных о ценах по жанрам")
+            print(f"Нет данных о ценах по жанрам")
+            return
+
+        self.save_distribution_by_price(distr_by_price_saver, data_for_response,
+                                        DEFAULT_FILENAME_DISTR_PRICE_GENRE, "жанрам")
+
+    def calculate_distribution_by_price_category(self,
+                                                 distr_by_price_saver: SaveTestData = default_saver,
+                                                 n: int = 10,
+                                                 limit: int = None):
+        data_for_response = self.data_provider.get_category_by_price(n_columns=n)
+
+        if not data_for_response:
+            self.logger.warning(f"Нет данных о ценах по категориям")
+            print(f"Нет данных о ценах по категориям")
+            return
+
+        self.save_distribution_by_price(distr_by_price_saver, data_for_response,
+                                        DEFAULT_FILENAME_DISTR_PRICE_CATEGORY, "категориям")
+
+    def save_distribution_by_price(self, distr_by_price_saver, data_for_response, filename, type_):
+        # Преобразуем в объект CharacterByPrice если это словарь
+        if isinstance(data_for_response, dict):
+            try:
+                data_for_response = CharacterByPrice(**data_for_response)
+            except Exception as e:
+                print(f"Ошибка при преобразовании словаря в CharacterByPrice: {e}")
+                return
+
+        # Теперь проверяем атрибуты
+        if not hasattr(data_for_response, 'values') or not hasattr(data_for_response, 'ticks'):
+            self.logger.warning(f"Некорректный формат данных по {type_}")
+            print(f"Некорректный формат данных по {type_}")
+            return
+
+        if not data_for_response.values or not data_for_response.ticks:
+            self.logger.warning(f"Пустые данные о ценах по {type_}")
+            print(f"Пустые данные о ценах по {type_}")
+            return
+
+        print(f"=== ДАННЫЕ О ЦЕНАХ по {type_} ===")
+        print(f"Количество элементов: {len(data_for_response.ticks)}")
+        print(f"Первые 5 категорий: {data_for_response.ticks[:5]}")
+        print(f"Первые 5 цен: {data_for_response.values[:5]}")
+        print(f"Диапазон цен: min=${min(data_for_response.values):.2f}, max=${max(data_for_response.values):.2f}")
+        print("=" * 50)
+
+        try:
+            distr_by_price_saver.save_task_data_simple(data_for_response, filename)
+        except Exception as e:
+            print(f"Ошибка при сохранении JSON: {e}")
+
+    def load_distribution_by_price_genre(self,
+                                         loader: LoaderTestData,
+                                         n: int = 25):
+        path = pm.file_price_by_genre
+        loaded_data = loader.load_from_files_by_schema(path, CharacterByPrice)
+        if not loaded_data:
+            print(f"❌ Ошибка чтения файла: '{path}'")
+            return
+
+        path_for_bar = path.parent / f"{path.stem}_bar.png"
+
+        title_name = f"{self.TITLES['Clustering']['PriceByGenre']} (Топ-{n})"
+        xlabel_val = "Жанр"
+        self.load_distribution_by_price(loaded_data,
+                                        title_name, xlabel_val,
+                                        len(loaded_data.ticks), path_for_bar)
+        from PIL import Image
+        image = Image.open(path_for_bar)
+        image.show()
+
+    def load_distribution_by_price_category(self,
+                                         loader: LoaderTestData,
+                                         n: int = 25):
+        path = pm.file_price_by_category
+        loaded_data = loader.load_from_files_by_schema(path, CharacterByPrice)
+        if not loaded_data:
+            print(f"❌ Ошибка чтения файла: '{path}'")
+            return
+
+        path_for_bar = path.parent / f"{path.stem}_bar.png"
+
+        title_name = f"{self.TITLES['Clustering']['PriceByCategory']} (Топ-{n})"
+        xlabel_val = "Категория"
+        self.load_distribution_by_price(loaded_data,
+                                        title_name, xlabel_val,
+                                        len(loaded_data.ticks), path_for_bar)
+
+        from PIL import Image
+        image = Image.open(path_for_bar)
+        image.show()
+
+    def load_distribution_by_price(self,
+                                   loaded_data,
+                                   title_name,
+                                   xlabel_val,
+                                   columns_num,
+                                   path_for_bar):
+
+        try:
+            from steam_analysis.analysis.utils.generate_clustering_task_picture import generate_bar_plot
+
+            generate_bar_plot(
+                data=loaded_data,
+                title_name=title_name,
+                path_to_save=path_for_bar,
+                xlabel_val=xlabel_val,
+                ylabel_val="Средняя цена (Рубли)",
+                # columns_num=min(20, len(data_for_response.ticks)),
+                columns_num=min(20, columns_num),
+                show_values=True,
+                color='steelblue'
+            )
+            print(f"Вертикальный график сохранен: {path_for_bar}")
+
+        except Exception as e:
+            print(f"Ошибка при построении вертикального графика: {e}")
+
+        self.logger.info(f"Графики цен по {title_name} сохранены")
+        print(f"Графики цен по {title_name} сохранены")

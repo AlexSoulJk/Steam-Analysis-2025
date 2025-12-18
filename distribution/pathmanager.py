@@ -14,6 +14,8 @@ DEFAULT_FOLDR_USERS = Path("users")
 DEFAULT_FOLDER_USERS_GAMES = Path("users_games")
 
 DEFAULT_FOLDER_GEO_TASKS = Path("geo")
+DEFAULT_FOLDER_CLUSTERING = "clustering"
+DEFAULT_FOLDER_DISTRIBUTION_BY_PRICE = "distribution_by_price"
 DEFAULT_FOLDER_FRIENDS_TASKS = Path("friends")
 
 # file for saving and reading
@@ -28,8 +30,12 @@ DEFAULT_FILENAME_FRIENDS_BY_GAMES = "friends_by_games"
 DEFAULT_FILENAME_ADD_INFO_GAMES = "add_info_games"
 DEFAULT_FILENAME_USERS = "users"
 DEFAULT_FILENAME_USERS_GAMES = "users_games"
-DEFAULT_PATH_TO_GEO_SAVE_GAMES = "geo_games"
+DEFAULT_FILENAME_CLUSTERING = "clustering_games"
+DEFAULT_FILENAME_DISTR_PRICE_CATEGORY = "price_by_category"
+DEFAULT_FILENAME_DISTR_PRICE_GENRE = "price_by_genre"
 
+DEFAULT_PATH_TO_GEO_SAVE_GAMES = "geo_games"
+DEFAULT_PATH_TO_SAVE_CLUSTERING = "clustering"
 # google_sheet names
 
 DEFAULT_NODE_AGE_NAME = "Nodes_By_Games"
@@ -48,14 +54,27 @@ class PathManager:
         self._folder_to_games_add_info: Path = DEFAULT_FOLDER_ADD_INFO_GAMES
         self._folder_to_users: Path = DEFAULT_FOLDR_USERS
         self._folder_to_users_games: Path = DEFAULT_FOLDER_USERS_GAMES
-        self._folder_to_task_save : Path = DEFAULT_PATH_TO_TASKS_DATA_JSON
+        self._folder_to_task_save: Path = DEFAULT_PATH_TO_TASKS_DATA_JSON
 
         self._path_to_peak_folder: Path = DEFAULT_PATH_TO_PEAK
         self._path_to_peak_pages: Path = DEFAULT_PATH_TO_PEAK / Path("peak_pages")
         self._file_peak_app_ids: Path = DEFAULT_PATH_TO_PEAK / "steam_app_ids.json"
 
-        self._file_geo_games: Path = DEFAULT_PATH_TO_TASKS_DATA_JSON / DEFAULT_FOLDER_GEO_TASKS / f"{DEFAULT_FILENAME_GAMES}.json"
-        self._file_to_task_friends_games = DEFAULT_PATH_TO_TASKS_DATA_JSON / DEFAULT_FOLDER_FRIENDS_TASKS / f"{DEFAULT_FILENAME_GAMES}.json"
+        self._file_geo_games: Path = DEFAULT_PATH_TO_TASKS_DATA_JSON / \
+                                     DEFAULT_FOLDER_GEO_TASKS / f"{DEFAULT_FILENAME_GAMES}.json"
+        self._file_clustering_games: Path = DEFAULT_PATH_TO_TASKS_DATA_JSON / \
+                                     DEFAULT_FOLDER_CLUSTERING / f"{DEFAULT_FILENAME_CLUSTERING}.json"
+        self._file_to_task_friends_games = DEFAULT_PATH_TO_TASKS_DATA_JSON / \
+                                           DEFAULT_FOLDER_FRIENDS_TASKS / f"{DEFAULT_FILENAME_GAMES}.json"
+
+        self._file_price_by_category: Path = DEFAULT_PATH_TO_TASKS_DATA_JSON / \
+                                            DEFAULT_FOLDER_DISTRIBUTION_BY_PRICE / \
+                                                   f"{DEFAULT_FILENAME_DISTR_PRICE_CATEGORY}.json"
+
+        self._file_price_by_genre: Path = DEFAULT_PATH_TO_TASKS_DATA_JSON / \
+                                                   DEFAULT_FOLDER_DISTRIBUTION_BY_PRICE / \
+                                                   f"{DEFAULT_FILENAME_DISTR_PRICE_GENRE}.json"
+
         self._path_to_google_token = None
         # self._file_peak_batches_app_ids: Path = DEFAULT_FILE_BATCHES_APP_IDS
 
@@ -105,6 +124,20 @@ class PathManager:
         self.check_exist_file(self._file_to_task_friends_games)
         return self._file_to_task_friends_games
 
+    @property
+    def file_clustering_games(self):
+        self.check_exist_file(self._file_clustering_games)
+        return self._file_clustering_games
+
+    @property
+    def file_price_by_genre(self):
+        self.check_exist_file(self._file_price_by_genre)
+        return self._file_price_by_genre
+
+    @property
+    def file_price_by_category(self):
+        self.check_exist_file(self._file_price_by_category)
+        return self._file_price_by_category
 
     @property
     def folder_to_games(self):
