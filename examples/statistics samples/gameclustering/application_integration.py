@@ -45,4 +45,4 @@ if __name__ == "__main__":
     main3()
     # categories_count()
     # release_by_season()
-    # clustering()
+    # clustering() # ОЛЯ ЭТО ТЕБЕ
