@@ -1,5 +1,6 @@
 from steam_analysis.database.facade import DbFacade
 from steam_analysis.proccessors.clustering_game_proccessor import ClusteringGameProcessor
+from steam_analysis.proccessors.distribution_processor import DistribProcessor
 from steam_analysis.proccessors.clustering_game_proccessor_external import ClusteringGameProcessorForFlourish
 from steam_analysis.proccessors.friends_proccessor import FriendsProcessor
 from steam_analysis.proccessors.geo_game_proccesor import GeoProccessor
@@ -14,12 +15,12 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
     def __init__(self):
         # Services that process data
         self.clustering_game_proccesor = ClusteringGameProcessor()
-        self.visualisation_game_proccesor = ClusteringGameProcessor()
+        self.visualisation_game_proccesor = DistribProcessor()
         self.clustering_game_proccesor_for_external = ClusteringGameProcessorForFlourish()
         self.geo_coordinate_proccessor = GeoProccessor()
         self.friends_proccessor = FriendsProcessor()
 
-    # region Providing data for simple-visualisation
+
     def get_games_by_types(self):
         return self.clustering_game_proccesor.get_games_by_types()
 
@@ -35,23 +36,58 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
     def get_games_by_categories_count(self):
         return self.clustering_game_proccesor.get_games_by_categories_count()
 
+    def get_categories_dynamics(self,
+                                n_columns: int = 10,
+                                time_period: str = "yearly",
+                                years_back: int = 5
+                                ):
+        try:
+            result = self.visualisation_game_proccesor.get_categories_dynamics(
+                n=n_columns,
+                time_period=time_period,
+                years_back=years_back
+            )
 
+            if result:
+                print(f"DataProvider: Динамика по {len(result.ticks)} категориям")
+                if result.values:
+                    print(f"  Временных точек: {len(result.values[0])}")
+                    for i in range(min(3, len(result.ticks))):
+                        print(f"  {result.ticks[i]}: {result.values[i][:5]}...")
 
-    def get_categories_dinamics(self, categories: List[str] = None,
-                                time_period: str = "yearly"):
-        return self.clustering_game_proccesor.get_categories_dinamics(categories, time_period)
+            return result
 
-    def get_genres_dinamics(self, genres: List[str] = None,
-                            time_period: str = "yearly"):
-        return self.clustering_game_proccesor.get_genres_dinamics(genres, time_period)
+        except Exception as e:
+            print(f"DataProvider ошибка (динамика категорий): {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def get_genres_dynamics(self,
+                            n_columns: int = 10,
+                            time_period: str = "yearly", years_back: int = 5):
+        try:
+            result = self.visualisation_game_proccesor.get_genres_dynamics(
+                n=n_columns,
+                time_period=time_period,
+                years_back=years_back
+            )
+            if result:
+                print(f"DataProvider: Динамика по {len(result.ticks)} жанрам")
+
+            return result
+
+        except Exception as e:
+            print(f"DataProvider ошибка (динамика жанров): {e}")
+            import traceback
+            traceback.print_exc()
+            return None
 
     def get_genre_by_price(self, n_columns: int = 40):
-        return self.clustering_game_proccesor.get_price_distribution_by_genre(n=n_columns)
+        return self.visualisation_game_proccesor.get_price_distribution_by_genre(n=n_columns)
 
     def get_category_by_price(self, n_columns: int = 40):
-        return self.clustering_game_proccesor.get_price_distribution_by_category(n=n_columns)
-
-
+        return self.visualisation_game_proccesor.get_price_distribution_by_category(n=n_columns)
 
     # только для кластеризации
 

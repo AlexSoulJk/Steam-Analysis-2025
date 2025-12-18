@@ -93,45 +93,6 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
             ticks = list(map(lambda tick: LABELS[code][int(tick)], ticks))
         return GamesReleaseBySeason(values=values, ticks=ticks)
 
-
-
-    def get_categories_dinamics(self, categories: List[str] = None,
-                                time_period: str = "yearly") -> Optional[CharacterByTime]:
-        pass
-
-    def get_genres_dinamics(self, genres: List[str] = None,
-                            time_period: str = "yearly") -> Optional[CharacterByTime]:
-        pass
-
-    def get_price_distribution_by_genre(self,
-                                        n: int = 10,
-                                        price_type: str = 'final',
-                                        min_games: int = 5) -> Optional[CharacterByPrice]:
-        """
-        Получает распределение цен по топ-N жанрам
-
-        Args:
-            n: количество топ жанров для анализа (по количеству игр)
-            price_type: 'final' для финальной цены, 'initial' для начальной
-            min_games: минимальное количество игр в жанре для включения в статистику
-
-        Returns:
-            CharacterByPrice со средними ценами по жанрам
-        """
-        try:
-            with get_db() as session:
-                price_data = self.game_repo.get_prices_by_genre(
-                    session=session,
-                    n=n,
-                    price_type=price_type,
-                    min_games=min_games
-                )
-                return price_data
-        except Exception as e:
-            print(f"Ошибка при получении распределения цен по жанрам: {e}")
-            return None
-
-
     def get_game_clustering_data(
             self,
             type_id: int = 1,

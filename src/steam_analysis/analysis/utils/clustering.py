@@ -758,7 +758,7 @@ def _plot_feature_heatmap(ax, clusters_info, data, features_to_show):
     """Строит heatmap признаков по кластерам"""
     # Выбор ключевых признаков
     if features_to_show:
-        key_features = [f for f in features_to_show if f in data.feature_names][:6]
+        key_features = [f for f in features_to_show if f in data.feature_names]
     else:
         X = np.array(data.feature_matrix)
         feature_stds = np.std(X, axis=0)

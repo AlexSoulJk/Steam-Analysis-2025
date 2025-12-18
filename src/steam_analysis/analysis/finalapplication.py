@@ -8,6 +8,8 @@ from google_loader import GoogleLoader
 import numpy as np
 from typing import List
 
+from datetime import datetime
+
 from steam_analysis.proccessors.schemas.games import GamesClusteringData, CharacterByPrice
 from steam_analysis.app.processed_data_provider import ProcessedDataProvider
 from steam_analysis.core.schemas.analysis.friends import FriendsByGames
@@ -36,9 +38,9 @@ class Application:
     def __init__(self, path_to_save_work: Path):
         self.path_to_save_work: Path = path_to_save_work
         self.folder_clustering = self.path_to_save_work / Path("clustering")
-        self.convert_to_csv = JsonToCsvConverter()
         self.folder_prices = self.path_to_save_work / Path("prices")
         self.folder_dynamics = self.path_to_save_work / Path("dynamics")
+        self.convert_to_csv = JsonToCsvConverter()
         self.data_provider = ProcessedDataProvider()
         self.google_uploader = GoogleLoader()
         self.geo_remapper = GeoRemapper()
@@ -189,16 +191,9 @@ class Application:
         print(f"Проверьте документ по ссылке: {nodes_csv_link}")
 
     def generate_distribution_by_price(self, n: int = 10, type: str = "category"):
-        """
-        Генерирует график распределения ЦЕН по категориям или жанрам
-        """
         path_for_json = self.folder_prices / Path(f"price_by_{type}.json")
         path_for_bar = self.folder_prices / Path(f"price_by_{type}_bar.png")
-        path_for_hbar = self.folder_prices / Path(f"price_by_{type}_hbar.png")
-
         print(f"Графики цен по {type} будут сохранены в {self.folder_prices}")
-
-        # Получаем данные
         if type == "category":
             data_for_response = self.data_provider.get_category_by_price(n_columns=n)
             title_name = f"{self.TITLES['Clustering']['PriceByCategory']} (Топ-{n})"
@@ -207,14 +202,10 @@ class Application:
             data_for_response = self.data_provider.get_genre_by_price(n_columns=n)
             title_name = f"{self.TITLES['Clustering']['PriceByGenre']} (Топ-{n})"
             xlabel_val = "Жанр"
-
-        # Проверяем, что получили данные и что это объект CharacterByPrice или словарь
         if not data_for_response:
             self.logger.warning(f"Нет данных о ценах по {type}")
             print(f"Нет данных о ценах по {type}")
             return
-
-        # Преобразуем в объект CharacterByPrice если это словарь
         if isinstance(data_for_response, dict):
             try:
                 from steam_analysis.proccessors.schemas.games import CharacterByPrice
@@ -222,13 +213,10 @@ class Application:
             except Exception as e:
                 print(f"Ошибка при преобразовании словаря в CharacterByPrice: {e}")
                 return
-
-        # Теперь проверяем атрибуты
         if not hasattr(data_for_response, 'values') or not hasattr(data_for_response, 'ticks'):
             self.logger.warning(f"Некорректный формат данных по {type}")
             print(f"Некорректный формат данных по {type}")
             return
-
         if not data_for_response.values or not data_for_response.ticks:
             self.logger.warning(f"Пустые данные о ценах по {type}")
             print(f"Пустые данные о ценах по {type}")
@@ -286,11 +274,128 @@ class Application:
         self.logger.info(f"Графики цен по {type} сохранены")
         print(f"Графики цен по {type} сохранены")
 
-    def generate_distribution_categories_dinamics(self, categories: list[str]):
-        pass
+    # def generate_distribution_dynamics_(self, n: int = 5, type: str = "category"):
+    #     path_for_json = self.folder_prices / Path(f"dynamics_by_{type}.json")
+    #     path_for_plot = self.folder_prices / Path(f"dynamics_by_{type}_plot.png")
+    #     print(f"Графики цен по {type} будут сохранены в {self.folder_prices}")
+    #     if type == "category":
+    #         data_for_response = self.data_provider.get_categories_dynamics(n_columns=n)
+    #         title_name = f"{self.TITLES['Clustering']['CategoryDynamics']} (Топ-{n})"
+    #         xlabel_val = "Категория"
+    #     else:
+    #         data_for_response = self.data_provider.get_genres_dynamics(n_columns=n)
+    #         title_name = f"{self.TITLES['Clustering']['GenreDynamics']} (Топ-{n})"
+    #         xlabel_val = "Жанр"
+    #     if not data_for_response:
+    #         self.logger.warning(f"Нет данных о ценах по {type}")
+    #         print(f"Нет данных о ценах по {type}")
+    #         return
+    #
+    #
+    #     pass
 
-    def generate_distribution_genres_dinamics(self, genres: list[str]):
-        pass
+    def generate_distribution_dynamics(self, n: int = 5, type: str = "category", years_back: int = 5):
+        """
+        Генерирует график динамики релизов по категориям или жанрам
+        Использует generate_multi_line_plot для отображения нескольких временных рядов
+        """
+        path_for_json = self.folder_prices / Path(f"dynamics_by_{type}.json")
+        path_for_plot = self.folder_prices / Path(f"dynamics_by_{type}_plot.png")
+
+        print(f"Графики динамики по {type} будут сохранены в {self.folder_prices}")
+
+        if type == "category":
+            data_for_response = self.data_provider.get_categories_dynamics(n_columns=n, years_back=years_back)
+            title_name = f"{self.TITLES['Clustering']['CategoryDynamics']} (Топ-{n})"
+            xlabel_val = "Год"
+        else:
+            data_for_response = self.data_provider.get_genres_dynamics(n_columns=n, years_back=years_back)
+            title_name = f"{self.TITLES['Clustering']['GenreDynamics']} (Топ-{n})"
+            xlabel_val = "Год"
+
+        if not data_for_response:
+            self.logger.warning(f"Нет данных о динамике по {type}")
+            print(f"Нет данных о динамике по {type}")
+            return
+
+        if isinstance(data_for_response, dict):
+            try:
+                from steam_analysis.proccessors.schemas.games import CharacterByTime
+                values = data_for_response.get('values', [])
+                ticks = data_for_response.get('ticks', [])
+                data_for_response = CharacterByTime(values=values, ticks=ticks)
+            except Exception as e:
+                print(f"Ошибка создания CharacterByTime: {e}")
+                return
+
+        if not hasattr(data_for_response, 'values') or not hasattr(data_for_response, 'ticks'):
+            print(f"Некорректный формат данных: {type(data_for_response)}")
+            return
+
+        if not data_for_response.values or not data_for_response.ticks:
+            print(f"Пустые данные о динамике по {type}")
+            return
+
+        print(f"=== ДАННЫЕ О ДИНАМИКЕ по {type} ===")
+        print(f"Количество рядов (категорий/жанров): {len(data_for_response.ticks)}")
+        print(f"Длина временного ряда: {len(data_for_response.values[0]) if data_for_response.values else 0}")
+        print(f"Пример: {data_for_response.ticks[:3]}")
+        print("=" * 50)
+
+        try:
+            save_data = {
+                "values": data_for_response.values,
+                "ticks": data_for_response.ticks,
+                "type": type,
+                "n": n,
+                "timestamp": datetime.now().isoformat()
+            }
+            default_saver.save_data(save_data, filepath=path_for_json)
+            print(f"Данные сохранены в JSON: {path_for_json}")
+        except Exception as e:
+            print(f"Ошибка при сохранении JSON: {e}")
+
+        data_list = []
+        labels = []
+
+        current_year = datetime.now().year
+        years_count = len(data_for_response.values[0]) if data_for_response.values else 5
+        time_labels = [str(current_year - i) for i in range(years_count - 1, -1, -1)]
+
+        for i, (category_genre, values) in enumerate(zip(data_for_response.ticks, data_for_response.values)):
+            if i < n:
+                from steam_analysis.analysis.response_schemas.graphics import AbstractGameBy_
+                if len(values) == len(time_labels):
+                    time_series_data = AbstractGameBy_(
+                        values=values,
+                        ticks=time_labels
+                    )
+                    data_list.append(time_series_data)
+                    labels.append(category_genre)
+                else:
+                    print(f"Предупреждение: Несоответствие длины для {category_genre} "
+                          f"({len(values)} != {len(time_labels)})")
+        if not data_list:
+            print("Нет данных для построения графика")
+            return
+        try:
+            from steam_analysis.analysis.utils.generate_clustering_task_picture import generate_multi_line_plot
+
+            generate_multi_line_plot(
+                data_list=data_list,
+                labels=labels,
+                title_name=title_name,
+                path_to_save=path_for_plot,
+                xlabel_val=xlabel_val,
+                ylabel_val="Количество релизов"
+            )
+            print(f"График динамики сохранен: {path_for_plot}")
+
+        except Exception as e:
+            print(f"Ошибка при построении графика: {e}")
+
+        self.logger.info(f"Графики динамики по {type} сохранены")
+        print(f"Графики динамики по {type} сохранены")
 
     def generate_game_clustering(self,
                                  method: str = "kmeans",
@@ -327,13 +432,14 @@ class Application:
                     path_to_save=str(path_clustering_pic),
                     method=method,
                     n_clusters=min(n_clusters, len(data_for_response.games) // 2),
-                    features_to_show=[
-                        "price_rub",
-                        "review_score",
-                        "review_confidence",
-                        "review_count_log",
-                        "achievements_count_norm",
-                        "game_age_years",
+                    features_to_show= [
+                        "price_rub",  # Цена в рублях
+                        "is_free",  # Бесплатная ли игра
+                        "positive_ratio",  # Доля положительных отзывов (0-1)
+                        "achievements_count_norm",  # Количество достижений (нормализованное)
+                        "game_age_years",  # Возраст игры в годах
+                        "platforms_count",  # Количество поддерживаемых платформ
+                        "rating_age",  # Рекомендованный возраст
                     ],
                     auto_select_params=auto_select_params,
                 )
