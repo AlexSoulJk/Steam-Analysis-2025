@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Dict, List, Any, Optional
+from collections import defaultdict
 
 import statistics
 
@@ -10,7 +11,7 @@ from steam_analysis.database.repositories.game.category import CategoryRepositor
 
 from steam_analysis.proccessors.schemas.games import (AbstractGameBy_, GamesClusteringData,
                                                       TwoDHistogramData, GamesReleaseBySeason,
-                                                      EnhancedHistogramData,
+                                                      EnhancedHistogramData, CharacterByTime, CharacterByPrice,
                                                       GamesByTypes, GamesByCategories, GamesByCountCategoriesWithSubs, \
                                                       GamesByGenres)
 
@@ -91,6 +92,44 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
             values = {LABELS[code][int(value[0])]: value[1] for value in values.items()}
             ticks = list(map(lambda tick: LABELS[code][int(tick)], ticks))
         return GamesReleaseBySeason(values=values, ticks=ticks)
+
+
+
+    def get_categories_dinamics(self, categories: List[str] = None,
+                                time_period: str = "yearly") -> Optional[CharacterByTime]:
+        pass
+
+    def get_genres_dinamics(self, genres: List[str] = None,
+                            time_period: str = "yearly") -> Optional[CharacterByTime]:
+        pass
+
+    def get_price_distribution_by_genre(self,
+                                        n: int = 10,
+                                        price_type: str = 'final',
+                                        min_games: int = 5) -> Optional[CharacterByPrice]:
+        """
+        Получает распределение цен по топ-N жанрам
+
+        Args:
+            n: количество топ жанров для анализа (по количеству игр)
+            price_type: 'final' для финальной цены, 'initial' для начальной
+            min_games: минимальное количество игр в жанре для включения в статистику
+
+        Returns:
+            CharacterByPrice со средними ценами по жанрам
+        """
+        try:
+            with get_db() as session:
+                price_data = self.game_repo.get_prices_by_genre(
+                    session=session,
+                    n=n,
+                    price_type=price_type,
+                    min_games=min_games
+                )
+                return price_data
+        except Exception as e:
+            print(f"Ошибка при получении распределения цен по жанрам: {e}")
+            return None
 
 
     def get_game_clustering_data(
@@ -306,48 +345,3 @@ class ClusteringGameProcessor:  # ЭТО СЕРВИС: ПООБЩАЛСЯ С Б�
                     ticks=["Ошибка получения данных"]
                 )
         return result
-
-
-    def get_available_clustering_fields(self) -> Dict[str, List[str]]:
-        """
-        Получить список доступных полей для анализа
-        Returns:
-            Словарь с группами полей
-        """
-        return {
-            "metrics": [
-                "review_score",
-                "review_count",
-                "recommendations_count",
-                "metacritic_score",
-                "peak_players_all_time"
-            ],
-            "game_info": [
-                "price",
-                "is_free",
-                "coming_soon",
-                "game_age_years"
-            ],
-            "counts": [
-                "achievements_count",
-                "genres_count",
-                "categories_count"
-            ]
-        }
-
-
-    def get_default_2d_hist_pairs(self) -> List[Dict[str, str]]:
-        """
-        Получить рекомендуемые пары для 2D гистограмм
-        Returns:
-            Список рекомендуемых пар полей
-        """
-        return [
-            {"x": "review_score", "y": "price", "label": "Рейтинг vs Цена"},
-            {"x": "review_score", "y": "game_age_years", "label": "Рейтинг vs Возраст"},
-            {"x": "price", "y": "game_age_years", "label": "Цена vs Возраст"},
-            {"x": "review_count", "y": "review_score", "label": "Отзывы vs Рейтинг"},
-            {"x": "metacritic_score", "y": "review_score", "label": "Metacritic vs Рейтинг"},
-            {"x": "achievements_count", "y": "price", "label": "Достижения vs Цена"},
-            {"x": "genres_count", "y": "categories_count", "label": "Жанры vs Категории"}
-        ]

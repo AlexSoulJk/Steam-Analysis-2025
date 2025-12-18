@@ -1,6 +1,7 @@
 from steam_analysis.database.facade import DbFacade
 from steam_analysis.proccessors.clustering_game_proccessor import ClusteringGameProcessor
 from steam_analysis.proccessors.clustering_game_proccessor_external import ClusteringGameProcessorForFlourish
+from typing import List
 
 
 class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, РЕШАЮЩИЕ ЗАДАЧИ
@@ -8,6 +9,7 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
     def __init__(self):
         # Services that process data
         self.clustering_game_proccesor = ClusteringGameProcessor()
+        self.visualisation_game_proccesor = ClusteringGameProcessor()
         self.clustering_game_proccesor_for_external = ClusteringGameProcessorForFlourish()
 
     # region Providing data for simple-visualisation
@@ -25,6 +27,23 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
 
     def get_games_by_categories_count(self):
         return self.clustering_game_proccesor.get_games_by_categories_count()
+
+
+
+    def get_categories_dinamics(self, categories: List[str] = None,
+                                time_period: str = "yearly"):
+        return self.clustering_game_proccesor.get_categories_dinamics(categories, time_period)
+
+    def get_genres_dinamics(self, genres: List[str] = None,
+                            time_period: str = "yearly"):
+        return self.clustering_game_proccesor.get_genres_dinamics(genres, time_period)
+
+    def get_genre_by_price(self, n_columns: int = 40):
+        return self.clustering_game_proccesor.get_price_distribution_by_genre(n=n_columns)
+
+    def get_category_by_price(self, n_columns: int = 40):
+        return self.clustering_game_proccesor.get_price_distribution_by_category(n=n_columns)
+
 
 
     # только для кластеризации

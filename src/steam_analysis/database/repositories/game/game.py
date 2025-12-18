@@ -1,6 +1,7 @@
 from collections import defaultdict
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple,  Any
 
+from sqlalchemy import func, extract, case, and_, or_, distinct
 from sqlalchemy import select, func, extract, Integer
 from sqlalchemy.orm import joinedload, Session
 
@@ -9,16 +10,38 @@ from steam_analysis.proccessors.schemas.games import (AbstractGameBy_, GamesClus
                                                       TwoDHistogramData, GamesReleaseBySeason,
                                                       EnhancedHistogramData, GameFeatureVector,
                                                       GamesByTypes, GamesByCategories, GamesByCountCategoriesWithSubs, \
-                                                      GamesByGenres)
+                                                      GamesByGenres, CharacterByPrice)
 
 from ..base.base import BaseDBRepository
 from ...models import Game
-from ...models.game import GameGenre, GameCategory, GamePlatform, GameMetrics, Achievement
+from ...models.game import GameGenre, GameCategory, GamePlatform, GameMetrics, Achievement, Category, Genre
 from ...models.timeseries import PriceHistory, ReviewHistory, PlayerCountHistory
 
-
-from sqlalchemy import or_, extract, case
 from datetime import datetime
+
+
+EXCHANGE_RATES = {
+            'USD': 92.5, 'EUR': 100.0, 'GBP': 117.0, 'RUB': 1.0,
+            'JPY': 0.62, 'CNY': 12.8, 'CAD': 67.5, 'CHF': 106.0,
+            'SGD': 68.0, 'HKD': 11.8, 'NOK': 8.4, 'PLN': 23.0,
+            'BRL': 18.5, 'MXN': 5.4, 'INR': 1.1, 'KRW': 0.069,
+            'THB': 2.6, 'IDR': 0.0059, 'MYR': 19.5, 'PHP': 1.65,
+            'VND': 0.0038, 'ZAR': 5.0, 'SAR': 24.7, 'CLP': 0.105,
+            'COP': 0.023, 'CRC': 0.17, 'KWD': 300.0, 'NZD': 55.0,
+            'TWD': 2.9, 'UYU': 2.4, 'AED': 21.69, 'AUD': 53.03,
+            'DEFAULT': 95.0
+        }
+
+
+def convert_to_rubles(amount: float, currency: str) -> float:
+    if not amount or amount <= 0:
+        return 0.0
+    currency_code = currency.upper().strip() if currency else 'USD'
+    rate = EXCHANGE_RATES.get(currency_code)
+    if rate is None:
+        rate = EXCHANGE_RATES.get('USD', 95.0)
+    amount_in_units = amount / 100.0
+    return amount_in_units * rate
 
 
 class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
@@ -454,6 +477,217 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
 
         return values, ticks
 
+    def get_prices_by_category(self,
+                               session: Session,
+                               n: int = 10,
+                               price_type: str = 'final',
+                               min_games: int = 1,
+                               convert_to_rub: bool = True,
+                               type_id: int = 1) -> CharacterByPrice:
+        """
+        Получает распределение цен по топ-N категориям с учетом валюты
+
+        Args:
+            session: SQLAlchemy сессия
+            n: количество топ категорий
+            price_type: 'final' или 'initial' цена
+            min_games: минимальное количество игр в категории
+            convert_to_rub: конвертировать ли в рубли
+            type_id: ID типа игры (по умолчанию 1 - игры)
+        """
+        # Определяем поле цены в зависимости от типа
+        price_field = getattr(PriceHistory, f'price_{price_type}')
+
+        # 1. Сначала получаем топ-N категорий по количеству игр
+        top_categories_subq = (
+            select(
+                Category.id.label('category_id'),
+                Category.description.label('category_name'),
+                func.count(distinct(Game.id)).label('games_count')
+            )
+            .select_from(Category)
+            .join(GameCategory, GameCategory.category_id == Category.id)
+            .join(Game, Game.id == GameCategory.game_id)
+            .where(Game.is_free == False)
+            .where(Game.type_id == type_id)  # ← ДОБАВЛЕНО!
+            .group_by(Category.id, Category.description)
+            .having(func.count(distinct(Game.id)) >= min_games)
+            .order_by(func.count(distinct(Game.id)).desc())
+            .limit(n)
+            .subquery('top_categories')
+        )
+
+        # 2. Подзапрос для получения последней цены каждой игры
+        latest_prices_subq = (
+            select(
+                PriceHistory.game_id,
+                func.max(PriceHistory.created_at).label('latest_date')
+            )
+            .group_by(PriceHistory.game_id)
+            .subquery('latest_prices')
+        )
+
+        # 3. Основной запрос
+        query = (
+            select(
+                top_categories_subq.c.category_name,
+                PriceHistory.currency,
+                func.avg(price_field).label('avg_price'),
+                top_categories_subq.c.games_count
+            )
+            .select_from(top_categories_subq)
+            .join(GameCategory, GameCategory.category_id == top_categories_subq.c.category_id)
+            .join(Game, Game.id == GameCategory.game_id)
+            .join(latest_prices_subq, Game.id == latest_prices_subq.c.game_id)
+            .join(
+                PriceHistory,
+                (PriceHistory.game_id == Game.id) &
+                (PriceHistory.created_at == latest_prices_subq.c.latest_date)
+            )
+            .where(price_field.isnot(None))
+            .where(price_field > 0)
+            .where(Game.type_id == type_id)  # ← ДОБАВЛЕНО здесь тоже!
+            .group_by(
+                top_categories_subq.c.category_id,
+                top_categories_subq.c.category_name,
+                PriceHistory.currency,
+                top_categories_subq.c.games_count
+            )
+            .order_by(func.count(distinct(Game.id)).desc())
+        )
+
+        result = session.execute(query).all()
+
+        print(f"Результатов запроса для type_id={type_id}: {len(result)}")
+
+        # Формируем данные для схемы
+        values = []
+        ticks = []
+        currency_stats = {}
+
+        for row in result:
+            if row.avg_price:
+                label = f"{row.category_name}"
+                ticks.append(label)
+
+                price_value = float(row.avg_price)
+
+                # Конвертируем в рубли
+                if convert_to_rub and row.currency:
+                    price_converted = convert_to_rubles(price_value, row.currency)
+                    currency_stats[row.currency] = currency_stats.get(row.currency, 0) + 1
+                else:
+                    # Если не конвертируем, просто переводим центы в базовые единицы
+                    price_converted = price_value / 100.0  # Предполагаем центы
+
+                values.append(price_converted)
+
+                # Отладочный вывод для первых 5 записей
+                if len(values) <= 5:
+                    print(f"  Категория: {row.category_name}, "
+                          f"Цена исходная: {price_value:.2f}, "
+                          f"Валюта: {row.currency}, "
+                          f"Цена результат: {price_converted:.2f}")
+        if currency_stats:
+            print(f"Статистика валют: {currency_stats}")
+        if len(ticks) > n:
+            ticks = ticks[:n]
+            values = values[:n]
+        try:
+            return CharacterByPrice(values=values, ticks=ticks)
+        except Exception as e:
+            print(f"Ошибка при создании CharacterByPrice: {e}")
+            # Фоллбэк
+            return {"values": values, "ticks": ticks}
+
+
+    def get_prices_by_genre(self,
+                            session: Session,
+                            n: int = 10,
+                            price_type: str = 'final',
+                            min_games: int = 1,
+                            convert_to_rub: bool = True) -> CharacterByPrice:
+        """
+        Получает распределение цен по топ-N жанрам с учетом валюты
+        """
+        price_field = getattr(PriceHistory, f'price_{price_type}')
+
+        top_genres_subq = (
+            select(
+                Genre.id.label('genre_id'),
+                Genre.description.label('genre_name'),
+                func.count(distinct(Game.id)).label('games_count')
+            )
+            .select_from(Genre)
+            .join(GameGenre, GameGenre.genre_id == Genre.id)
+            .join(Game, Game.id == GameGenre.game_id)
+            .where(Game.is_free == False)
+            .group_by(Genre.id, Genre.description)
+            .having(func.count(distinct(Game.id)) >= min_games)
+            .order_by(func.count(distinct(Game.id)).desc())
+            .limit(n)
+            .subquery('top_genres')
+        )
+
+        latest_prices_subq = (
+            select(
+                PriceHistory.game_id,
+                func.max(PriceHistory.created_at).label('latest_date')
+            )
+            .group_by(PriceHistory.game_id)
+            .subquery('latest_prices')
+        )
+
+        query = (
+            select(
+                top_genres_subq.c.genre_name,
+                PriceHistory.currency,  # Включаем валюту
+                func.avg(price_field).label('avg_price'),
+                top_genres_subq.c.games_count
+            )
+            .select_from(top_genres_subq)
+            .join(GameGenre, GameGenre.genre_id == top_genres_subq.c.genre_id)
+            .join(Game, Game.id == GameGenre.game_id)
+            .join(latest_prices_subq, Game.id == latest_prices_subq.c.game_id)
+            .join(
+                PriceHistory,
+                (PriceHistory.game_id == Game.id) &
+                (PriceHistory.created_at == latest_prices_subq.c.latest_date)
+            )
+            .where(price_field.isnot(None))
+            .where(price_field > 0)
+            .group_by(
+                top_genres_subq.c.genre_id,
+                top_genres_subq.c.genre_name,
+                PriceHistory.currency,  # Группируем по валюте
+                top_genres_subq.c.games_count
+            )
+            .order_by(func.avg(price_field).desc())
+        )
+
+        result = session.execute(query).all()
+
+        values = []
+        ticks = []
+        currency_stats = {}
+
+        for row in result:
+            if row.avg_price:
+                label = f"{row.genre_name}"
+                ticks.append(label)
+
+                price_value = float(row.avg_price)
+
+                price_value = convert_to_rubles(price_value, row.currency)
+                currency_stats[row.currency] = currency_stats.get(row.currency, 0) + 1
+
+                values.append(price_value)
+
+        if currency_stats:
+            print(f"Валюты по жанрам: {currency_stats}")
+
+        return CharacterByPrice(values=values, ticks=ticks)
+
     def get_game_clustering_data(
             self,
             session: Session,
@@ -461,17 +695,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             limit: Optional[int] = None,
             min_review_count: int = 5
     ) -> GamesClusteringData:
-        EXCHANGE_RATES = {
-            'USD': 92.5, 'EUR': 100.0, 'GBP': 117.0, 'RUB': 1.0,
-            'JPY': 0.62, 'CNY': 12.8, 'CAD': 67.5, 'CHF': 106.0,
-            'SGD': 68.0, 'HKD': 11.8, 'NOK': 8.4, 'PLN': 23.0,
-            'BRL': 18.5, 'MXN': 5.4, 'INR': 1.1, 'KRW': 0.069,
-            'THB': 2.6, 'IDR': 0.0059, 'MYR': 19.5, 'PHP': 1.65,
-            'VND': 0.0038, 'ZAR': 5.0, 'SAR': 24.7, 'CLP': 0.105,
-            'COP': 0.023, 'CRC': 0.17, 'KWD': 300.0, 'NZD': 55.0,
-            'TWD': 2.9, 'UYU': 2.4, 'AED': 21.69, 'AUD': 53.03,
-            'DEFAULT': 95.0
-        }
 
         game_query = (
             select(
@@ -512,16 +735,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
 
         print(f"Найдено {len(game_results)} игр")
         game_ids = [row[0] for row in game_results]
-
-        def convert_to_rubles(amount: float, currency: str) -> float:
-            if not amount or amount <= 0:
-                return 0.0
-            currency_code = currency.upper().strip() if currency else 'USD'
-            rate = EXCHANGE_RATES.get(currency_code)
-            if rate is None:
-                rate = EXCHANGE_RATES.get('USD', 95.0)
-            amount_in_units = amount / 100.0
-            return amount_in_units * rate
 
         latest_prices = {}
         batch_size = 100
@@ -818,34 +1031,12 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             y_bins: int = 20,
             min_review_count: int = 10
     ) -> TwoDHistogramData:
-        """
-        Получить данные для двумерной гистограммы
-
-        Args:
-            session: SQLAlchemy сессия
-            x_field: Поле для оси X
-            y_field: Поле для оси Y
-            type_id: ID типа игр
-            x_bins: Количество бинов по оси X
-            y_bins: Количество бинов по оси Y
-            min_review_count: Минимальное количество отзывов
-
-        Returns:
-            TwoDHistogramData с данными для построения гистограммы
-        """
-        from sqlalchemy import case, or_, and_
-        from datetime import datetime
-
-        # Определяем выражения для полей
         field_mapping = {
-            # Поля из GameMetrics
             "review_score": GameMetrics.review_score,
             "review_count": GameMetrics.review_count,
             "recommendations_count": GameMetrics.recommendations_count,
             "metacritic_score": GameMetrics.metacritic_score,
             "peak_players_all_time": GameMetrics.peak_players_all_time,
-
-            # Поля из Game
             "is_free": case((Game.is_free == True, 1), else_=0),
             "coming_soon": case((Game.coming_soon == True, 1), else_=0),
             "game_age_years": case(
@@ -853,8 +1044,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                  datetime.now().year - extract('year', Game.release_date)),
                 else_=0
             ),
-
-            # Поля из цен (последняя цена)
             "price": (
                 select(PriceHistory.price_final)
                 .where(PriceHistory.game_id == Game.id)
@@ -862,7 +1051,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 .limit(1)
                 .scalar_subquery()
             ),
-
             "achievements_count": (
                 select(func.count(Achievement.id))
                 .where(Achievement.game_id == Game.id)
@@ -879,19 +1067,14 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 .scalar_subquery()
             )
         }
-
-        # Проверяем, что поля существуют
         if x_field not in field_mapping or y_field not in field_mapping:
             available_fields = list(field_mapping.keys())
             raise ValueError(
                 f"Поле '{x_field}' или '{y_field}' не найдено. "
                 f"Доступные поля: {', '.join(available_fields)}"
             )
-
         x_expr = field_mapping[x_field]
         y_expr = field_mapping[y_field]
-
-        # Базовый запрос
         base_query = (
             select(Game)
             .join(GameMetrics, Game.id == GameMetrics.game_id, isouter=True)
@@ -899,18 +1082,12 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             .where(or_(GameMetrics.review_count >= min_review_count,
                        GameMetrics.review_count == None))
         )
-
-        # Получаем игры
         games = session.execute(base_query).scalars().all()
-
         x_values = []
         y_values = []
-
         for game in games:
-            # Вычисляем значение X
             try:
                 if x_field == "price":
-                    # Получаем последнюю цену
                     latest_price = session.execute(
                         select(PriceHistory.price_final)
                         .where(PriceHistory.game_id == game.id)
@@ -924,7 +1101,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                     else:
                         x_val = 0.0
                 elif x_field in ["news_count", "achievements_count", "genres_count", "categories_count"]:
-                    # Для подсчетов используем отдельные запросы
                     if x_field == "achievements_count":
                         count = session.execute(
                             select(func.count(Achievement.id))
@@ -935,7 +1111,7 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                             select(func.count(GameGenre.id))
                             .where(GameGenre.game_id == game.id)
                         ).scalar() or 0
-                    else:  # categories_count
+                    else:
                         count = session.execute(
                             select(func.count(GameCategory.id))
                             .where(GameCategory.game_id == game.id)
@@ -950,8 +1126,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                     x_val = 0.0
             except (ValueError, TypeError, AttributeError):
                 x_val = 0.0
-
-            # Вычисляем значение Y (аналогично)
             try:
                 if y_field == "price":
                     latest_price = session.execute(
@@ -996,7 +1170,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             if x_val is not None and y_val is not None:
                 x_values.append(x_val)
                 y_values.append(y_val)
-
         axis_labels = {
             "review_score": "Рейтинг (0-1)",
             "review_count": "Количество отзывов",
@@ -1012,10 +1185,8 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             "genres_count": "Количество жанров",
             "categories_count": "Количество категорий"
         }
-
         x_label = axis_labels.get(x_field, x_field)
         y_label = axis_labels.get(y_field, y_field)
-
         return TwoDHistogramData(
             x_values=x_values,
             y_values=y_values,
@@ -1024,7 +1195,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             x_label=x_label,
             y_label=y_label
         )
-
 
     def enhanced_histogram_data(
             self,
@@ -1037,30 +1207,9 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             show_outliers: bool = True,
             compare_with_normal: bool = True,
             log_scale: bool = False,
-            filter_free: Optional[bool] = None  # Фильтр по бесплатным играм
+            filter_free: Optional[bool] = None
     ) -> EnhancedHistogramData:
-        """
-        Получить данные для расширенной гистограммы
-
-        Args:
-            session: SQLAlchemy сессия
-            value_field: Анализируемое поле
-            type_id: ID типа игр
-            bins_method: Метод расчета бинов
-            min_review_count: Минимальное количество отзывов
-            show_stats: Показывать статистику
-            show_outliers: Выделять выбросы
-            compare_with_normal: Сравнивать с нормальным распределением
-            log_scale: Использовать логарифмическую шкалу
-            filter_free: Фильтр по бесплатным играм (True/False/None)
-
-        Returns:
-            EnhancedHistogramData с данными для анализа распределения
-        """
-        from sqlalchemy import func, or_
-
         field_configs = {
-            # Поля из GameMetrics
             "review_score": {
                 "expr": GameMetrics.review_score,
                 "name": "Рейтинг игры",
@@ -1101,8 +1250,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 "unit": "лет",
                 "transform": lambda x: float(x) if x is not None else 0.0
             },
-
-            # Поля из цен
             "price": {
                 "expr": (
                     select(PriceHistory.price_final)
@@ -1115,8 +1262,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 "unit": "$",
                 "transform": lambda x: float(x) if x is not None else 0.0
             },
-
-            # Подсчетные поля
             "achievements_count": {
                 "expr": (
                     select(func.count(Achievement.id))
@@ -1148,43 +1293,29 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 "transform": lambda x: float(x) if x is not None else 0.0
             }
         }
-
-        # Проверяем, что поле существует
         if value_field not in field_configs:
             available_fields = list(field_configs.keys())
             raise ValueError(
                 f"Поле '{value_field}' не найдено. "
                 f"Доступные поля: {', '.join(available_fields)}"
             )
-
         config = field_configs[value_field]
-
-        # Базовый запрос
         query = (
             select(config["expr"].label('value'))
             .select_from(Game)
             .join(GameMetrics, Game.id == GameMetrics.game_id, isouter=True)
             .where(Game.type_id == type_id)
         )
-
-        # Применяем фильтры
         if min_review_count > 0:
             query = query.where(or_(
                 GameMetrics.review_count >= min_review_count,
                 GameMetrics.review_count == None
             ))
-
         if filter_free is not None:
             query = query.where(Game.is_free == filter_free)
-
-        # Исключаем нулевые значения для некоторых полей
         if value_field in ["review_score", "metacritic_score", "price"]:
             query = query.where(config["expr"] > 0)
-
-        # Выполняем запрос
         results = session.execute(query).all()
-
-        # Извлекаем и преобразуем значения
         values = []
         for row in results:
             if row.value is not None:
@@ -1193,7 +1324,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                     values.append(transformed_value)
                 except (ValueError, TypeError):
                     continue
-
         return EnhancedHistogramData(
             values=values,
             value_name=config["name"],
@@ -1206,4 +1336,3 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             log_scale=log_scale,
             ticks=[]
         )
-

@@ -11,10 +11,19 @@ def categories():
     app = Application(path_to_save_work=examples_statistics_images_path)
     app.generate_distribution_by_category(25)
 
-
-def categories_count():
+def main2():
     app = Application(path_to_save_work=examples_statistics_images_path)
-    app.generate_distribution_by_count_category(15)
+    app.generate_distribution_by_price(25, type="genre")
+
+
+def main3():
+    app = Application(path_to_save_work=examples_statistics_images_path)
+    app.generate_distribution_by_price(25, type="genre")
+
+
+# def categories_count():
+#     app = Application(path_to_save_work=examples_statistics_images_path)
+#     app.generate_distribution_by_price(type="category")
 
 
 def release_by_season():
@@ -23,12 +32,17 @@ def release_by_season():
 
 def clustering():
     app = Application(path_to_save_work=examples_statistics_images_path)
-    app.generate_game_clustering(n_clusters=5, method="kmeans")
+    # app.generate_game_clustering(method="kmeans", n_clusters=6)
+    # app.generate_game_clustering(method="kmeans", auto_select_params=True)
+    app.generate_game_clustering(method="kmeans", auto_select_params=True)
+    # app.generate_game_clustering(method="dbscan")
 
 
 if __name__ == "__main__":
     # main()
     # categories()
+    # main2()
+    main3()
     # categories_count()
     # release_by_season()
-    clustering()
+    # clustering()

@@ -1,13 +1,42 @@
 from typing import List, Dict, Any, Optional, Union
 from pydantic import Field
+from enum import Enum
 
 from steam_analysis.core.schemas.base import BaseSchema
+
+class TimePeriod(str, Enum):
+    YEAR = "year"
+    MONTH = "month"
+    QUARTER = "quarter"
+    WEEK = "week"
 
 
 class AbstractGameBy_(BaseSchema):
     values: list[Any]
     ticks: list[Any]
 
+class CharacterByTime(AbstractGameBy_):
+    values: list[Any]
+    ticks: list[Any]
+
+class CharacterByPrice(AbstractGameBy_):
+    values: list[float]
+    ticks: list[str]
+
+class PriceDistribution(BaseSchema):
+    """Схема для распределения цен"""
+    category: str
+    mean_price: float
+    median_price: float
+    min_price: float
+    max_price: float
+    count: int
+    prices: List[float]
+
+class DynamicByTime(BaseSchema):
+    """Схема для динамики по времени"""
+    time_period: str  # например, "2020-01", "2020-Q1"
+    counts: Dict[str, int]  # категория/жанр -> количество
 
 class GamesByTypes(AbstractGameBy_):
     values: dict[str, int]
