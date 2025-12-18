@@ -1,0 +1,51 @@
+@startuml
+[DBFacade] as Facade
+
+[GameRepository] as GameRepo
+[CategoryRepository] as CategoryRepo
+[TypeRepository] as TypeRepo
+[PlatformRepository] as PlatformRepo
+[GenreRepository] as GenreRepo
+
+Facade o-- GameRepo
+Facade o-- CategoryRepo
+Facade o-- TypeRepo
+Facade o-- PlatformRepo
+Facade o-- GenreRepo
+
+note right of Facade
+  <b>Фасад основной БД</b>
+  Предоставляет Use-Cases для работы\nс основной базой steam-analysis.db
+  Основные операции:
+  - Создание и обновление игр
+  - Управление справочными данными
+end note
+
+note bottom of GameRepo
+  <b>Репозиторий игр</b>
+  Работа с сущностью Game:
+  - CRUD операции
+  - Поиск и фильтрация
+  - Агрегации по играм
+end note
+
+note bottom of CategoryRepo
+  <b>Репозиторий категорий</b>
+  Управление категориями игр
+end note
+
+note bottom of TypeRepo
+  <b>Репозиторий типов</b>
+  Управление типами контента
+end note
+
+note bottom of PlatformRepo
+  <b>Репозиторий платформ</b>
+  Управление поддерживаемыми\nплатформами
+end note
+
+note bottom of GenreRepo
+  <b>Репозиторий жанров</b>
+  Управление жанровой разметкой
+end note
+@enduml

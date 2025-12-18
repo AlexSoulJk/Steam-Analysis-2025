@@ -1,0 +1,98 @@
+[project]
+name = "steam-analysis"
+version = "0.1.0"
+description = "Steam Data Analysis Toolkit"
+authors = [
+    {name = "AlexSoulJk"},
+    {name = "baru1ina"},
+    {name = "Ekaterina Lips"},
+    {name = "Lo-Lap"}
+]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+keywords = ["steam", "api", "analysis", "gaming", "data-science"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "requests>=2.28.0",
+    "python-dotenv>=0.19.0",
+    "pandas>=1.5.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "jupyter>=1.0.0",
+]
+
+# База данных и миграции
+database = [
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.12.0",
+    "psycopg2-binary>=2.9.0",    # PostgreSQL
+    "aiosqlite>=0.19.0",         # SQLite async
+]
+
+# Полный стек для анализа
+full = [
+    "aiohttp>=3.8.0",
+    "numpy>=1.21.0",
+    "matplotlib>=3.5.0",
+    "seaborn>=0.11.0",
+    "plotly>=5.10.0",
+    "python-dateutil>=2.8.0",
+    "cachetools>=5.0.0",
+    "ratelimit>=2.2.0",
+    "tqdm>=4.60.0",
+    "beautifulsoup4>=4.11.0",
+    "textblob>=0.17.0",
+    "scikit-learn>=1.2.0",
+    # Добавляем базу и в full тоже
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.12.0",
+    "pydantic[email]>=2.0.0",
+    "pydantic-extra-types>=2.0.0",  # Дополнительные типы
+]
+
+pydantic = [
+    "pydantic[email]>=2.0.0",
+    "pydantic-extra-types>=2.0.0",  # Дополнительные типы данных
+    "pydantic-settings>=2.0.0",     # Для работы с настройками
+]
+
+# Асинхронные возможности
+async = [
+    "aiohttp>=3.8.0",
+    "asyncio-throttle>=1.0.0",
+    "aiosqlite>=0.19.0",
+]
+
+# Веб-интерфейсы
+web = [
+    "streamlit>=1.22.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/AlexSoulJk/Steam-Analysis-2025"
+Bug-Reports = "https://github.com/AlexSoulJk/Steam-Analysis-2025/issues"
+
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["steam_analysis*"]

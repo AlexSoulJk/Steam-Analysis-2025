@@ -1,0 +1,172 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class achievement_history {
+   achievement_id: integer
+   global_achievement_rate: float
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class achievements {
+   game_id: integer
+   name: varchar(255)
+   display_name: varchar(255)
+   description: text
+   icon_url: varchar(500)
+   icon_gray_url: varchar(500)
+   achieved: boolean
+   unlock_time: datetime
+   global_achievement_rate: float
+   api_name: varchar(255)
+   hidden: boolean
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class alembic_version {
+   version_num: varchar(32)
+}
+class categories {
+   description: varchar(255)
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class game_categories {
+   game_id: integer
+   category_id: integer
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class game_genres {
+   game_id: integer
+   genre_id: integer
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class game_metrics {
+   game_id: integer
+   recommendations_count: integer
+   metacritic_score: integer
+   review_score: float
+   review_count: integer
+   peak_players_all_time: integer
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class game_platforms {
+   game_id: integer
+   platform_id: integer
+   supported: boolean
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class game_types {
+   description: varchar(255)
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class games {
+   app_id: integer
+   name: varchar(255)
+   type_id: integer
+   is_free: boolean
+   release_date: datetime
+   coming_soon: boolean
+   controller_support: varchar(50)
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class genres {
+   description: varchar(255)
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class news {
+   game_id: integer
+   gid: varchar(100)
+   title: varchar(500)
+   url: varchar(500)
+   is_external_url: boolean
+   author: varchar(255)
+   contents: text
+   feedlabel: varchar(255)
+   date: integer
+   feedname: varchar(255)
+   feed_type: integer
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class platforms {
+   description: varchar(255)
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class player_count_history {
+   game_id: integer
+   player_count: integer
+   created_at: datetime
+   updated_at: datetime
+   twitch_viewers: integer
+   trend_24h: float
+   id: integer
+}
+class price_history {
+   game_id: integer
+   currency: varchar(3)
+   price_final: integer
+   discount_percent: integer
+   created_at: datetime
+   updated_at: datetime
+   price_initial: integer
+   price_original: integer
+   purchase_available: boolean
+   package_id: integer
+   id: integer
+}
+class review_history {
+   game_id: integer
+   review_score: float
+   review_count: integer
+   positive_reviews: integer
+   negative_reviews: integer
+   created_at: datetime
+   updated_at: datetime
+   id: integer
+}
+class sqlite_master {
+   type: text
+   name: text
+   tbl_name: text
+   rootpage: int
+   sql: text
+}
+
+achievement_history   -[#595959,plain]-^  achievements         : "achievement_id:id"
+achievements          -[#595959,plain]-^  games                : "game_id:id"
+game_categories       -[#595959,plain]-^  categories           : "category_id:id"
+game_categories       -[#595959,plain]-^  games                : "game_id:id"
+game_genres           -[#595959,plain]-^  games                : "game_id:id"
+game_genres           -[#595959,plain]-^  genres               : "genre_id:id"
+game_metrics          -[#595959,plain]-^  games                : "game_id:id"
+game_platforms        -[#595959,plain]-^  games                : "game_id:id"
+game_platforms        -[#595959,plain]-^  platforms            : "platform_id:id"
+games                 -[#595959,plain]-^  game_types           : "type_id:id"
+news                  -[#595959,plain]-^  games                : "game_id:id"
+player_count_history  -[#595959,plain]-^  games                : "game_id:id"
+price_history         -[#595959,plain]-^  games                : "game_id:id"
+review_history        -[#595959,plain]-^  games                : "game_id:id"
+@enduml

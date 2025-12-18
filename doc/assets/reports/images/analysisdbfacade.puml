@@ -1,0 +1,27 @@
+@startuml
+[AnalysisDbFacade] as Facade
+
+[AnalysisChunkRepository] as ChunkRepo
+[GameDataAnalysisRepository] as GameDataRepo
+
+Facade o-- ChunkRepo
+Facade o-- GameDataRepo
+
+note right of ChunkRepo
+  <b>Репозиторий чанков</b>
+  Работа с AnalysisChunk:
+  - Создание пачек задач
+  - Обновление статусов
+  - Мониторинг прогресса
+  - Статистика обработки
+end note
+
+note left of GameDataRepo
+  <b>Репозиторий анализа игр</b>
+  Работа с GameDataAnalysis:
+  - Детальные результаты по играм
+  - Логи ошибок обработки
+  - Время ответа API
+  - Статусы завершения
+end note
+@enduml
