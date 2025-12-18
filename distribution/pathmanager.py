@@ -40,6 +40,39 @@ DEFAULT_PATH_TO_SAVE_CLUSTERING = "clustering"
 
 DEFAULT_NODE_AGE_NAME = "Nodes_By_Games"
 
+
+class NotAFolderError(Exception):
+    def __init__(self, path):
+        self.message = f"Ошибка: {path} существует, но это не папка"
+        super().__init__(self.message)
+
+
+class NotAFileError(Exception):
+    def __init__(self, path):
+        self.message = f"Путь существует, но это не файл: {path}"
+        super().__init__(self.message)
+
+
+class FileNotFoundError(Exception):
+    def __init__(self, path):
+        self.message = f"Файл не найден: {path}"
+        super().__init__(self.message)
+
+
+class NoPermissionError(Exception):
+    def __init__(self, path):
+        self.message = f"Ошибка: Нет прав на создание папки {path}"
+        super().__init__(self.message)
+
+
+class CantCreateFolderError(Exception):
+    def __init__(self, path, error_msg=""):
+        self.message = f"Ошибка при создании папки {path}"
+        if error_msg:
+            self.message += f": {error_msg}"
+        super().__init__(self.message)
+
+
 class PathManager:
     def __init__(self):
         self._path_to_strategy_game: Path = DEFAULT_PATH_TO_STRATEGY / "strategy_games.json"
@@ -188,27 +221,27 @@ class PathManager:
                 if path.is_dir():
                     return True
                 else:
-                    raise Exception(f"Ошибка: {path.absolute()} существует, но это не папка")
+                    raise NotAFolderError(path.absolute())
 
             path.mkdir(parents=True, exist_ok=True)
             print(f"Папка успешно создана: {path.absolute()}")
             return True
 
         except PermissionError:
-            raise Exception(f"Ошибка: Нет прав на создание папки {path}")
+            raise NoPermissionError(path)
 
         except Exception as e:
-            raise Exception(f"Ошибка при создании папки {path}: {e}")
+            raise CantCreateFolderError(path)
 
     def check_exist_file(self, path: Path):
         if isinstance(path, str):
             path = Path(path)
 
         if not path.exists():
-            raise Exception(f"Файл не найден: {path}")
+            raise FileNotFoundError(path)
 
         if not path.is_file():
-            raise Exception(f"Путь существует, но это не файл: {path}")
+            raise NotAFileError(path)
 
         print(f"✓ Файл найден: {path}")
         return True

@@ -46,10 +46,12 @@ def user_update_strategy(api_key: str, processor_name: str):
             print(f"  Поле: {error['loc']}, Ошибка: {error['msg']}")
 
 
-def user_create_to_json(api_key, processor_name):
+def user_create_to_json(api_key, processor_name, batch_num):
     app = get_app_mediator(api_key, processor_name)
     saver = SaveTestData(pm.path_to_data / pm.folder_to_users)
-    app.add_user_to_json(saver=saver)
+    for num in range(batch_num):
+        print(f"Обработка бача: {num+1}")
+        app.add_user_to_json(saver=saver)
 
 
 def user_create_fill_database():
@@ -60,10 +62,12 @@ def user_create_fill_database():
     app.loads_users_from_jsons(loader=default_loader, folder=folder_users)
 
 
-def user_games_create_to_json(api_key, processor_name):
+def user_games_create_to_json(api_key, processor_name, batch_num):
     app = get_app_mediator(api_key, processor_name)
     saver = SaveTestData(pm.path_to_data / pm.folder_to_users_games)
-    app.add_user_games_to_json(saver=saver)
+    for num in range(batch_num):
+        print(f"Обработка бача: {num+1}")
+        app.add_user_games_to_json(saver=saver)
 
 
 def user_create_games_fill_database():
