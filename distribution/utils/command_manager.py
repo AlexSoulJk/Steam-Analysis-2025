@@ -11,7 +11,7 @@ from ..google_load import google_load
 from ..utils.command_schemas import BaseConfigCommandSchema, VisualizeConfig, \
     GoogleLoadConfig, CalculateConfig
 from ..pathmanager import pm
-from ..visualization import visualization_handler
+from ..visualization import visualize_for_task
 
 ROUTE_MAP: Dict[str, Any] = {
     "create_strategy": {
@@ -46,7 +46,7 @@ ROUTE_MAP: Dict[str, Any] = {
     },
     "calculate": calculate_for_task,
     "google_load": google_load,
-    "visualize": visualization_handler,
+    "visualize": visualize_for_task,
 }
 
 PM_DIRECT_MAP = {

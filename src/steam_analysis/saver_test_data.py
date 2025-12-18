@@ -226,7 +226,7 @@ class SaveTestData:
             data_to_save = fill_model.model_dump()
             filename = f"{file_name}.json"
             self.current_file = self.dir_to_save / filename
-            print(f"📁 Создан новый файл: {filename}")
+            print(f"📁 Создан новый файл: {self.current_file}")
             # Сохраняем в файл
             with open(self.current_file, 'w', encoding='utf-8') as f:
                 json.dump(data_to_save, f, indent=2, ensure_ascii=False, default=str)
