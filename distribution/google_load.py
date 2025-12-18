@@ -1,6 +1,6 @@
 from typing import List
 
-from distribution.pathmanager import pm
+from .pathmanager import pm
 from steam_analysis.analysis.finalapplication import Application
 from steam_analysis.config import examples_statistics_images_path
 from steam_analysis.loader_test_data import LoaderTestData
@@ -36,4 +36,4 @@ spreadsheet_url_ = "https://docs.google.com/spreadsheets/d/1w-ojS7k00hRTdEKqRa8f
 pm._path_to_google_token = r"C:\Users\Hp\PycharmProjects\Steam-Analysis-2025\google_token.json"
 spreadsheet_foled = "1CTi4qxH6TXQbnOwGHz7TbDZOteeXliQ3"
 # google_load(4, [0], spreadsheet_url)
-google_load(5, [0], spreadsheet_foled)
+# google_load(5, [0], spreadsheet_foled)

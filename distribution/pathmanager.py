@@ -1,9 +1,38 @@
+import sys
 from pathlib import Path
 
 
-DEFAULT_PATH_TO_STRATEGY = Path("/strategy")
-DEFAULT_PATH_TO_DATA_JSONS = Path("data_jsons")
-DEFAULT_PATH_TO_PEAK = DEFAULT_PATH_TO_DATA_JSONS / Path("/peaks")
+def get_app_paths():
+    """
+    Определяет корни путей для:
+    1. app_home: Где лежит EXE (или корень проекта в IDE). Сюда пишем логи, конфиги, БД.
+    2. internal_res: Где лежат вшитые ресурсы (шаблоны, картинки).
+    """
+    if getattr(sys, 'frozen', False):
+        # Режим EXE
+        app_home = Path(sys.executable).parent  # Папка рядом с .exe
+        internal_res = Path(sys._MEIPASS)  # Внутренняя временная папка PyInstaller
+    else:
+        # Режим IDE (разработка)
+        # Поднимаемся на уровень выше от файла, где лежит PathManager, к корню проекта
+        # Предполагаем, что PathManager лежит где-то типа src/app или distribution/
+        # Подкорректируй .parent.parent в зависимости от того, где лежит этот файл
+        app_home = Path(__file__).resolve().parent.parent
+        internal_res = app_home
+
+    print(f"Располагаемся в {app_home}")
+
+    return app_home, internal_res
+
+
+app_home, internal_res = get_app_paths()
+
+PROJECT_PATH = app_home
+DEFAULT_PATH_FOR_RES_DATA = app_home / Path("resources_data")
+
+DEFAULT_PATH_TO_STRATEGY = app_home / Path("strategy")
+DEFAULT_PATH_TO_DATA_JSONS = app_home / Path("data_jsons")
+DEFAULT_PATH_TO_PEAK = DEFAULT_PATH_TO_DATA_JSONS / Path("peaks")
 DEFAULT_PATH_TO_PEAK_DATA_JSONS = DEFAULT_PATH_TO_PEAK / Path("peak_pages")
 DEFAULT_PATH_TO_TASKS_DATA_JSON = DEFAULT_PATH_TO_DATA_JSONS / Path("tasks")
 
@@ -34,6 +63,7 @@ DEFAULT_PATH_TO_GEO_SAVE_GAMES = "geo_games"
 
 DEFAULT_NODE_AGE_NAME = "Nodes_By_Games"
 
+
 class PathManager:
     def __init__(self):
         self._path_to_strategy_game: Path = DEFAULT_PATH_TO_STRATEGY / "strategy_games.json"
@@ -48,7 +78,8 @@ class PathManager:
         self._folder_to_games_add_info: Path = DEFAULT_FOLDER_ADD_INFO_GAMES
         self._folder_to_users: Path = DEFAULT_FOLDR_USERS
         self._folder_to_users_games: Path = DEFAULT_FOLDER_USERS_GAMES
-        self._folder_to_task_save : Path = DEFAULT_PATH_TO_TASKS_DATA_JSON
+
+        self._folder_to_task_save: Path = DEFAULT_PATH_TO_TASKS_DATA_JSON
 
         self._path_to_peak_folder: Path = DEFAULT_PATH_TO_PEAK
         self._path_to_peak_pages: Path = DEFAULT_PATH_TO_PEAK / Path("peak_pages")
@@ -84,7 +115,6 @@ class PathManager:
         self.check_exist_folder(self._path_to_data)
         return self._path_to_data
 
-
     def path_to_google_token(self):
         if self._path_to_google_token == None:
             raise Exception("Can't find token")
@@ -104,7 +134,6 @@ class PathManager:
     def file_to_task_friends_games(self):
         self.check_exist_file(self._file_to_task_friends_games)
         return self._file_to_task_friends_games
-
 
     @property
     def folder_to_games(self):

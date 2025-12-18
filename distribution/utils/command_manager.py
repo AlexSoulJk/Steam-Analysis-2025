@@ -1,17 +1,17 @@
 from typing import Dict, Any
 
-from distribution.calculation import calculate_for_task
-from distribution.games import collect_create_peaks, create_peaks_fill_database, create_games_for_strategy, \
+from ..calculation import calculate_for_task
+from ..games import collect_create_peaks, create_peaks_fill_database, create_games_for_strategy, \
     games_update_strategy, games_create_add_info_json, games_create_games_json, games_create_fill_database, \
     games_create_add_info_fill_database
-from distribution.user import user_create_strategy, user_update_strategy, \
+from ..user import user_create_strategy, user_update_strategy, \
     user_create_to_json, user_games_create_to_json, \
     user_create_fill_database, user_create_games_fill_database
-from distribution.google_load import google_load
-from distribution.utils.command_schemas import BaseConfigCommandSchema, VisualizeConfig, \
+from ..google_load import google_load
+from ..utils.command_schemas import BaseConfigCommandSchema, VisualizeConfig, \
     GoogleLoadConfig, CalculateConfig
-from distribution.pathmanager import pm
-from distribution.visualization import visualization_handler
+from ..pathmanager import pm
+from ..visualization import visualization_handler
 
 ROUTE_MAP: Dict[str, Any] = {
     "create_strategy": {
@@ -50,33 +50,33 @@ ROUTE_MAP: Dict[str, Any] = {
 }
 
 PM_DIRECT_MAP = {
-    "create_strategy": {"path_to_strategy_game": pm.path_to_strategy_game,
-                        "path_to_strategy_user": pm.path_to_strategy_game},
+    "create_strategy": {"path_to_strategy_game": pm._path_to_strategy_game,
+                        "path_to_strategy_user": pm._path_to_strategy_user},
 
-    "update_strategy": {"path_to_strategy_game": pm.path_to_strategy_update_game,
-                        "path_to_strategy_user": pm.path_to_strategy_update_user},
+    "update_strategy": {"path_to_strategy_game": pm._path_to_strategy_update_game,
+                        "path_to_strategy_user": pm._path_to_strategy_update_user},
 
     "collect_data": {
-        "path_to_save": pm.path_to_data,
+        "path_to_save": pm._path_to_data,
     },
     "collect_data_peeks": {
-        "path_to_save": pm.path_to_peak_pages,
+        "path_to_save": pm._path_to_peak_pages,
     },
 
     "fill_analys_db": {"path_to_load":
-                           pm.path_to_data},
+                           pm._path_to_data},
 
     "fill_analys_db_peeks": {"path_to_load":
-                                 pm.path_to_peak_pages},
+                                 pm._path_to_peak_pages},
 
-    "calculate": {"path_to_save": pm.path_to_data},
+    "calculate": {"path_to_save": pm._folder_to_task_save},
     "google_load": {
-        "credentials_path": pm.credentials_path
+        "credentials_path": pm._path_to_google_token
     },
 
     "visualize": {
-        "path_to_save": pm.path_to_save,
-        "path_to_data": pm.path_to_data
+        "path_to_save": pm._path_to_data,
+        "path_to_data": pm._path_to_data
     }
 }
 
@@ -92,6 +92,9 @@ def pm_manager_manipulation(config_model: BaseConfigCommandSchema):
 
     for config_field, pm_field in mapping.items():
         if config_field in values:
+            if values[config_field] == "":
+                print(f"[WARNING] Your path is empty. I'l use default {mapping[config_field]}")
+                continue
             mapping[config_field] = values[config_field]  # Меняем значение в словаре!
 
 
@@ -120,7 +123,9 @@ def set_qwery_args_for_level_two(func, config_model: BaseConfigCommandSchema):
 
 
 def set_qwery_args_for_level_third(func, config_model: BaseConfigCommandSchema):
-    return func()
+    return func(api_key=config_model.steam_api_key,
+                processor_name=config_model.processor_name,
+                amount_of_butch=config_model.amount_of_butch)
 
 
 def get_result(config_model: BaseConfigCommandSchema):

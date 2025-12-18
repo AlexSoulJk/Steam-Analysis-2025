@@ -1,9 +1,9 @@
 from pathlib import Path
 import json
-from deps import validation, validate_json_strategy, get_app_mediator
+from .deps import get_app_mediator
 from pydantic import ValidationError
-from pathmanager import pm
-from pathmanager import DEFAULT_FILE_APP_IDS, DEFAULT_FILE_BATCHES_APP_IDS
+from .pathmanager import pm
+from .pathmanager import DEFAULT_FILE_APP_IDS, DEFAULT_FILE_BATCHES_APP_IDS
 from steam_analysis.app.application import AppMediator
 from steam_analysis.loader_test_data import LoaderTestData
 from steam_analysis.saver_test_data import SaveTestData

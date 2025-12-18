@@ -5,6 +5,10 @@ from typing import Callable, List
 def validate_json_strategy(**kwargs):
     return
 
+def check_all(values):
+    if isinstance(values, str):
+        return True
+    return False
 
 def get_app_mediator(api_key: str, processor_name: str):
     from steam_analysis.app.application import AppMediator

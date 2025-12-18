@@ -10,9 +10,9 @@ from datetime import datetime
 
 from steam_analysis.database.repositories.game.game import GameRepository
 from steam_analysis.database.facade import get_db
-from batch_json_saver import BatchJsonSaver
-from steamcharts_repository import SteamChartsRepository
-from collect_app_id import SteamAppIdCollector
+from steam_analysis.steamcharts.batch_json_saver import BatchJsonSaver
+from steam_analysis.steamcharts.steamcharts_repository import SteamChartsRepository
+from steam_analysis.steamcharts.collect_app_id import SteamAppIdCollector
 
 
 class SteamChartsPipeline:

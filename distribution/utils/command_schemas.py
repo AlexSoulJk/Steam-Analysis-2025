@@ -45,6 +45,7 @@ class CollectDataConfig(BaseConfigCommandSchema):
     stage: int = Field(ge=0, le=1, description="Номер stage: 0 или 1")
     processor_name: str = Field(default="FullSuccesser", description="Имя процессора")
     steam_api_key: str = ""
+    amount_of_butch: int = 10
     path_to_save: Optional[str] = Field(
         default="",
         description="Путь к папке для сохранения JSON-ов (будет создана подпапка)"
@@ -85,7 +86,7 @@ class FillAnalysDBPeeksConfig(BaseConfigCommandSchema):
 class CalculateConfig(BaseConfigCommandSchema):
     """Конфиг для .exe --calculate"""
     command: Literal["calculate"]
-    task: Union[List[int], Literal["all"]] = Field(
+    task: Union[int, Literal["all"]] = Field(
         default="all",
         description="Номер таски: список [0..4] или 'all'"
     )
@@ -103,7 +104,7 @@ class CalculateConfig(BaseConfigCommandSchema):
 class GoogleLoadConfig(BaseConfigCommandSchema):
     """Конфиг для .exe --google_load"""
     command: Literal["google_load"]
-    task: Union[List[int], Literal["all"]] = Field(
+    task: Union[int, Literal["all"]] = Field(
         default="all",
         description="Номер таски: список [0..4] или 'all'"
     )
@@ -120,7 +121,7 @@ class GoogleLoadConfig(BaseConfigCommandSchema):
 class VisualizeConfig(BaseConfigCommandSchema):
     """Конфиг для .exe --visualize"""
     command: Literal["visualize"]
-    task: Union[List[int], Literal["all"]] = Field(
+    task: Union[int, Literal["all"]] = Field(
         default="all",
         description="Номер таски: список [0..4] или 'all'"
     )

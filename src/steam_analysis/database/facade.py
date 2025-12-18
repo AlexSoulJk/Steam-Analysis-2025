@@ -45,6 +45,7 @@ from steam_analysis.database.services.maindb.schema_creator import SchemaCreatio
 from steam_analysis.database.services.maindb.player_game_relations_creator import PlayerGameRelationsCreationService
 
 # Для Windows абсолютного пути:
+path_sql = f"sqlite:///{db_path}"
 engine = create_engine(f"sqlite:///{db_path}")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

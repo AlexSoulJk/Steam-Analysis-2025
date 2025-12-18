@@ -5,7 +5,7 @@ from pydantic import ValidationError, BaseModel
 from ..utils.command_schemas import CreateStrategyConfig, UpdateStrategyConfig, \
     CollectDataConfig, FillAnalysDBConfig, CalculateConfig, GoogleLoadConfig, VisualizeConfig, BaseConfigCommandSchema, \
     FillAnalysDBPeeksConfig, CollectDataPeeksConfig
-from steam_analysis.core.parsers import json
+import json
 
 CONFIG_MODELS = {
     "create_strategy": CreateStrategyConfig,
