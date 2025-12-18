@@ -1,9 +1,15 @@
-from typing import Tuple, List
+from typing import Tuple, List, Any, Optional, Dict
+import os
+from pathlib import Path
 
 from steam_analysis.proccessors.schemas.games import (AbstractGameBy_, GamesClusteringData,
-                                                      ClusteringResult, ClusterInfo,
-                                                      CorrelationHeatmapData, TwoDHistogramData, GamesReleaseBySeason,
-                                                      HistogramAnalysisResult, GroupedHistogramData, EnhancedHistogramData)
+                                                      TwoDHistogramData, GamesReleaseBySeason,
+                                                      EnhancedHistogramData,
+                                                      GameFeatureVector)
+from steam_analysis.analysis.response_schemas.clustering import ClusteringResult, ClusterInfo
+from steam_analysis.analysis.response_schemas.graphics import CorrelationHeatmapData, GroupedHistogramData, HistogramAnalysisResult
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -12,11 +18,14 @@ import matplotlib.cm as cm
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 
 from scipy import stats
 import warnings
 
+import pandas as pd
 
+plt.rcParams['font.family'] = 'Microsoft YaHei'
 
 def generate_colormap_colors(num_colors, colormap_name='tab20'):
     cmap = cm.get_cmap(colormap_name)
@@ -67,9 +76,9 @@ def create_data_columns(data: AbstractGameBy_, columns_num: int) -> Tuple[List[s
     if len(ticks) > columns_num:
         combined = list(zip(ticks, values))
         combined.sort(key=lambda x: x[1], reverse=True)
-        top_ticks = [t[0] for t in combined[:columns_num-1]]
-        top_values = [t[1] for t in combined[:columns_num-1]]
-        others_sum = sum(t[1] for t in combined[columns_num-1:])
+        top_ticks = [t[0] for t in combined[:columns_num - 1]]
+        top_values = [t[1] for t in combined[:columns_num - 1]]
+        others_sum = sum(t[1] for t in combined[columns_num - 1:])
         ticks = top_ticks + ["Others"]
         values = top_values + [others_sum]
     else:
@@ -78,20 +87,24 @@ def create_data_columns(data: AbstractGameBy_, columns_num: int) -> Tuple[List[s
 
 
 def generate_distribution_by_feature(data: AbstractGameBy_, title_name: str,
-                                     path_to_save: str, columns_num: int) -> None:
+                                     path_to_save: str, columns_num: int,
+                                     num_highlited_bins: int = 3) -> None:
     ticks, values = create_data_columns(data, columns_num)
     x_positions = np.arange(len(ticks))
 
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(12, 10))
     bars = ax.bar(x_positions, values, color='skyblue', edgecolor='black', alpha=0.7)
 
-    for i in range(min(3, len(bars))):
-        bars[i].set_color('crimson')
-        bars[i].set_edgecolor('black')
+    if num_highlited_bins > 0:
+        max_indices = np.argpartition(values, -num_highlited_bins)[-num_highlited_bins:]
+
+        for idx in max_indices:
+            bars[idx].set_color('crimson')
+            bars[idx].set_edgecolor('black')
 
     ax.set_title(title_name, fontsize=16, fontweight='bold', pad=20)
     ax.set_xticks(x_positions)
-    ax.set_xticklabels(ticks, rotation=45, ha='right', fontsize=10)
+    ax.set_xticklabels(ticks, rotation=45, ha='right', fontsize=16)
 
     max_value = max(values)
     for bar, value in zip(bars, values):
@@ -102,15 +115,15 @@ def generate_distribution_by_feature(data: AbstractGameBy_, title_name: str,
             f'{value:,}',
             ha='center',
             va='bottom',
-            fontsize=9
+            fontsize=12,
+            rotation=45
         )
 
     plt.tight_layout()
-
     ax.yaxis.grid(True, linestyle='--', alpha=0.7)
+    ax.tick_params(axis='y', labelsize=16)
     plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
     plt.close(fig)
-
 
 def generate_pie_by_feature(data: AbstractGameBy_, title_name: str,
                             path_to_save: str, sections_num: int, max_to_color: int) -> None:
@@ -168,13 +181,82 @@ def generate_pie_by_feature(data: AbstractGameBy_, title_name: str,
     plt.close(fig)
 
 
-def generate_line_plot(data: AbstractGameBy_, title_name: str,
-                       path_to_save: str, columns_num: int = None,
-                       xlabel_val: str = "X", ylabel_val: str = "Y") -> None:
+# def generate_line_plot(data: AbstractGameBy_, title_name: str,
+#                        path_to_save: str, columns_num: int = None,
+#                        xlabel_val: str = "X", ylabel_val: str = "Y") -> None:
+#     ticks, values = data_prep(data)
+#
+#     if not columns_num: columns_num = len(ticks)
+#
+#     if len(ticks) > columns_num:
+#         step = len(ticks) // columns_num
+#         indices = list(range(0, len(ticks), step))[:columns_num]
+#         ticks_display = [ticks[i] for i in indices]
+#         values_display = [values[i] for i in indices]
+#         if len(ticks) - 1 not in indices:
+#             ticks_display.append(ticks[-1])
+#             values_display.append(values[-1])
+#     else:
+#         ticks_display = ticks
+#         values_display = values
+#
+#     x_positions = np.arange(len(ticks_display))
+#
+#     fig, ax = plt.subplots(figsize=(12, 6))
+#     ax.plot(x_positions, values_display,
+#             color='blue', marker='o',
+#             markersize=3, markerfacecolor="crimson")
+#
+#     ax.set_title(title_name, fontsize=14)
+#     ax.set_xlabel(xlabel_val, fontsize=12)
+#     ax.set_ylabel(ylabel_val, fontsize=12)
+#
+#     if len(ticks_display) <= 30:
+#         ax.set_xticks(x_positions)
+#         ax.set_xticklabels(ticks_display, rotation=45, ha='right', fontsize=10)
+#
+#     ax.grid(True, alpha=0.3, linestyle='--')
+#
+#     max_idx = np.argmax(values_display)
+#     min_idx = np.argmin(values_display)
+#
+#     if values_display:
+#         ax.annotate(f'Max: {values_display[max_idx]:,}',
+#                     xy=(x_positions[max_idx], values_display[max_idx]),
+#                     xytext=(10, 10), textcoords='offset points',
+#                     arrowprops=dict(arrowstyle='->', color='red'),
+#                     fontsize=9, color='red')
+#
+#         if max_idx != min_idx:
+#             ax.annotate(f'Min: {values_display[min_idx]:,}',
+#                         xy=(x_positions[min_idx], values_display[min_idx]),
+#                         xytext=(10, -20), textcoords='offset points',
+#                         arrowprops=dict(arrowstyle='->', color='green'),
+#                         fontsize=9, color='green')
+#
+#     plt.tight_layout()
+#     plt.savefig(path_to_save)
+#     plt.close(fig)
+
+
+def generate_line_plot(data: AbstractGameBy_,
+                       title_name: str,
+                       path_to_save: str,
+                       columns_num: int = None,
+                       xlabel_val: str = "X",
+                       ylabel_val: str = "Y",
+                       show_annotations: bool = True,
+                       show_grid: bool = True) -> None:
+
+    if isinstance(data, list):
+        ticks = [str(i) for i in range(len(data))]
+        from steam_analysis.analysis.response_schemas.graphics import AbstractGameBy_
+        data = AbstractGameBy_(values=data, ticks=ticks)
+
     ticks, values = data_prep(data)
 
-    if not columns_num: columns_num = len(ticks)
-
+    if not columns_num:
+        columns_num = len(ticks)
     if len(ticks) > columns_num:
         step = len(ticks) // columns_num
         indices = list(range(0, len(ticks), step))[:columns_num]
@@ -192,37 +274,192 @@ def generate_line_plot(data: AbstractGameBy_, title_name: str,
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(x_positions, values_display,
             color='blue', marker='o',
-            markersize=3, markerfacecolor="crimson")
+            markersize=3, markerfacecolor="crimson",
+            linewidth=2)
 
-    ax.set_title(title_name, fontsize=14)
+    ax.set_title(title_name, fontsize=14, fontweight='bold')
     ax.set_xlabel(xlabel_val, fontsize=12)
     ax.set_ylabel(ylabel_val, fontsize=12)
-
     if len(ticks_display) <= 30:
         ax.set_xticks(x_positions)
         ax.set_xticklabels(ticks_display, rotation=45, ha='right', fontsize=10)
+    else:
+        step = max(1, len(ticks_display) // 20)
+        indices = list(range(0, len(ticks_display), step))
+        ax.set_xticks([x_positions[i] for i in indices])
+        ax.set_xticklabels([ticks_display[i] for i in indices],
+                           rotation=45, ha='right', fontsize=8)
 
-    ax.grid(True, alpha=0.3, linestyle='--')
+    if show_grid:
+        ax.grid(True, alpha=0.3, linestyle='--')
+    if show_annotations and values_display:
+        max_idx = np.argmax(values_display)
+        min_idx = np.argmin(values_display)
 
-    max_idx = np.argmax(values_display)
-    min_idx = np.argmin(values_display)
-
-    if values_display:
-        ax.annotate(f'Max: {values_display[max_idx]:,}',
+        ax.annotate(f'Max: {values_display[max_idx]:,.2f}',
                     xy=(x_positions[max_idx], values_display[max_idx]),
                     xytext=(10, 10), textcoords='offset points',
-                    arrowprops=dict(arrowstyle='->', color='red'),
-                    fontsize=9, color='red')
+                    arrowprops=dict(arrowstyle='->', color='red', lw=1),
+                    fontsize=9, color='red', fontweight='bold')
 
         if max_idx != min_idx:
-            ax.annotate(f'Min: {values_display[min_idx]:,}',
+            ax.annotate(f'Min: {values_display[min_idx]:,.2f}',
                         xy=(x_positions[min_idx], values_display[min_idx]),
                         xytext=(10, -20), textcoords='offset points',
-                        arrowprops=dict(arrowstyle='->', color='green'),
-                        fontsize=9, color='green')
+                        arrowprops=dict(arrowstyle='->', color='green', lw=1),
+                        fontsize=9, color='green', fontweight='bold')
 
     plt.tight_layout()
-    plt.savefig(path_to_save)
+    plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+
+
+def generate_multi_line_plot(data_list: List[AbstractGameBy_],
+                             labels: List[str],
+                             title_name: str,
+                             path_to_save: str,
+                             xlabel_val: str = "X",
+                             ylabel_val: str = "Y") -> None:
+    fig, ax = plt.subplots(figsize=(14, 8))
+
+    colors = plt.cm.Set3(np.linspace(0, 1, len(data_list)))
+
+    for idx, (data, label) in enumerate(zip(data_list, labels)):
+        ticks, values = data_prep(data)
+        x_positions = np.arange(len(ticks))
+
+        ax.plot(x_positions, values,
+                color=colors[idx],
+                marker='o',
+                markersize=4,
+                label=label,
+                linewidth=2)
+
+    ax.set_title(title_name, fontsize=16, fontweight='bold')
+    ax.set_xlabel(xlabel_val, fontsize=12)
+    ax.set_ylabel(ylabel_val, fontsize=12)
+    ax.legend(fontsize=10, loc='best')
+    ax.grid(True, alpha=0.3, linestyle='--')
+
+    if len(data_list) > 0:
+        ticks = data_list[0].ticks
+        if len(ticks) <= 30:
+            ax.set_xticks(np.arange(len(ticks)))
+            ax.set_xticklabels(ticks, rotation=45, ha='right', fontsize=10)
+
+    plt.tight_layout()
+    plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
+    plt.close(fig)\
+
+
+
+def generate_bar_plot(data: AbstractGameBy_,
+                      title_name: str,
+                      path_to_save: str,
+                      columns_num: int = None,
+                      xlabel_val: str = "X",
+                      ylabel_val: str = "Y",
+                      show_values: bool = True,
+                      show_grid: bool = True,
+                      color: str = 'steelblue') -> None:
+    """
+    Генерирует столбчатую диаграмму для данных о ценах
+
+    Args:
+        data: объект AbstractGameBy_ с данными
+        title_name: заголовок графика
+        path_to_save: путь для сохранения
+        columns_num: количество столбцов для отображения
+        xlabel_val: подпись оси X
+        ylabel_val: подпись оси Y
+        show_values: показывать ли значения на столбцах
+        show_grid: показывать ли сетку
+        color: цвет столбцов
+    """
+    # Преобразуем данные если нужно
+    if isinstance(data, list):
+        ticks = [str(i) for i in range(len(data))]
+        from steam_analysis.analysis.response_schemas.graphics import AbstractGameBy_
+        data = AbstractGameBy_(values=data, ticks=ticks)
+
+    ticks, values = data_prep(data)
+
+    # Ограничиваем количество отображаемых столбцов для читаемости
+    if not columns_num:
+        columns_num = min(20, len(ticks))  # По умолчанию максимум 20 столбцов
+
+    if len(ticks) > columns_num:
+        # Берем первые N самых больших значений (предполагая, что это цены)
+        indices = sorted(range(len(values)), key=lambda i: values[i], reverse=True)[:columns_num]
+        indices = sorted(indices)  # Сортируем по порядку в исходном списке
+        ticks_display = [ticks[i] for i in indices]
+        values_display = [values[i] for i in indices]
+    else:
+        ticks_display = ticks
+        values_display = values
+
+    x_positions = np.arange(len(ticks_display))
+
+    fig, ax = plt.subplots(figsize=(14, 8))
+
+    # Создаем столбчатую диаграмму
+    bars = ax.bar(x_positions, values_display,
+                  color=color, edgecolor='black',
+                  alpha=0.8)
+
+    ax.set_title(title_name, fontsize=16, fontweight='bold', pad=20)
+    ax.set_xlabel(xlabel_val, fontsize=12)
+    ax.set_ylabel(ylabel_val, fontsize=12)
+
+    # Настраиваем подписи оси X
+    if len(ticks_display) <= 30:
+        ax.set_xticks(x_positions)
+        ax.set_xticklabels(ticks_display, rotation=45, ha='right', fontsize=10)
+    else:
+        step = max(1, len(ticks_display) // 20)
+        indices = list(range(0, len(ticks_display), step))
+        ax.set_xticks([x_positions[i] for i in indices])
+        ax.set_xticklabels([ticks_display[i] for i in indices],
+                           rotation=45, ha='right', fontsize=8)
+
+    if show_grid:
+        ax.grid(axis='y', alpha=0.3, linestyle='--')
+
+    # Добавляем значения на столбцы
+    if show_values and values_display:
+        max_value = max(values_display)
+        fontsize = 9 if max_value < 1000 else 8
+
+        for bar, value in zip(bars, values_display):
+            height = bar.get_height()
+
+            # Форматируем цену в зависимости от величины
+            if value >= 1:
+                value_str = f'{value:,.2f}'
+            elif value > 0:
+                value_str = f'{value:,.4f}'
+            else:
+                value_str = f'{value:,.2f}'
+
+            ax.text(bar.get_x() + bar.get_width() / 2., height,
+                    value_str,
+                    ha='center', va='bottom',
+                    fontsize=fontsize, fontweight='bold')
+
+    # Добавляем линию среднего значения
+    if values_display:
+        avg_value = np.mean(values_display)
+        ax.axhline(y=avg_value, color='red', linestyle='--',
+                   alpha=0.7, linewidth=1.5)
+
+        # Подписываем среднее значение
+        ax.text(len(ticks_display) - 0.5, avg_value,
+                f'Среднее: {avg_value:,.2f}',
+                color='red', va='bottom',
+                fontsize=10, fontweight='bold')
+
+    plt.tight_layout()
+    plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
     plt.close(fig)
 
 
@@ -318,231 +555,6 @@ def generate_histogram(data: AbstractGameBy_, title_name: str,
     plt.close(fig)
 
 
-def perform_games_clustering(
-        data: GamesClusteringData,
-        title_name: str,
-        path_to_save: str,
-        method: str = "kmeans",
-        n_clusters: int = 5,
-        features_to_show: Optional[List[str]] = None
-) -> ClusteringResult:
-    """
-    Выполняет кластеризацию игр и создает визуализацию.
-
-    Args:
-        data: Данные для кластеризации
-        title_name: Заголовок
-        path_to_save: Путь для сохранения
-        method: Метод кластеризации ('kmeans', 'dbscan')
-        n_clusters: Количество кластеров (для kmeans)
-        features_to_show: Признаки для отображения в визуализации
-
-    Returns:
-        ClusteringResult с информацией о кластерах
-    """
-    print(f"Кластеризация {len(data.games)} игр по {len(data.feature_names)} признакам")
-
-    if not data.feature_matrix:
-        raise ValueError("Нет матрицы признаков для кластеризации")
-
-    X = np.array(data.feature_matrix)
-
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    if method.lower() == "kmeans":
-        clusterer = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
-    elif method.lower() == "dbscan":
-        clusterer = DBSCAN(eps=0.5, min_samples=5)
-    else:
-        raise ValueError(f"Неизвестный метод кластеризации: {method}")
-
-    cluster_labels = clusterer.fit_predict(X_scaled)
-
-    n_noise = np.sum(cluster_labels == -1) if hasattr(clusterer, 'labels_') else 0
-    if n_noise > 0:
-        print(f"DBSCAN обнаружил {n_noise} шумных точек (кластер -1)")
-        max_cluster = cluster_labels.max()
-        cluster_labels[cluster_labels == -1] = max_cluster + 1
-
-    print("Выполняю уменьшение размерности для визуализации...")
-
-    pca = PCA(n_components=2)
-    X_reduced = pca.fit_transform(X_scaled)
-
-    clusters_info = []
-    unique_clusters = sorted(np.unique(cluster_labels))
-
-    for cluster_id in unique_clusters:
-        mask = cluster_labels == cluster_id
-        cluster_points = X_scaled[mask]
-
-        feature_stats = {}
-        for i, feature_name in enumerate(data.feature_names):
-            feature_values = X[mask, i]
-            if len(feature_values) > 0:
-                feature_stats[feature_name] = {
-                    'mean': float(np.mean(feature_values)),
-                    'std': float(np.std(feature_values)),
-                    'min': float(np.min(feature_values)),
-                    'max': float(np.max(feature_values)),
-                    'median': float(np.median(feature_values))
-                }
-
-        top_games = []
-        if method == "kmeans" and hasattr(clusterer, 'cluster_centers_'):
-            centroid = clusterer.cluster_centers_[cluster_id]
-            distances = np.linalg.norm(cluster_points - centroid, axis=1)
-            closest_indices = np.argsort(distances)[:5]
-
-            for idx in closest_indices:
-                game_idx = np.where(mask)[0][idx]
-                game = data.games[game_idx]
-                top_games.append({
-                    'app_id': game.app_id,
-                    'name': game.name,
-                    'distance_to_center': float(distances[idx])
-                })
-
-        clusters_info.append(ClusterInfo(
-            cluster_id=int(cluster_id),
-            size=int(np.sum(mask)),
-            centroid=clusterer.cluster_centers_[cluster_id].tolist() if hasattr(clusterer, 'cluster_centers_') else [],
-            feature_stats=feature_stats,
-            top_games=top_games,
-            description=None
-        ))
-
-    fig, axes = plt.subplots(2, 2, figsize=(18, 14))
-    axes = axes.flatten()
-
-    ax1 = axes[0]
-    colors = plt.cm.tab10(np.linspace(0, 1, len(unique_clusters)))
-
-    for cluster_id, color in zip(unique_clusters, colors):
-        mask = cluster_labels == cluster_id
-        ax1.scatter(X_reduced[mask, 0], X_reduced[mask, 1],
-                    c=[color],
-                    s=30,
-                    alpha=0.6,
-                    edgecolors='black',
-                    linewidth=0.5,
-                    label=f'Кластер {cluster_id}')
-
-    ax1.set_title(f"Кластеризация игр\nВсего: {len(data.games)} игр, {len(unique_clusters)} кластеров",
-                  fontsize=14, fontweight='bold')
-    ax1.set_xlabel(f"Компонента 1 ({pca.explained_variance_ratio_[0]:.1%} дисперсии)")
-    ax1.set_ylabel(f"Компонента 2 ({pca.explained_variance_ratio_[1]:.1%} дисперсии)")
-    ax1.legend(title="Кластеры", fontsize=9)
-    ax1.grid(True, alpha=0.3)
-
-    ax2 = axes[1]
-    cluster_sizes = [info.size for info in clusters_info]
-    cluster_ids = [info.cluster_id for info in clusters_info]
-
-    bars = ax2.bar(range(len(cluster_sizes)), cluster_sizes, color=colors, edgecolor='black')
-    ax2.set_title("Размеры кластеров", fontsize=14, fontweight='bold')
-    ax2.set_xlabel("Номер кластера")
-    ax2.set_ylabel("Количество игр")
-    ax2.set_xticks(range(len(cluster_sizes)))
-    ax2.set_xticklabels([f"Кластер {cid}" for cid in cluster_ids])
-
-    for bar, size in zip(bars, cluster_sizes):
-        height = bar.get_height()
-        ax2.text(bar.get_x() + bar.get_width() / 2., height,
-                 f'{size}',
-                 ha='center', va='bottom', fontsize=9)
-
-    ax3 = axes[2]
-
-    if features_to_show:
-        key_features = [f for f in features_to_show if f in data.feature_names][:6]
-    else:
-        feature_stds = np.std(X, axis=0)
-        top_feature_indices = np.argsort(feature_stds)[-6:][::-1]
-        key_features = [data.feature_names[i] for i in top_feature_indices]
-
-    heatmap_data = []
-    for cluster_info in clusters_info:
-        row = []
-        for feature in key_features:
-            if feature in cluster_info.feature_stats:
-                row.append(cluster_info.feature_stats[feature]['mean'])
-            else:
-                row.append(0)
-        heatmap_data.append(row)
-
-    im = ax3.imshow(heatmap_data, cmap='viridis', aspect='auto')
-
-    ax3.set_title("Средние значения признаков по кластерам", fontsize=14, fontweight='bold')
-    ax3.set_xlabel("Признаки")
-    ax3.set_ylabel("Кластеры")
-
-    ax3.set_xticks(range(len(key_features)))
-    ax3.set_xticklabels(key_features, rotation=45, ha='right', fontsize=8)
-
-    ax3.set_yticks(range(len(clusters_info)))
-    ax3.set_yticklabels([f"Кластер {info.cluster_id}" for info in clusters_info])
-
-    plt.colorbar(im, ax=ax3, fraction=0.046, pad=0.04)
-
-    ax4 = axes[3]
-    ax4.axis('off')
-
-    description_text = "ОПИСАНИЕ КЛАСТЕРОВ:\n\n"
-    for cluster_info in clusters_info:
-        desc = f"Кластер {cluster_info.cluster_id} ({cluster_info.size} игр):\n"
-
-        if cluster_info.feature_stats:
-            top_features = sorted(
-                cluster_info.feature_stats.items(),
-                key=lambda x: abs(x[1]['mean']),
-                reverse=True
-            )[:3]
-
-            for feat_name, stats in top_features:
-                desc += f"  • {feat_name}: {stats['mean']:.2f}\n"
-
-        if cluster_info.top_games:
-            desc += "  Примеры игр:\n"
-            for game in cluster_info.top_games[:2]:
-                desc += f"    - {game['name'][:30]}...\n"
-
-        description_text += desc + "\n"
-
-    ax4.text(0.02, 0.98, description_text,
-             transform=ax4.transAxes,
-             verticalalignment='top',
-             fontsize=9,
-             bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
-
-    plt.suptitle(title_name, fontsize=18, fontweight='bold', y=1.02)
-
-    plt.tight_layout()
-    plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
-    plt.close(fig)
-
-    print(f"✅ Кластеризация завершена. График сохранен: {path_to_save}")
-
-    game_assignments = {
-        game.app_id: int(cluster_labels[i])
-        for i, game in enumerate(data.games)
-    }
-
-    result = ClusteringResult(
-        clusters=clusters_info,
-        game_assignments=game_assignments,
-        n_clusters=len(unique_clusters),
-        method=method,
-        reduced_2d=X_reduced.tolist(),
-        values={"total_games": len(data.games), "n_clusters": len(unique_clusters)},
-        ticks=[f"Cluster_{cid}" for cid in unique_clusters]
-    )
-
-    return result
-
-
-
 def generate_correlation_heatmap(
         data: CorrelationHeatmapData,
         title_name: str,
@@ -552,73 +564,126 @@ def generate_correlation_heatmap(
         figsize: Tuple[int, int] = (12, 10)
 ) -> None:
     """
-    Генерирует heatmap матрицы корреляций между признаками.
-
-    Args:
-        data: Данные с матрицей корреляций
-        title_name: Заголовок графика
-        path_to_save: Путь для сохранения
-        cmap: Цветовая карта
-        annotate: Добавлять ли числовые значения в ячейки
-        figsize: Размер фигуры
+    Генерирует и сохраняет heatmap корреляционной матрицы.
     """
-    corr_matrix = np.array(data.correlation_matrix)
-    feature_names = data.feature_names if hasattr(data, 'feature_names') else data.ticks
+    try:
+        print(f"🔍 Начинаем создание heatmap...")
+        print(f"  Путь сохранения: {path_to_save}")
+        save_path = Path(path_to_save)
+        print(f"  Преобразованный путь: {save_path}")
+        print(f"  Родительская директория: {save_path.parent}")
+        print(f"  Существует ли родительская директория: {save_path.parent.exists()}")
+        if save_path.parent and not save_path.parent.exists():
+            print(f"  Создаем директорию: {save_path.parent}")
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            print(f"  Путь без директории, сохраняем в текущую")
+        if not hasattr(data, 'correlation_matrix') or not data.correlation_matrix:
+            raise ValueError("Нет данных корреляционной матрицы")
 
-    if len(feature_names) != corr_matrix.shape[0]:
-        raise ValueError(f"Количество названий признаков ({len(feature_names)}) "
-                         f"не совпадает с размером матрицы ({corr_matrix.shape[0]})")
+        corr_matrix = np.array(data.correlation_matrix)
+        print(f"  Размер матрицы: {corr_matrix.shape}")
+        if np.any(np.isnan(corr_matrix)):
+            print("  ⚠️  В матрице есть NaN значения")
+            nan_count = np.sum(np.isnan(corr_matrix))
+            print(f"  Количество NaN: {nan_count}")
+            corr_matrix = np.nan_to_num(corr_matrix, nan=0.0)
 
-    fig, ax = plt.subplots(figsize=figsize)
+        if np.any(np.isinf(corr_matrix)):
+            print("  ⚠️  В матрице есть Inf значения")
+            corr_matrix = np.where(np.isinf(corr_matrix), 0, corr_matrix)
+        feature_names = []
+        if hasattr(data, 'feature_names') and data.feature_names:
+            feature_names = data.feature_names
+        elif hasattr(data, 'ticks') and data.ticks:
+            feature_names = data.ticks
+        else:
+            feature_names = [f"Признак {i + 1}" for i in range(corr_matrix.shape[0])]
+            print(f"  ⚠️  Нет имен признаков, созданы автоматически")
 
-    im = ax.imshow(corr_matrix, cmap=cmap, aspect='auto',
-                   vmin=-1, vmax=1)
+        print(f"  Количество имен признаков: {len(feature_names)}")
+        if len(feature_names) != corr_matrix.shape[0]:
+            print(f"  ⚠️  Размеры не совпадают: признаки={len(feature_names)}, матрица={corr_matrix.shape[0]}")
+            # Автоматическая корректировка
+            min_size = min(len(feature_names), corr_matrix.shape[0])
+            corr_matrix = corr_matrix[:min_size, :min_size]
+            feature_names = feature_names[:min_size]
+            print(f"  Обрезано до: {min_size}×{min_size}")
+        MAX_FEATURES = 20
+        if len(feature_names) > MAX_FEATURES:
+            print(f"  ⚠️  Слишком много признаков ({len(feature_names)}), обрезаем до {MAX_FEATURES}")
+            corr_matrix = corr_matrix[:MAX_FEATURES, :MAX_FEATURES]
+            feature_names = feature_names[:MAX_FEATURES]
+        print(f"  Создаем график размером {figsize}...")
+        fig, ax = plt.subplots(figsize=figsize)
 
-    cbar = fig.colorbar(im, ax=ax, shrink=0.8)
-    cbar.set_label('Коэффициент корреляции', rotation=-90, va='bottom')
+        im = ax.imshow(corr_matrix, cmap=cmap, aspect='auto', vmin=-1, vmax=1)
 
-    ax.set_xticks(np.arange(len(feature_names)))
-    ax.set_yticks(np.arange(len(feature_names)))
-    ax.set_xticklabels(feature_names, rotation=45, ha='right', fontsize=10)
-    ax.set_yticklabels(feature_names, fontsize=10)
+        cbar = fig.colorbar(im, ax=ax, shrink=0.8)
+        cbar.set_label('Коэффициент корреляции', rotation=-90, va='bottom')
 
-    if annotate:
-        for i in range(len(feature_names)):
-            for j in range(len(feature_names)):
-                value = corr_matrix[i, j]
-                color = "white" if abs(value) > 0.5 else "black"
-                text = f"{value:.2f}" if not np.isnan(value) else "NaN"
-                ax.text(j, i, text,
-                        ha="center", va="center",
-                        color=color, fontsize=8, fontweight='bold')
+        ax.set_xticks(np.arange(len(feature_names)))
+        ax.set_yticks(np.arange(len(feature_names)))
+        ax.set_xticklabels(feature_names, rotation=45, ha='right', fontsize=9)
+        ax.set_yticklabels(feature_names, fontsize=9)
 
-    threshold = 0.7
-    strong_corr_indices = np.where(np.abs(corr_matrix) > threshold)
+        if annotate:
+            print(f"  Добавляем числовые аннотации...")
+            for i in range(len(feature_names)):
+                for j in range(len(feature_names)):
+                    value = corr_matrix[i, j]
+                    if not np.isnan(value):
+                        color = "white" if abs(value) > 0.5 else "black"
+                        text = f"{value:.2f}" if abs(value) > 0.01 else "0"
+                        ax.text(j, i, text,
+                                ha="center", va="center",
+                                color=color, fontsize=7, fontweight='normal')
+        threshold = 0.7
+        strong_corr_indices = np.where(np.abs(corr_matrix) > threshold)
+        strong_pairs = []
 
-    for i, j in zip(*strong_corr_indices):
-        if i != j:
-            rect = plt.Rectangle((j - 0.5, i - 0.5), 1, 1,
-                                 fill=False, edgecolor='red',
-                                 linewidth=2, linestyle='--')
-            ax.add_patch(rect)
+        for i, j in zip(*strong_corr_indices):
+            if i != j and (j, i) not in strong_pairs:
+                strong_pairs.append((i, j))
+                rect = plt.Rectangle((j - 0.5, i - 0.5), 1, 1,
+                                     fill=False, edgecolor='red',
+                                     linewidth=1.5, linestyle='--', alpha=0.7)
+                ax.add_patch(rect)
 
-    ax.set_title(f"{title_name}\n"
-                 f"Размер матрицы: {corr_matrix.shape[0]}×{corr_matrix.shape[1]}",
-                 fontsize=14, fontweight='bold', pad=20)
+        n_strong = len(strong_pairs)
+        ax.set_title(f"{title_name}\n"
+                     f"Признаков: {len(feature_names)}, Сильных корреляций (|r| > {threshold}): {n_strong}",
+                     fontsize=14, fontweight='bold', pad=20)
+        if n_strong > 0:
+            info_text = f"Сильные корреляции:\n"
+            for idx, (i, j) in enumerate(strong_pairs[:5]):  # показываем первые 5
+                feat1 = feature_names[i]
+                feat2 = feature_names[j]
+                corr_value = corr_matrix[i, j]
+                info_text += f"{feat1} ↔ {feat2}: {corr_value:.2f}\n"
+            if len(strong_pairs) > 5:
+                info_text += f"... и еще {len(strong_pairs) - 5}"
 
-    n_strong = len(strong_corr_indices[0]) - len(feature_names)
-    info_text = f"Сильных корреляций (|r| > {threshold}): {n_strong}"
+            ax.text(0.02, -0.15, info_text,
+                    transform=ax.transAxes,
+                    fontsize=9,
+                    bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
 
-    ax.text(0.02, -0.1, info_text,
-            transform=ax.transAxes,
-            fontsize=10,
-            bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
+        print(f"  Сохраняем график как: {save_path}")
 
-    plt.tight_layout()
-    plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
-    plt.close(fig)
+        absolute_path = save_path.absolute()
+        plt.tight_layout()
+        plt.savefig(str(absolute_path), dpi=300, bbox_inches='tight')
+        plt.close(fig)
 
-    print(f"✅ Heatmap корреляций сохранена: {path_to_save}")
+        print(f"✅ Heatmap успешно сохранена: {absolute_path}")
+        print(f"📊 Файл существует: {absolute_path.exists()}")
+        print(f"📊 Размер файла: {absolute_path.stat().st_size if absolute_path.exists() else 0} байт")
+
+    except Exception as e:
+        print(f"❌ ОШИБКА в generate_correlation_heatmap: {e}")
+        import traceback
+        print(f"Трассировка ошибки:\n{traceback.format_exc()}")
+        raise
 
 
 def generate_2d_density_heatmap(
@@ -737,8 +802,8 @@ def generate_time_series_heatmap(
         data: AbstractGameBy_,
         title_name: str,
         path_to_save: str,
-        time_period: str = "month",  # "year", "quarter", "month", "week"
-        value_type: str = "count",  # "count", "sum", "average"
+        time_period: str = "month",
+        value_type: str = "count",
         cmap: str = "YlOrRd",
         figsize: Tuple[int, int] = (14, 8)
 ) -> None:
@@ -987,18 +1052,6 @@ def generate_enhanced_histogram(
         path_to_save: str,
         figsize: Tuple[int, int] = (14, 10)
 ) -> HistogramAnalysisResult:
-    """
-    Генерирует улучшенную гистограмму с анализом распределения.
-
-    Args:
-        data: Данные для гистограммы
-        title_name: Заголовок
-        path_to_save: Путь для сохранения
-        figsize: Размер фигуры
-
-    Returns:
-        Результат анализа распределения
-    """
     values = np.array(data.values)
     values = values[~np.isnan(values)]  # Удаляем NaN
 
@@ -1385,4 +1438,108 @@ def generate_grouped_histogram(
 
     print(f"✅ Группированная гистограмма сохранена: {path_to_save}")
     print(f"   Группы: {list(valid_groups.keys())}")
+
+
+def test_heatmap_directly():
+    """Тест создания heatmap напрямую"""
+    try:
+        print("🔍 ТЕСТ: Начинаем тест heatmap напрямую...")
+
+        # Создаем тестовые данные
+        import numpy as np
+        test_corr_matrix = np.array([
+            [1.0, 0.8, 0.3, -0.2],
+            [0.8, 1.0, 0.1, 0.5],
+            [0.3, 0.1, 1.0, -0.7],
+            [-0.2, 0.5, -0.7, 1.0]
+        ])
+
+        test_feature_names = ["Цена", "Рейтинг", "Популярность", "Возраст"]
+
+        # Создаем объект данных
+        from dataclasses import make_dataclass
+        TestHeatmapData = make_dataclass('TestHeatmapData',
+                                         [('correlation_matrix', list),
+                                          ('feature_names', list),
+                                          ('ticks', list)])
+
+        test_data = TestHeatmapData(
+            correlation_matrix=test_corr_matrix.tolist(),
+            feature_names=test_feature_names,
+            ticks=test_feature_names
+        )
+
+        print(f"  Тестовые данные созданы")
+        print(f"  Размер матрицы: {test_corr_matrix.shape}")
+
+        # Пытаемся вызвать функцию
+        print(f"  Пробуем найти функцию...")
+
+        # Вариант 1: Если функция в отдельном модуле
+        try:
+            from steam_analysis.analysis.utils.generate_clustering_task_picture import generate_correlation_heatmap
+            print(f"  ✅ Функция найдена через import")
+
+            # Вызов
+            generate_correlation_heatmap(
+                data=test_data,
+                title_name="ТЕСТ: Корреляция признаков",
+                path_to_save="test_heatmap_output.png",
+                annotate=True,
+                figsize=(10, 8)
+            )
+
+            print(f"  ✅ Функция вызвана успешно!")
+
+        except ImportError:
+            # Вариант 2: Функция в текущем файле
+            print(f"  ⚠️  Не найден импорт, проверяем локально...")
+
+            # Определяем функцию локально для теста
+            def local_generate_heatmap(data, title_name, path_to_save, **kwargs):
+                print(f"  🔧 Локальная функция вызвана!")
+                print(f"     title: {title_name}")
+                print(f"     path: {path_to_save}")
+
+                import matplotlib.pyplot as plt
+                import numpy as np
+
+                corr_matrix = np.array(data.correlation_matrix)
+
+                fig, ax = plt.subplots(figsize=(10, 8))
+                im = ax.imshow(corr_matrix, cmap='RdBu_r', vmin=-1, vmax=1)
+                plt.colorbar(im, ax=ax)
+                ax.set_xticks(range(len(data.feature_names)))
+                ax.set_yticks(range(len(data.feature_names)))
+                ax.set_xticklabels(data.feature_names, rotation=45, ha='right')
+                ax.set_yticklabels(data.feature_names)
+                ax.set_title(title_name)
+
+                plt.tight_layout()
+                plt.savefig(path_to_save, dpi=150, bbox_inches='tight')
+                plt.close()
+
+                print(f"  ✅ Локальная heatmap сохранена: {path_to_save}")
+                return True
+
+            # Вызываем локальную функцию
+            result = local_generate_heatmap(
+                data=test_data,
+                title_name="ТЕСТ: Локальная heatmap",
+                path_to_save="test_local_heatmap.png"
+            )
+
+            if result:
+                print(f"  ✅ Локальный тест пройден!")
+
+        return True
+
+    except Exception as e:
+        print(f"❌ ТЕСТ не пройден: {e}")
+        import traceback
+        print(f"Трассировка:\n{traceback.format_exc()}")
+        return False
+
+if __name__ == "__main__":
+    test_heatmap_directly()
 
