@@ -89,7 +89,6 @@ class ProcessedDataProvider: # ЭТО ФАСАД, ТУТ ВСЕ СЕРВИСЫ, 
     def get_category_by_price(self, n_columns: int = 40):
         return self.visualisation_game_proccesor.get_price_distribution_by_category(n=n_columns)
 
-    # только для кластеризации
 
     def get_game_clustering_data(self, type_id, limit):
         return self.clustering_game_proccesor.get_game_clustering_data(type_id=type_id, limit=limit

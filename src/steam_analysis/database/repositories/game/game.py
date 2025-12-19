@@ -28,8 +28,7 @@ EXCHANGE_RATES = {
             'THB': 2.6, 'IDR': 0.0059, 'MYR': 19.5, 'PHP': 1.65,
             'VND': 0.0038, 'ZAR': 5.0, 'SAR': 24.7, 'CLP': 0.105,
             'COP': 0.023, 'CRC': 0.17, 'KWD': 300.0, 'NZD': 55.0,
-            'TWD': 2.9, 'UYU': 2.4, 'AED': 21.69, 'AUD': 53.03,
-            'DEFAULT': 95.0
+            'TWD': 2.9, 'UYU': 2.4, 'AED': 21.69, 'AUD': 53.03
         }
 
 
@@ -579,7 +578,7 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                     # Если не конвертируем, просто переводим центы в базовые единицы
                     price_converted = price_value / 100.0  # Предполагаем центы
 
-                if price_converted < 8000:
+                if price_converted < 10000:
                     values.append(price_converted)
 
                 # Отладочный вывод для первых 5 записей
@@ -599,7 +598,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             print(f"Ошибка при создании CharacterByPrice: {e}")
             # Фоллбэк
             return {"values": values, "ticks": ticks}
-
 
     def get_prices_by_genre(self,
                             session: Session,
@@ -944,10 +942,10 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 Game.app_id,
                 Game.name,
                 Game.is_free,
-                Game.release_date,
+                Game.release_date,  # ⭐ Используем для расчета возраста
             )
             .where(Game.type_id == type_id)
-            .where(Game.release_date.isnot(None))
+            .where(Game.release_date.isnot(None))  # Важно: игры с известной датой релиза
         )
 
         if limit:
@@ -975,10 +973,9 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 ticks=[]
             )
 
-        print(f"Найдено {len(game_results)} игр")
+        print(f"Найдено {len(game_results)} игр с известной датой релиза")
         game_ids = [row[0] for row in game_results]
 
-        # Запрос последних цен
         latest_prices = {}
         batch_size = 100
 
@@ -1020,9 +1017,8 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                         price_amount = price_initial
 
                     if price_amount is not None:
-                        # ВАЖНО: Сохраняем конвертацию в рубли
                         price_rub = convert_to_rubles(float(price_amount), currency)
-                        MAX_PRICE_RUB = 10000.0
+                        MAX_PRICE_RUB = 17000.0
                         if price_rub > MAX_PRICE_RUB:
                             price_rub = MAX_PRICE_RUB
                         latest_prices[game_id] = price_rub
@@ -1036,9 +1032,7 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
 
         print(f"  Получено цен для {len(latest_prices)} игр")
 
-        # Запрос отзывов (только positive_reviews и review_count)
         latest_reviews = {}
-
         for i in range(0, len(game_ids), batch_size):
             batch_ids = game_ids[i:i + batch_size]
             try:
@@ -1079,124 +1073,59 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 continue
         print(f"  Получено отзывов для {len(latest_reviews)} игр")
 
-        # Запрос количества достижений
-        achievements_dict = {}
-        for i in range(0, len(game_ids), batch_size):
-            batch_ids = game_ids[i:i + batch_size]
-            try:
-                achievements_query = (
-                    select(
-                        Achievement.game_id,
-                        func.count(Achievement.id).label("achievements_count")
-                    )
-                    .where(Achievement.game_id.in_(batch_ids))
-                    .group_by(Achievement.game_id)
-                )
-                achievements_result = session.execute(achievements_query).all()
-                for row in achievements_result:
-                    achievements_dict[row[0]] = row[1]
-
-                if i % 500 == 0:
-                    print(f"  Обработано достижений для {i} игр...")
-
-            except Exception as e:
-                print(f"Ошибка запроса достижений для батча {i}: {e}")
-                continue
-
-        print(f"  Получено достижений для {len(achievements_dict)} игр")
-
-        # Запрос: Количество поддерживаемых платформ
-        platforms_count_dict = {}
-        for i in range(0, len(game_ids), batch_size):
-            batch_ids = game_ids[i:i + batch_size]
-            try:
-                platforms_query = (
-                    select(
-                        GamePlatform.game_id,
-                        func.count(GamePlatform.id).label("platforms_count")
-                    )
-                    .where(GamePlatform.game_id.in_(batch_ids))
-                    .where(GamePlatform.supported == True)
-                    .group_by(GamePlatform.game_id)
-                )
-                platforms_result = session.execute(platforms_query).all()
-                for row in platforms_result:
-                    platforms_count_dict[row[0]] = row[1]
-
-                if i % 500 == 0:
-                    print(f"  Обработано платформ для {i} игр...")
-            except Exception as e:
-                print(f"Ошибка запроса платформ для батча {i}: {e}")
-                continue
-
-        print(f"  Получено платформ для {len(platforms_count_dict)} игр")
-
-        # Запрос: Рейтинги возраста (берем минимальный возраст)
-        ratings_dict = {}
-        for i in range(0, len(game_ids), batch_size):
-            batch_ids = game_ids[i:i + batch_size]
-            try:
-                ratings_query = (
-                    select(
-                        Rating.game_id,
-                        func.min(Rating.req_age).label("min_age")
-                    )
-                    .where(Rating.game_id.in_(batch_ids))
-                    .where(Rating.rating.isnot(None))
-                    .where(Rating.banned == False)
-                    .group_by(Rating.game_id)
-                )
-                ratings_result = session.execute(ratings_query).all()
-                for row in ratings_result:
-                    game_id, min_age = row
-                    if min_age is not None:
-                        ratings_dict[game_id] = min_age
-
-                if i % 500 == 0:
-                    print(f"  Обработано рейтингов для {i} игр...")
-            except Exception as e:
-                print(f"Ошибка запроса рейтингов для батча {i}: {e}")
-                continue
-
-        print(f"  Получено рейтингов для {len(ratings_dict)} игр")
-
-        # ТОЛЬКО нужные признаки
+        # ⭐ Теперь 3 признака с возрастом игры
         game_vectors = []
         feature_matrix = []
         feature_names = [
-            "price_rub",  # Цена в рублях
-            "is_free",  # Бесплатная ли игра
-            "positive_ratio",  # Доля положительных отзывов (0-1)
-            "achievements_count_norm",  # Количество достижений (нормализованное)
-            "game_age_years",  # Возраст игры в годах
-            "platforms_count",  # Количество поддерживаемых платформ
-            "rating_age",  # Рекомендованный возраст
+            "price_rub",  # Цена в рублях (финансы)
+            "positive_ratio",  # Доля положительных отзывов (0-1) (качество)
+            "game_age_years"  # Возраст игры в годах - НОВЫЙ ПРИЗНАК ⭐
         ]
 
-        current_year = datetime.now().year
+        # Но сохраняем дополнительную информацию для анализа
+        additional_features_names = [
+            "is_free",  # Бесплатная ли игра
+            "achievements_count",  # Количество достижений
+            "platforms_count",  # Количество платформ
+        ]
+
         processed_count = 0
         games_with_price = 0
         games_with_reviews = 0
+        games_with_age = 0  # ⭐ НОВЫЙ СЧЕТЧИК
         skipped_low_reviews = 0
+        skipped_invalid_age = 0  # ⭐ НОВЫЙ СЧЕТЧИК для игр с некорректной датой
 
-        print(f"\nНачинаю обработку {len(game_results)} игр...")
+        print(f"\nНачинаю обработку {len(game_results)} игр для кластеризации...")
+        print("📌 Признаки кластеризации:")
+        print("   1. price_rub - Текущая цена в рублях (финансы)")
+        print("   2. positive_ratio - Доля положительных отзывов (качество)")
+        print("   3. game_age_years - Возраст игры в годах (время) ⭐")
+        print("   ✅ Все игры уже имеют дату релиза (фильтр в запросе)")
+
         for row in game_results:
             try:
                 game_id, app_id, name, is_free, release_date = row
                 features = {}
-                features["is_free"] = 1.0 if is_free else 0.0
+                additional_features = {}
 
-                # Цена (с конвертацией в рубли)
+                # 1. Цена (price_rub)
                 price_rub = 0.0
                 if is_free:
-                    price_rub = 0.0
+                    price_rub = 0.0  # Бесплатные игры = 0 руб
+                    additional_features["is_free"] = 1.0
+                    games_with_price += 1
                 elif game_id in latest_prices:
                     price_rub = latest_prices[game_id]
                     if price_rub > 0:
                         games_with_price += 1
+                        additional_features["is_free"] = 0.0
+                else:
+                    continue  # Пропускаем игры без цены
+
                 features["price_rub"] = price_rub
 
-                # Отзывы
+                # 2. Отзывы (positive_ratio) - качество
                 review_data = latest_reviews.get(game_id, {})
                 review_count = review_data.get('review_count', 0)
                 positive_reviews = review_data.get('positive_reviews', 0)
@@ -1215,35 +1144,59 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                     positive_ratio = positive_reviews / review_count
                 features["positive_ratio"] = positive_ratio
 
-                # Достижения
-                achievements = float(achievements_dict.get(game_id, 0))
-                features["achievements_count_norm"] = min(achievements / 1000.0, 1.0) if achievements > 0 else 0.0
-
-                # Возраст игры
+                # ⭐ ИЗМЕНЕНИЕ: Возраст игры вместо истории цен
                 if release_date:
-                    age = max(1, current_year - release_date.year)
+                    try:
+                        from datetime import datetime
+
+                        # Преобразуем дату релиза
+                        if isinstance(release_date, str):
+                            # Если дата в строковом формате
+                            try:
+                                release_dt = datetime.strptime(release_date, "%Y-%m-%d")
+                            except:
+                                release_dt = datetime.strptime(release_date, "%Y-%m-%d %H:%M:%S")
+                        else:
+                            # Если уже datetime
+                            release_dt = release_date
+
+                        # Рассчитываем возраст в годах
+                        current_date = datetime.now()
+                        age_days = (current_date - release_dt).days
+                        age_years = age_days / 365.25  # С учетом високосных годов
+
+                        # Проверка на корректность возраста (не отрицательный и не слишком старый)
+                        if age_years < 0 or age_years > 50:  # Игры старше 50 лет маловероятны
+                            skipped_invalid_age += 1
+                            continue
+
+                        features["game_age_years"] = float(age_years)
+                        games_with_age += 1
+
+                    except Exception as age_error:
+                        print(f"   ⚠️  Ошибка расчета возраста для игры {app_id}: {age_error}")
+                        skipped_invalid_age += 1
+                        continue
                 else:
-                    age = 1.0
-                features["game_age_years"] = float(age)
+                    # Уже отфильтровано в запросе, но на всякий случай
+                    skipped_invalid_age += 1
+                    continue
 
-                # Платформы
-                platforms_count = platforms_count_dict.get(game_id, 0)
-                features["platforms_count"] = float(platforms_count)
-
-                # Возрастной рейтинг
-                rating_age = ratings_dict.get(game_id, 0)
-                features["rating_age"] = float(rating_age)
-
-                # Собираем значения признаков
+                # Собираем значения для всех 3 признаков кластеризации
                 feature_values = []
                 for name_feature in feature_names:
                     value = features.get(name_feature, 0.0)
                     feature_values.append(float(value))
 
+                # Сохраняем все дополнительные признаки для анализа
+                all_features = {}
+                all_features.update(features)
+                all_features.update(additional_features)
+
                 game_vector = GameFeatureVector(
                     app_id=app_id,
                     name=name,
-                    features=features,
+                    features=all_features,
                     feature_values=feature_values,
                     feature_names=feature_names.copy()
                 )
@@ -1259,16 +1212,18 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
                 print(f"Ошибка обработки игры {app_id if 'app_id' in locals() else 'Unknown'}: {e}")
                 continue
 
-        print(f"Обработано {len(game_vectors)} игр с метриками успешности")
-        print(f"Игр с информацией о цене: {games_with_price}")
-        print(f"Игр с отзывами (min_review_count={min_review_count}): {games_with_reviews}")
+        print(f"\n✅ Обработано {len(game_vectors)} игр для кластеризации")
+        print(f"   Игр с информацией о цене: {games_with_price}")
+        print(f"   Игр с отзывами (min_review_count={min_review_count}): {games_with_reviews}")
+        print(f"   Игр с корректным возрастом: {games_with_age}")
         if skipped_low_reviews > 0:
-            print(f"Пропущено игр с малым количеством отзывов: {skipped_low_reviews}")
-        print(f"Игр с информацией о платформах: {len(platforms_count_dict)}")
-        print(f"Игр с рейтингами возраста: {len(ratings_dict)}")
+            print(f"   Пропущено игр с малым количеством отзывов: {skipped_low_reviews}")
+        if skipped_invalid_age > 0:
+            print(f"   Пропущено игр с некорректной датой релиза: {skipped_invalid_age}")
 
+        # Анализ распределения данных
         if not game_vectors:
-            print("Не удалось создать векторы")
+            print("❌ Не удалось создать векторы для кластеризации")
             return GamesClusteringData(
                 games=[],
                 feature_names=[],
@@ -1281,35 +1236,141 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             import numpy as np
             if feature_matrix:
                 X = np.array(feature_matrix)
-                print(f" Матрица признаков: {X.shape[0]} игр × {X.shape[1]} признаков")
-                print("СТАТИСТИКА ПРИЗНАКОВ:")
+                print(f"\n📊 СТАТИСТИКА ДЛЯ КЛАСТЕРИЗАЦИИ (3 признака):")
+                print(f"   Матрица признаков: {X.shape[0]} игр × {X.shape[1]} признаков")
 
-                for i, feature in enumerate(feature_names):
-                    col = X[:, i]
+                # Анализ price_rub
+                price_col = X[:, 0]
+                free_games = np.sum(price_col == 0)
+                paid_games = np.sum(price_col > 0)
 
-                    if feature == "price_rub":
-                        non_zero = np.sum(col > 0)
-                        if non_zero > 0:
-                            non_zero_values = col[col > 0]
-                            print(f"   {feature:25} {np.median(non_zero_values):.0f} руб. ({non_zero} платных игр)")
-                        else:
-                            print(f"   {feature:25} нет данных")
-                    elif feature == "positive_ratio":
-                        print(f"   {feature:25} {np.median(col) * 100:.1f}% положительных отзывов")
-                    elif feature == "rating_age":
-                        non_zero = np.sum(col > 0)
-                        if non_zero > 0:
-                            non_zero_values = col[col > 0]
-                            print(f"   {feature:25} {np.median(non_zero_values):.0f}+ лет ({non_zero} игр с рейтингом)")
-                        else:
-                            print(f"   {feature:25} нет данных")
-                    elif feature == "platforms_count":
-                        unique_counts = np.unique(col, return_counts=True)
-                        counts_str = ", ".join([f"{int(platform)} платформ: {count} игр"
-                                                for platform, count in zip(unique_counts[0], unique_counts[1])])
-                        print(f"   {feature:25} {counts_str}")
+                print(f"\n   💰 ЦЕНА (price_rub):")
+                print(f"      Всего игр: {len(price_col)}")
+                print(f"      Бесплатные игры: {free_games} ({free_games / len(price_col):.1%})")
+                print(f"      Платные игры: {paid_games} ({paid_games / len(price_col):.1%})")
+
+                if paid_games > 0:
+                    paid_prices = price_col[price_col > 0]
+                    print(f"      Средняя цена платных игр: {np.mean(paid_prices):.0f} руб.")
+                    print(f"      Медианная цена платных игр: {np.median(paid_prices):.0f} руб.")
+                    print(f"      Минимальная цена: {np.min(paid_prices):.0f} руб.")
+                    print(f"      Максимальная цена: {np.max(paid_prices):.0f} руб.")
+                    print(f"      Цены распределены: {np.percentile(paid_prices, 25):.0f} / "
+                          f"{np.percentile(paid_prices, 50):.0f} / "
+                          f"{np.percentile(paid_prices, 75):.0f} руб. (25%/50%/75%)")
+
+                # Анализ positive_ratio
+                quality_col = X[:, 1]
+                print(f"\n   ⭐ КАЧЕСТВО (positive_ratio):")
+                print(f"      Средняя доля положительных отзывов: {np.mean(quality_col):.1%}")
+                print(f"      Медианная доля: {np.median(quality_col):.1%}")
+                print(f"      Минимальная: {np.min(quality_col):.1%}")
+                print(f"      Максимальная: {np.max(quality_col):.1%}")
+
+                # Распределение по качеству
+                quality_bins = [0, 0.5, 0.7, 0.8, 0.9, 1.0]
+                quality_labels = ["Очень плохие", "Плохие", "Средние", "Хорошие", "Отличные"]
+
+                print(f"\n   📈 РАСПРЕДЕЛЕНИЕ ПО КАЧЕСТВУ:")
+                for i in range(len(quality_bins) - 1):
+                    lower = quality_bins[i]
+                    upper = quality_bins[i + 1]
+                    if i == len(quality_bins) - 2:
+                        count = np.sum((quality_col >= lower) & (quality_col <= upper))
                     else:
-                        print(f"   {feature:25} min={col.min():.3f}, med={np.median(col):.3f}, max={col.max():.3f}")
+                        count = np.sum((quality_col >= lower) & (quality_col < upper))
+                    print(f"      {quality_labels[i]}: {count} игр ({count / len(quality_col):.1%})")
+
+                # ⭐ Анализ game_age_years
+                age_col = X[:, 2]
+                print(f"\n   📅 ВОЗРАСТ ИГРЫ (game_age_years):")
+                print(f"      Средний возраст: {np.mean(age_col):.1f} лет")
+                print(f"      Медианный возраст: {np.median(age_col):.1f} лет")
+                print(f"      Самый молодой: {np.min(age_col):.1f} лет")
+                print(f"      Самый старый: {np.max(age_col):.1f} лет")
+
+                # Распределение по возрасту
+                print(f"\n   📊 РАСПРЕДЕЛЕНИЕ ПО ВОЗРАСТУ ИГР:")
+
+                # Определяем бины для возраста
+                age_bins = [0, 1, 2, 3, 5, 7, 10, 15, 20]
+                age_labels = [
+                    "<1 года", "1-2 года", "2-3 года", "3-5 лет",
+                    "5-7 лет", "7-10 лет", "10-15 лет", "15+ лет"
+                ]
+
+                for i in range(len(age_bins) - 1):
+                    lower = age_bins[i]
+                    upper = age_bins[i + 1]
+                    if i == len(age_bins) - 2:
+                        count = np.sum((age_col >= lower) & (age_col <= upper))
+                    else:
+                        count = np.sum((age_col >= lower) & (age_col < upper))
+                    if count > 0:
+                        print(f"      {age_labels[i]}: {count} игр ({count / len(age_col):.1%})")
+
+                # Процентили для возраста
+                percentiles = [25, 50, 75, 90, 95, 99]
+                print(f"      Процентили:")
+                for p in percentiles:
+                    value = np.percentile(age_col, p)
+                    print(f"        {p}%: {value:.1f} лет")
+
+                # Совместное распределение
+                print(f"\n   🔍 СОВМЕСТНОЕ РАСПРЕДЕЛЕНИЕ:")
+
+                # Новые vs Старые игры
+                new_games_mask = age_col < 2  # Игры младше 2 лет
+                old_games_mask = age_col >= 5  # Игры старше 5 лет
+
+                if np.sum(new_games_mask) > 0:
+                    new_prices = price_col[new_games_mask]
+                    new_quality = quality_col[new_games_mask]
+                    print(f"      Новые игры (<2 лет):")
+                    print(f"        Средняя цена: {np.mean(new_prices):.0f} руб.")
+                    print(f"        Среднее качество: {np.mean(new_quality):.1%}")
+                    print(f"        Количество: {np.sum(new_games_mask)} игр")
+
+                if np.sum(old_games_mask) > 0:
+                    old_prices = price_col[old_games_mask]
+                    old_quality = quality_col[old_games_mask]
+                    print(f"      Старые игры (5+ лет):")
+                    print(f"        Средняя цена: {np.mean(old_prices):.0f} руб.")
+                    print(f"        Среднее качество: {np.mean(old_quality):.1%}")
+                    print(f"        Количество: {np.sum(old_games_mask)} игр")
+
+                # Бесплатные vs Платные по возрасту
+                print(f"\n   💰 БЕСПЛАТНЫЕ vs ПЛАТНЫЕ ПО ВОЗРАСТУ:")
+                free_mask = price_col == 0
+                if np.sum(free_mask) > 0:
+                    free_ages = age_col[free_mask]
+                    print(f"      Бесплатные игры:")
+                    print(f"        Средний возраст: {np.mean(free_ages):.1f} лет")
+                    print(f"        Распределение по возрасту:")
+                    free_age_bins = [0, 2, 5, 10]
+                    for lower, upper in zip(free_age_bins[:-1], free_age_bins[1:]):
+                        count = np.sum((free_ages >= lower) & (free_ages < upper))
+                        if count > 0:
+                            print(f"          {lower}-{upper} лет: {count} игр ({count / len(free_ages):.1%})")
+
+                if paid_games > 0:
+                    paid_ages = age_col[price_col > 0]
+                    print(f"      Платные игры:")
+                    print(f"        Средний возраст: {np.mean(paid_ages):.1f} лет")
+
+                # Корреляция между признаками
+                print(f"\n   📊 КОРРЕЛЯЦИЯ МЕЖДУ ПРИЗНАКАМИ:")
+                correlation_matrix = np.corrcoef(X.T)
+                feature_names_display = ["Цена", "Качество", "Возраст"]
+
+                for i in range(len(feature_names)):
+                    for j in range(i + 1, len(feature_names)):
+                        corr = correlation_matrix[i, j]
+                        corr_strength = "сильная" if abs(corr) > 0.7 else "умеренная" if abs(corr) > 0.3 else "слабая"
+                        corr_direction = "положительная" if corr > 0 else "отрицательная"
+                        print(f"      {feature_names_display[i]} ↔ {feature_names_display[j]}: "
+                              f"{corr:.3f} ({corr_strength} {corr_direction} корреляция)")
+
         except Exception as e:
             print(f"Ошибка анализа матрицы: {e}")
 
@@ -1320,9 +1381,19 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             "min_review_count": min_review_count,
             "games_with_price": games_with_price,
             "games_with_reviews": games_with_reviews,
-            "games_with_platforms": len(platforms_count_dict),
-            "games_with_ratings": len(ratings_dict),
-            "skipped_low_reviews": skipped_low_reviews
+            "games_with_age": games_with_age,
+            "skipped_low_reviews": skipped_low_reviews,
+            "skipped_invalid_age": skipped_invalid_age,
+            "clustering_features": feature_names,
+            "feature_descriptions": {
+                "price_rub": "Текущая цена в рублях (финансы)",
+                "positive_ratio": "Доля положительных отзывов (качество игры)",
+                "game_age_years": "Возраст игры в годах (время существования)"
+            },
+            "filters_applied": [
+                f"min_review_count >= {min_review_count}",
+                "release_date IS NOT NULL (игры с известной датой релиза)"
+            ]
         }
 
         return GamesClusteringData(
@@ -1332,338 +1403,6 @@ class GameRepository(BaseDBRepository[Game, GameCreate, GameUpdate]):
             values=stats,
             ticks=feature_names
         )
-    # def get_game_clustering_data(
-    #         self,
-    #         session: Session,
-    #         type_id: int = 1,
-    #         limit: Optional[int] = None,
-    #         min_review_count: int = 5
-    # ) -> GamesClusteringData:
-    #
-    #     game_query = (
-    #         select(
-    #             Game.id,
-    #             Game.app_id,
-    #             Game.name,
-    #             Game.is_free,
-    #             Game.release_date,
-    #         )
-    #         .where(Game.type_id == type_id)
-    #         .where(Game.release_date.isnot(None))
-    #     )
-    #
-    #     if limit:
-    #         game_query = game_query.limit(limit)
-    #
-    #     try:
-    #         game_results = session.execute(game_query).all()
-    #     except Exception as e:
-    #         print(f"Ошибка выполнения запроса игр: {e}")
-    #         return GamesClusteringData(
-    #             games=[],
-    #             feature_names=[],
-    #             feature_matrix=None,
-    #             values={"total_games": 0, "feature_count": 0, "type_id": type_id},
-    #             ticks=[]
-    #         )
-    #
-    #     if not game_results:
-    #         print("Нет игр в базе")
-    #         return GamesClusteringData(
-    #             games=[],
-    #             feature_names=[],
-    #             feature_matrix=None,
-    #             values={"total_games": 0, "feature_count": 0, "type_id": type_id},
-    #             ticks=[]
-    #         )
-    #
-    #     print(f"Найдено {len(game_results)} игр")
-    #     game_ids = [row[0] for row in game_results]
-    #
-    #     latest_prices = {}
-    #     batch_size = 100
-    #
-    #     for i in range(0, len(game_ids), batch_size):
-    #         batch_ids = game_ids[i:i + batch_size]
-    #         try:
-    #             prices_subquery = (
-    #                 select(
-    #                     PriceHistory.game_id,
-    #                     PriceHistory.currency,
-    #                     PriceHistory.price_final,
-    #                     PriceHistory.price_initial,
-    #                     func.row_number().over(
-    #                         partition_by=PriceHistory.game_id,
-    #                         order_by=PriceHistory.created_at.desc()
-    #                     ).label('row_num')
-    #                 )
-    #                 .where(PriceHistory.game_id.in_(batch_ids))
-    #                 .subquery()
-    #             )
-    #
-    #             prices_query = (
-    #                 select(
-    #                     prices_subquery.c.game_id,
-    #                     prices_subquery.c.currency,
-    #                     prices_subquery.c.price_final,
-    #                     prices_subquery.c.price_initial
-    #                 )
-    #                 .where(prices_subquery.c.row_num == 1)
-    #             )
-    #
-    #             prices_result = session.execute(prices_query).all()
-    #             for row in prices_result:
-    #                 game_id, currency, price_final, price_initial = row
-    #                 price_amount = None
-    #                 if price_final is not None:
-    #                     price_amount = price_final
-    #                 elif price_initial is not None:
-    #                     price_amount = price_initial
-    #
-    #                 if price_amount is not None:
-    #                     price_rub = convert_to_rubles(float(price_amount), currency)
-    #                     MAX_PRICE_RUB = 10000.0
-    #                     if price_rub > MAX_PRICE_RUB:
-    #                         price_rub = MAX_PRICE_RUB
-    #                     latest_prices[game_id] = price_rub
-    #
-    #             if i % 500 == 0:
-    #                 print(f"  Обработано цен для {i} игр...")
-    #
-    #         except Exception as e:
-    #             print(f"Ошибка запроса цен для батча {i}: {e}")
-    #             continue
-    #
-    #     print(f"  Получено цен для {len(latest_prices)} игр")
-    #     latest_reviews = {}
-    #
-    #     for i in range(0, len(game_ids), batch_size):
-    #         batch_ids = game_ids[i:i + batch_size]
-    #         try:
-    #             reviews_subquery = (
-    #                 select(
-    #                     ReviewHistory.game_id,
-    #                     ReviewHistory.review_score,
-    #                     ReviewHistory.review_count,
-    #                     func.row_number().over(
-    #                         partition_by=ReviewHistory.game_id,
-    #                         order_by=ReviewHistory.created_at.desc()
-    #                     ).label('row_num')
-    #                 )
-    #                 .where(ReviewHistory.game_id.in_(batch_ids))
-    #                 .subquery()
-    #             )
-    #
-    #             reviews_query = (
-    #                 select(
-    #                     reviews_subquery.c.game_id,
-    #                     reviews_subquery.c.review_score,
-    #                     reviews_subquery.c.review_count
-    #                 )
-    #                 .where(reviews_subquery.c.row_num == 1)
-    #             )
-    #
-    #             reviews_result = session.execute(reviews_query).all()
-    #             for row in reviews_result:
-    #                 game_id, review_score, review_count = row
-    #                 latest_reviews[game_id] = {
-    #                     'review_score': review_score,
-    #                     'review_count': review_count
-    #                 }
-    #             if i % 500 == 0:
-    #                 print(f"  Обработано отзывов для {i} игр...")
-    #         except Exception as e:
-    #             print(f"Ошибка запроса отзывов для батча {i}: {e}")
-    #             continue
-    #     print(f"  Получено отзывов для {len(latest_reviews)} игр")
-    #     achievements_dict = {}
-    #     for i in range(0, len(game_ids), batch_size):
-    #         batch_ids = game_ids[i:i + batch_size]
-    #         try:
-    #             achievements_query = (
-    #                 select(
-    #                     Achievement.game_id,
-    #                     func.count(Achievement.id).label("achievements_count")
-    #                 )
-    #                 .where(Achievement.game_id.in_(batch_ids))
-    #                 .group_by(Achievement.game_id)
-    #             )
-    #             achievements_result = session.execute(achievements_query).all()
-    #             for row in achievements_result:
-    #                 achievements_dict[row[0]] = row[1]
-    #
-    #             if i % 500 == 0:
-    #                 print(f"  Обработано достижений для {i} игр...")
-    #
-    #         except Exception as e:
-    #             print(f"Ошибка запроса достижений для батча {i}: {e}")
-    #             continue
-    #
-    #     print(f"  Получено достижений для {len(achievements_dict)} игр")
-    #
-    #     game_vectors = []
-    #     feature_matrix = []
-    #     feature_names = [
-    #         "price_rub",  # Цена в рублях (основной финансовый показатель)
-    #         "is_free",  # Бесплатная ли игра (бинарный)
-    #         "review_score",  # Общий рейтинг (0-1) - главный показатель качества
-    #         "review_confidence",  # Уверенность в рейтинге (log10(отзывов+1))
-    #         "review_count_log",  # Логарифм количества отзывов (популярность)
-    #         "achievements_count_norm",  # Количество достижений (нормализованное)
-    #         "game_age_years",  # Возраст игры в годах
-    #         # "release_month_sin",  # Синус месяца релиза (сезонность)
-    #         # "release_month_cos",  # Косинус месяца релиза (сезонность)
-    #     ]
-    #
-    #     current_year = datetime.now().year
-    #     processed_count = 0
-    #     games_with_price = 0
-    #     games_with_reviews = 0
-    #     skipped_low_reviews = 0
-    #
-    #     import math
-    #
-    #     print(f"\nНачинаю обработку {len(game_results)} игр...")
-    #     for row in game_results:
-    #         try:
-    #             game_id, app_id, name, is_free, release_date = row
-    #             features = {}
-    #             features["is_free"] = 1.0 if is_free else 0.0
-    #
-    #             price_rub = 0.0
-    #             if is_free:
-    #                 price_rub = 0.0
-    #             elif game_id in latest_prices:
-    #                 price_rub = latest_prices[game_id]
-    #                 if price_rub > 0:
-    #                     games_with_price += 1
-    #             features["price_rub"] = price_rub
-    #             review_data = latest_reviews.get(game_id, {})
-    #             review_score = review_data.get('review_score')
-    #             review_count = review_data.get('review_count', 0)
-    #             if min_review_count > 0 and review_count < min_review_count:
-    #                 skipped_low_reviews += 1
-    #                 continue
-    #
-    #             if review_count and review_count > 0:
-    #                 games_with_reviews += 1
-    #
-    #             features["review_score"] = float(review_score or 0.0)
-    #             features["review_confidence"] = math.log10(float(review_count or 0) + 1)
-    #             features["review_count_log"] = math.log10(float(review_count or 0) + 1)
-    #             achievements = float(achievements_dict.get(game_id, 0))
-    #             features["achievements_count_norm"] = min(achievements / 1000.0, 1.0) if achievements > 0 else 0.0
-    #             if release_date:
-    #                 age = max(1, current_year - release_date.year)
-    #                 month = release_date.month
-    #             else:
-    #                 age = 1.0
-    #                 month = 1
-    #             features["game_age_years"] = float(age)
-    #             # month_rad = (month - 1) * (2 * math.pi / 12)  # Конвертируем в радианы
-    #             # features["release_month_sin"] = math.sin(month_rad)
-    #             # features["release_month_cos"] = math.cos(month_rad)
-    #
-    #             feature_values = []
-    #             for name_feature in feature_names:
-    #                 value = features.get(name_feature, 0.0)
-    #                 feature_values.append(float(value))
-    #
-    #             game_vector = GameFeatureVector(
-    #                 app_id=app_id,
-    #                 name=name,
-    #                 features=features,
-    #                 feature_values=feature_values,
-    #                 feature_names=feature_names.copy()
-    #             )
-    #
-    #             game_vectors.append(game_vector)
-    #             feature_matrix.append(feature_values)
-    #             processed_count += 1
-    #
-    #             if processed_count % 100 == 0:
-    #                 print(f"  Создано векторов для {processed_count} игр...")
-    #
-    #         except Exception as e:
-    #             print(f"Ошибка обработки игры {app_id if 'app_id' in locals() else 'Unknown'}: {e}")
-    #             continue
-    #
-    #     print(f"Обработано {len(game_vectors)} игр с метриками успешности")
-    #     print(f"Игр с информацией о цене: {games_with_price}")
-    #     print(f"Игр с отзывами (min_review_count={min_review_count}): {games_with_reviews}")
-    #     if skipped_low_reviews > 0:
-    #         print(f"Пропущено игр с малым количеством отзывов: {skipped_low_reviews}")
-    #
-    #     if not game_vectors:
-    #         print("Не удалось создать векторы")
-    #         return GamesClusteringData(
-    #             games=[],
-    #             feature_names=[],
-    #             feature_matrix=None,
-    #             values={"total_games": 0, "feature_count": 0},
-    #             ticks=[]
-    #         )
-    #     try:
-    #         import numpy as np
-    #         if feature_matrix:
-    #             X = np.array(feature_matrix)
-    #             print(f" Матрица признаков: {X.shape[0]} игр × {X.shape[1]} признаков")
-    #             print("КЛЮЧЕВЫЕ ПРИЗНАКИ УСПЕШНОСТИ:")
-    #             categories = {
-    #                 "КАЧЕСТВО": ["review_score", "review_confidence"],
-    #                 "ПОПУЛЯРНОСТЬ": ["review_count_log"],
-    #                 "ФИНАНСЫ": ["price_rub", "is_free"],
-    #                 "КОНТЕНТ": ["achievements_count_norm"],
-    #                 "ВРЕМЯ": ["game_age_years", "release_month_sin", "release_month_cos"]
-    #             }
-    #
-    #             for category, features_list in categories.items():
-    #                 print(f"\n{category}:")
-    #                 for feature in features_list:
-    #                     if feature in feature_names:
-    #                         idx = feature_names.index(feature)
-    #                         col = X[:, idx]
-    #                         if feature.endswith('_log'):
-    #                             print(f"   {feature:25} медиана={np.median(col):.2f}, std={col.std():.2f}")
-    #                         elif feature == "price_rub":
-    #                             non_zero = np.sum(col > 0)
-    #                             if non_zero > 0:
-    #                                 non_zero_values = col[col > 0]
-    #                                 print(
-    #                                     f"   {feature:25} ${np.median(non_zero_values):.0f} руб. ({non_zero} платных игр)")
-    #                             else:
-    #                                 print(f"   {feature:25} нет данных")
-    #                         else:
-    #                             print(
-    #                                 f"   {feature:25} min={col.min():.3f}, med={np.median(col):.3f}, max={col.max():.3f}")
-    #     except Exception as e:
-    #         print(f"Ошибка анализа матрицы: {e}")
-    #
-    #     stats = {
-    #         "total_games": len(game_vectors),
-    #         "feature_count": len(feature_names),
-    #         "type_id": type_id,
-    #         "min_review_count": min_review_count,
-    #         "games_with_price": games_with_price,
-    #         "games_with_reviews": games_with_reviews,
-    #         "skipped_low_reviews": skipped_low_reviews,
-    #         "feature_categories": {
-    #             "quality": ["review_score", "review_confidence"],
-    #             "popularity": ["review_count_log"],
-    #             "financial": ["price_rub", "is_free"],
-    #             "content": ["achievements_count_norm"],
-    #             # "temporal": ["game_age_years", "release_month_sin", "release_month_cos"],
-    #             "temporal": ["game_age_years"]
-    #         }
-    #     }
-    #
-    #     return GamesClusteringData(
-    #         games=game_vectors,
-    #         feature_names=feature_names,
-    #         feature_matrix=feature_matrix,
-    #         values=stats,
-    #         ticks=feature_names
-    #     )
 
     def get_2d_hist_data(
             self,

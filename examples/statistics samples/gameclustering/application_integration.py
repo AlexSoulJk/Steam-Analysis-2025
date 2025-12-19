@@ -30,7 +30,10 @@ def release_by_season():
 
 def clustering():
     app = Application(path_to_save_work=examples_statistics_images_path)
-    app.generate_game_clustering(method="kmeans", auto_select_params=False)
+    app.generate_game_clustering(method="kmeans", auto_select_params=False, n_clusters=7)
+    # app.generate_game_clustering(method="kmeans", auto_select_params=True)
+    # app.generate_game_clustering(method="dbscan", auto_select_params=True)
+    # app.generate_game_clustering(method="dbscan", auto_select_params=False)
 
 
 if __name__ == "__main__":

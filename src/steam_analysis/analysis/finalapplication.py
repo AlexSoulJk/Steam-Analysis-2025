@@ -274,26 +274,6 @@ class Application:
         self.logger.info(f"Графики цен по {type} сохранены")
         print(f"Графики цен по {type} сохранены")
 
-    # def generate_distribution_dynamics_(self, n: int = 5, type: str = "category"):
-    #     path_for_json = self.folder_prices / Path(f"dynamics_by_{type}.json")
-    #     path_for_plot = self.folder_prices / Path(f"dynamics_by_{type}_plot.png")
-    #     print(f"Графики цен по {type} будут сохранены в {self.folder_prices}")
-    #     if type == "category":
-    #         data_for_response = self.data_provider.get_categories_dynamics(n_columns=n)
-    #         title_name = f"{self.TITLES['Clustering']['CategoryDynamics']} (Топ-{n})"
-    #         xlabel_val = "Категория"
-    #     else:
-    #         data_for_response = self.data_provider.get_genres_dynamics(n_columns=n)
-    #         title_name = f"{self.TITLES['Clustering']['GenreDynamics']} (Топ-{n})"
-    #         xlabel_val = "Жанр"
-    #     if not data_for_response:
-    #         self.logger.warning(f"Нет данных о ценах по {type}")
-    #         print(f"Нет данных о ценах по {type}")
-    #         return
-    #
-    #
-    #     pass
-
     def generate_distribution_dynamics(self, n: int = 5, type: str = "category", years_back: int = 5):
         """
         Генерирует график динамики релизов по категориям или жанрам
@@ -433,15 +413,13 @@ class Application:
                     method=method,
                     n_clusters=min(n_clusters, len(data_for_response.games) // 2),
                     features_to_show= [
-                        "price_rub",  # Цена в рублях
-                        "is_free",  # Бесплатная ли игра
-                        "positive_ratio",  # Доля положительных отзывов (0-1)
-                        "achievements_count_norm",  # Количество достижений (нормализованное)
-                        "game_age_years",  # Возраст игры в годах
-                        "platforms_count",  # Количество поддерживаемых платформ
-                        "rating_age",  # Рекомендованный возраст
+                        "price_rub",            # Финансы
+                        "positive_ratio",       # Качество
+                        "game_age_years"        # Время ⭐
                     ],
                     auto_select_params=auto_select_params,
+                    make_3d_viz=True,  # Вместо create_3d_visualization
+                    make_interactive_3d=False
                 )
             else:
                 self.logger.warning(
